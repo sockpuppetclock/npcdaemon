@@ -398,7 +398,7 @@ function FadeIns()
 				// spawn effects
 				if ntbl["npc_t"]["spawneffect"] then
 					for _, sf in pairs(ntbl["npc_t"]["spawneffect"]) do
-						CreateEffect(sf, npc, nil)
+						CreateEffect(sf, npc, npc:GetPos())
 					end
 				end
 			end
@@ -452,7 +452,7 @@ function CreateEffect( aeff_t, npc, pos, useActiveVer )
 	if !aeff_t then return end
 	local npc = npc
 	local pos = pos
-	local eff_t		
+	local eff_t
 
 	-- if !aeff_t.id then
 	-- 	eff_lastid = eff_lastid+1
@@ -529,7 +529,7 @@ function CreateEffect( aeff_t, npc, pos, useActiveVer )
 					timer.Simple(i * delay, function() CreateSnd( npc, eff_t, pos, aeff_t ) end )
 				end
 			end
-		else			
+		else		
 			if eff_t["type"] == "particle" and eff_t["pcf"] then
 				if eff_t["delay"] then 
 					timer.Simple(eff_t["delay"], function() CreateParticle( npc, eff_t, pos, aeff_t ) end )
@@ -661,7 +661,7 @@ function CreateSnd( npc, eff_t, pos, aeff_t )
 		activeSound[npc] = activeSound[npc] or {}
 		activeSound[npc][ eff_t["name"] ] = true // needed to stop looping sounds
     else
-        //EmitSound( string soundName, Vector position, number entity = 0, number channel = CHAN_AUTO, number volume = 1, number soundLevel = 75, number soundFlags = 0, number pitch = 100, number dsp = 0, CRecipientFilter filter = nil )
+        // EmitSound( string soundName, Vector position, number entity = 0, number channel = CHAN_AUTO, number volume = 1, number soundLevel = 75, number soundFlags = 0, number pitch = 100, number dsp = 0, CRecipientFilter filter = nil )
         // Entity:EmitSound( string soundName, number soundLevel = 75, number pitchPercent = 100, number volume = 1, number channel = CHAN_AUTO, CHAN_WEAPON for weapons, number soundFlags = 0, number dsp = 0, CRecipientFilter filter = nil )
         local soundpoint = ents.Create( "info_null" )
         soundpoint:SetPos(pos)

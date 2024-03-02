@@ -215,6 +215,7 @@ function CheckPlayerPrsCondition( ply, prsname, acond_t )
 
 		if valid then
 			for k, val in pairs( cond ) do
+            if k == nil or ply_cfunc[k] == nil then continue end;
 				local chk = ply_cfunc[k]( ply, val, prsname )
 				if !chk then
 					valid = false

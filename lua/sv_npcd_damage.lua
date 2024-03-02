@@ -547,7 +547,7 @@ end
 
 function DamageFilter( dmg, afilter, atkr, victim, apply, took )
 
-	if dmg == nil or !afilter or !IsValid( atkr ) or !IsValid( victim ) then
+	if !dmg or !afilter or !IsValid( atkr ) or !IsValid( victim ) then
 		-- if debugged then print( "npcd > DamageFilter > failed:", dmg, afilter, atkr, victim ) end
 		return
 	end
@@ -662,9 +662,9 @@ function DamageFilter( dmg, afilter, atkr, victim, apply, took )
 	if filter["damageadd"] then 
 		dmg:SetDamage( dmg:GetDamage() + filter["damageadd"] )
 	end
-
+   
 	// >0 or ~=0 ? the purpose is because other filters may set dmg to 0, e.g. hitgroup filter
-	if ( dmg:GetDamage() != 0 or !filter["minmax_zero"] ) and ( filter["min"] or filter["max"] ) then
+	if ( dmg and dmg:GetDamage() != 0 or !filter["minmax_zero"] ) and ( filter["min"] or filter["max"] ) then
 		dmg:SetDamage(math.Clamp(dmg:GetDamage(), filter["min"] or -math.huge, filter["max"] or math.huge ))
 	end
 

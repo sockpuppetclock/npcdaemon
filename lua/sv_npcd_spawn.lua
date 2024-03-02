@@ -515,7 +515,7 @@ function SpawnNPC( presetName, anpc_t, pos, ang, squad_t, npcOverride, doFadeIns
 			end
 			if npc_t.spawneffect then
 				for _, sf in pairs(npc_t["spawneffect"]) do
-					CreateEffect( sf, npc, nil )
+					CreateEffect( sf, npc, npc:GetPos() )
 				end
 			end
 		end
@@ -1698,7 +1698,7 @@ function SpawnItem( itemclass, drop_t, pos, ang )
 
 	if ndrop_t and ndrop_t.spawneffect then
 		for _, sf in pairs(ndrop_t["spawneffect"]) do
-			CreateEffect( sf, item, nil )
+			CreateEffect( sf, item, item:GetPos() )
 		end
 	end
 
@@ -1880,7 +1880,7 @@ function SpawnWeapon( a_wset, windex, pos, ang, wielder, npc_t, squad_t, pool )
 	
 	if wep_t.spawneffect and wielder == nil then
 		for _, sf in pairs(wep_t["spawneffect"]) do
-			CreateEffect( sf, wep, nil )
+			CreateEffect( sf, wep, wep:GetPos() )
 		end
 	end
 	
@@ -2133,7 +2133,9 @@ function SpawnDrop( ent, dpos, ang, drop_t, ntbl, dset_t, depth )
 			OverrideTable( newdrop_t, dset_t, "entity", "drop_set", true )
 		end
 
-		valid = SpawnItem( GetPresetName( newdrop_t.classname ), newdrop_t, pos + ( newdrop_t.offset or Vector() ) )
+      ApplyValueTable( newdrop_t, t_lookup.item )
+
+		valid = SpawnItem( GetPresetName( newdrop_t.classname ), newdrop_t, pos + ( isvector(newdrop_t.offset) or Vector() ) )
 	else
 		print( "npcd > SpawnDrop > neither valid preset nor entity?", drop_t.type, drop_t.preset, drop_t.entity_values )
 	end
