@@ -2135,7 +2135,7 @@ function SpawnDrop( ent, dpos, ang, drop_t, ntbl, dset_t, depth )
 
       ApplyValueTable( newdrop_t, t_lookup.item )
 
-		valid = SpawnItem( GetPresetName( newdrop_t.classname ), newdrop_t, pos + ( isvector(newdrop_t.offset) or Vector() ) )
+		valid = SpawnItem( GetPresetName( newdrop_t.classname ), newdrop_t, pos + ( drop_t.offset or Vector() ) + ( isvector(newdrop_t.offset) and newdrop_t.offset or Vector() ) )
 	else
 		print( "npcd > SpawnDrop > neither valid preset nor entity?", drop_t.type, drop_t.preset, drop_t.entity_values )
 	end
