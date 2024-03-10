@@ -3778,27 +3778,27 @@ function AddFunctionPanel( npanel, inspanel )
 
 		inspanel.valuer.funcpanel.min.OnValueChanged = function( panel, val )
 			inspanel.valuer.funcpanel:InitPend()
-			local val = val
+			local val = tonumber(val)
 			if npanel.structTbl.MAX and val > npanel.structTbl.MAX then val = npanel.structTbl.MAX end
 			if npanel.structTbl.MIN and val < npanel.structTbl.MIN then val = npanel.structTbl.MIN end
 
 			if inspanel.valuer.func == "__RANDOM" then
 				npanel.pendingTbl[npanel.valueName][2] = math.Round( val )
 			else
-				npanel.pendingTbl[npanel.valueName][2] = tonumber( val )
+				npanel.pendingTbl[npanel.valueName][2] = val
 			end
 			npanel:Update()
 		end
 		inspanel.valuer.funcpanel.max.OnValueChanged = function( panel, val )
 			inspanel.valuer.funcpanel:InitPend()
-			local val = val
+			local val = tonumber(val)
 			if npanel.structTbl.MAX and val > npanel.structTbl.MAX then val = npanel.structTbl.MAX end
 			if npanel.structTbl.MIN and val < npanel.structTbl.MIN then val = npanel.structTbl.MIN end
 
 			if inspanel.valuer.func == "__RANDOM" then
 				npanel.pendingTbl[npanel.valueName][3] = math.Round( val )
 			else
-				npanel.pendingTbl[npanel.valueName][3] = tonumber( val )
+				npanel.pendingTbl[npanel.valueName][3] = val
 			end
 			npanel:Update()
 		end
@@ -3809,6 +3809,8 @@ function AddFunctionPanel( npanel, inspanel )
 			inspanel.valuer.funcpanel.max:SetDecimals( 0 )
 			
 			inspanel.valuer.funcpanel:InitPend()
+      elseif inspanel.valuer.func == "__RAND" then
+         inspanel.valuer.funcpanel:InitPend()
 		end
 
 		inspanel.valuer.funcpanel:SetHeight( inspanel.valuer.funcpanel.min:GetTall() + inspanel.valuer.funcpanel.max:GetTall() )
@@ -5242,10 +5244,11 @@ function AddNumberPanel( npanel, inspanel, focus )
 		if focus then inspanel.valuer.wanger:RequestFocus() end
 
 		inspanel.valuer.wanger.OnValueChanged = function( panel, val )
+         local val = tonumber(val)
 			if npanel.typ == "int" then
 				npanel.pendingTbl[npanel.valueName] = math.Round( val )
 			else
-				npanel.pendingTbl[npanel.valueName] = tonumber( val ) // bug: wang arrows makes val a string
+				npanel.pendingTbl[npanel.valueName] = val
 			end
 
 			-- print( type(val), type(tonumber(val)) )
