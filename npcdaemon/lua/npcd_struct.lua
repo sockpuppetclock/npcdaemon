@@ -315,7 +315,7 @@ t_basevalue_format = {
 t_FUNCS = {
 	["__RANDOM"] = {
 		NAME = "math.random (int)",
-		FUNCTION = math.random,
+		FUNCTION = RandomInt,
 		-- STRUCT = {
 		-- 	["min"] = {
 		-- 		DEFAULT = 0,
@@ -330,7 +330,7 @@ t_FUNCS = {
 	},
 	["__RAND"] = {
 		NAME = "math.Rand (decimal)",
-		FUNCTION = math.Rand,
+		FUNCTION = RandomDecimal,
 		-- STRUCT = {
 		-- 	["min"] = {
 		-- 		DEFAULT = 0,

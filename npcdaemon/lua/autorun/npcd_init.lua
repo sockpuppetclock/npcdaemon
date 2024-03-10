@@ -4,7 +4,7 @@
 module( "npcd", package.seeall )
 AddCSLuaFile()
 
-NPCD_VERSION = 45
+NPCD_VERSION = 46
 --[[
 	checkpoints:
 		1: initial release
@@ -32,6 +32,14 @@ end
 
 function RandomVector( xmin, xmax, ymin, ymax, zmin, zmax )
 	return Vector( math.Rand( xmin or -1, xmax or 1 ), math.Rand( ymin or -1, ymax or 1 ), math.Rand( zmin or -1, zmax or 1 ) )
+end
+
+function RandomInt( min, max )
+   return math.random( min or 0, max or 1 )
+end
+
+function RandomDecimal( min, max )
+   return math.Rand( min or 0, max or 1 )
 end
 
 function GetPlyTrPos( ply )

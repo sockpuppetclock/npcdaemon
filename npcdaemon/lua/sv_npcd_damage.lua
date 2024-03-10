@@ -1194,7 +1194,7 @@ hook.Add("EntityTakeDamage", "NPCD Damage", function( ent, dmg )
 					end
 
 					if drops.multidrop_dmg then
-						for i=drops.multidrop_dmg,math.min( dmg:GetDamage(), ent:Health() ),drops.multidrop_dmg do
+						for i=drops.multidrop_dmg,math.min( dmg:GetDamage(), ent:Health() ),math.max(1,drops.multidrop_dmg) do
 							if math.random() < chance then
 								if Settings.drop_set[ drops.drop_set["name"] ] then
 									AddDropQueue( ent, pos, ang, Settings.drop_set[ drops.drop_set["name"] ], ntbl )
