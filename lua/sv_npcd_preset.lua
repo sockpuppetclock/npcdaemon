@@ -298,6 +298,18 @@ function RecursiveValueSearch(tbl, find, onfind, depth, truth)
    return r
 end
 
+local patch_save_queue = {}
+function PatchSaver()
+   for p, time in pairs(patch_save_queue) do
+      if RealTime() >= time then
+         SaveProfile(p)
+         patch_save_queue[p] = nil
+      else
+         timer.Simple( 1, PatchSaver )
+      end
+   end
+end
+
 local f_patches = {
 	// 20: squadpools removed from squads preset -> squadpools list their own spawns
 	[20] = function( typ, preset_name, insTable, profilename, onlyReturn, insert, displayprofname )
@@ -335,7 +347,6 @@ local f_patches = {
 	end,
    // "inputs" table to struct
    [47] = function(typ, preset_name, insTable, profilename, onlyReturn, insert, displayprofname)
-      
       local f = function(tbl)
          local p = false
          for _, t in pairs(tbl) do
@@ -355,8 +366,10 @@ local f_patches = {
 		if !profile then return nil end
       patched = RecursiveValueSearch(insTable, "inputs", f)
       if patched then
-         local msg = "NPCD Preset \""..tostring(preset_name).."\" has been patched: Restructured \"inputs\" value (Entity I/O)"
+         local msg = "NPCD preset ["..tostring(displayprofname or profilename).." > "..tostring(preset_name).."] has been patched: Restructured \"Inputs\" value"
          AddPatchInform( msg )
+         patch_save_queue[displayprofname or profilename] = RealTime() + 2
+         timer.Simple( 2, PatchSaver )
       end
    end,
 }
@@ -407,6 +420,7 @@ function ProfilePatches( prof, profname )
 	return patched
 end
 
+// keep patch message for given time (for new connections after patched)
 function SetPatchInformTime( time )
 	PatchInform = CurTime() + ( time or 60 )
 	timer.Simple( ( time and time + 1 or 61 ), function()
@@ -417,6 +431,7 @@ function SetPatchInformTime( time )
 	end )
 end
 
+// broadcast patch message
 function AddPatchInform( msg, time )
 	if !msg then return end
 	print( msg )

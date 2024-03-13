@@ -847,6 +847,7 @@ net.Receive("npcd_cl_ready", function( len, ply )
 				net.WriteColor( RandomColor( 50, 55, 0.5, 1, 1, 1 ) )
 			net.Send( ply )
 		end
+      // inform of preset patches that occured before loading in
 		if PatchInform and CurTime() <= PatchInform then
 			for _, msg in ipairs( PatchInformList ) do
 				net.Start( "npcd_announce" )
