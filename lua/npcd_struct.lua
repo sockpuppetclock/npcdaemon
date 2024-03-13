@@ -3951,31 +3951,40 @@ t_basic_values = {
 		CATEGORY = t_CAT.MISC,
 		DESC = "Entity I/O, using Entity:Fire()",
 		-- FUNCTION = {}, --[[ SpawnNPC() ]]
-		TYPE = "table",
-		TBLSTRUCT = {
-			TYPE = "table",
-			TBLSTRUCT = {
-				TYPE = "any",
-			},
-			ENUM = {
-				["Ignite"] = { "Ignite" },
-				["IgniteLifetime"] = { "IgniteLifetime", 30 },
-				["Break"] = { "Break" },
-				["BecomeRagdoll"] = { "BecomeRagdoll" },
-				["StartScripting"] = { "StartScripting" },
-				["StopScripting"] = { "StopScripting" },
-				["Wake"] = { "Wake" },
-				["GagEnable"] = { "GagEnable" },
-				["GagDisable"] = { "GagDisable" },
-				["IgnoreDangerSounds"] = { "IgnoreDangerSounds", 120 },
-				["HolsterWeapon"] = { "HolsterWeapon" },
-				["UnholsterWeapon"] = { "UnholsterWeapon" },
-				["HolsterAndDestroyWeapon"] = { "HolsterAndDestroyWeapon" },
-				["DisableShadow"] = { "DisableShadow" },
-				["EnableShadow"] = { "EnableShadow" },
-				["DisableReceivingFlashlight"] = { "DisableReceivingFlashlight" },
-				["EnableReceivingFlashlight"] = { "EnableReceivingFlashlight" },
-			},
+		TYPE = "struct_table",
+		STRUCT = {
+         //string input, string param = nil, number delay = 0, Entity activator = nil, Entity caller = nil
+         ["command"] = {
+            TYPE = "string",
+            REQUIRED = true,
+            ENUM = {
+               ["Ignite"] =  "Ignite",
+               ["IgniteLifetime"] =  "IgniteLifetime",
+               ["Break"] =  "Break" ,
+               ["BecomeRagdoll"] =  "BecomeRagdoll" ,
+               ["StartScripting"] =  "StartScripting" ,
+               ["StopScripting"] =  "StopScripting" ,
+               ["Wake"] =  "Wake" ,
+               ["GagEnable"] =  "GagEnable" ,
+               ["GagDisable"] =  "GagDisable" ,
+               ["IgnoreDangerSounds"] =  "IgnoreDangerSounds",
+               ["HolsterWeapon"] =  "HolsterWeapon" ,
+               ["UnholsterWeapon"] =  "UnholsterWeapon" ,
+               ["HolsterAndDestroyWeapon"] =  "HolsterAndDestroyWeapon" ,
+               ["DisableShadow"] =  "DisableShadow" ,
+               ["EnableShadow"] =  "EnableShadow" ,
+               ["DisableReceivingFlashlight"] =  "DisableReceivingFlashlight" ,
+               ["EnableReceivingFlashlight"] =  "EnableReceivingFlashlight" ,
+            },
+         },
+         ["value"] = {
+            DESC = "The value to send with the command",
+            TYPE = { "string", "int", "number", "boolean"},
+         },
+         ["delay"] = {
+            DESC = "In seconds",
+            TYPE = { "number", "int" },
+         },
 		},
 	},
 
@@ -5979,23 +5988,33 @@ t_npc_class_values = {
 	},
 	["npc_vortigaunt"] = {
 		["inputs"] = { -- [[ PostEntitySpawn() ]]
-			TYPE = "table",
-			TBLSTRUCT = {
-				TYPE = "table",
-				TBLSTRUCT = {
-					TYPE = "any",
-				},
-				ENUM = {
-					["EnableArmorRecharge"] = { "EnableArmorRecharge" },
-					["DisableArmorRecharge"] = { "DisableArmorRecharge" },
-					["EnableHealthRegeneration"] = { "EnableHealthRegeneration" },
-					["DisableHealthRegeneration"] = { "DisableHealthRegeneration" },
-					["TurnBlue"] = { "TurnBlue", true }, 
-					["TurnBlack"] = { "TurnBlack", true },
-				},
-			},
-		},
-	},
+         CATEGORY = t_CAT.MISC,
+         DESC = "Entity I/O, using Entity:Fire()",
+         TYPE = "struct_table",
+         STRUCT = {
+            ["command"] = {
+               TYPE = "string",
+               REQUIRED = true,
+               ENUM = {
+                  ["EnableArmorRecharge"] =  "EnableArmorRecharge" ,
+                  ["DisableArmorRecharge"] =  "DisableArmorRecharge" ,
+                  ["EnableHealthRegeneration"] =  "EnableHealthRegeneration" ,
+                  ["DisableHealthRegeneration"] =  "DisableHealthRegeneration" ,
+                  ["TurnBlue"] =  "TurnBlue",
+                  ["TurnBlack"] =  "TurnBlack",
+               },
+			   },
+            ["value"] = {
+               DESC = "The value to send with the command",
+               TYPE = { "string", "int", "number", "boolean"},
+            },
+            ["delay"] = {
+               DESC = "In seconds",
+               TYPE = { "number", "int" },
+            },
+		   },
+	   },
+   },
 }
 
 t_weapon_values = {
@@ -7387,6 +7406,21 @@ for cl, clt in pairs( t_enum_merge ) do
 						ctbl[vn].TBLSTRUCT.ENUM[k] = v
 					end
 				end
+			end
+
+         if ctbl[vn] and ctbl[vn].STRUCT
+			and t_lookup[cl][vn] and t_lookup[cl][vn].STRUCT then
+         // and  t_lookup[cl][vn].TBLSTRUCT.ENUM then
+            for j, jt in pairs(ctbl[vn].STRUCT) do
+               if t_lookup[cl][vn].STRUCT[j].ENUM then
+                  ctbl[vn].STRUCT[j].ENUM = ctbl[vn].STRUCT[j].ENUM or {}
+                  for k, v in pairs( t_lookup[cl][vn].STRUCT[j].ENUM ) do
+                     if ctbl[vn].STRUCT[j].ENUM[k] == nil then
+                        ctbl[vn].STRUCT[j].ENUM[k] = v
+                     end
+                  end
+               end
+            end
 			end
 		end
 	end

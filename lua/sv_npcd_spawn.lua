@@ -745,10 +745,11 @@ function PostEntitySpawn( ent, ent_t )
 
 	if ent_t.inputs then
 		for _, itbl in pairs(ent_t.inputs) do // table of tables
-			SetEntValues( ent, itbl, "inputs", t_lookup[ent_t.entity_type]["inputs"].TBLSTRUCT )
-			-- print( "input", unpack( itbl ) )
-			if !table.IsEmpty( itbl ) then
-				ent:Fire( unpack( itbl ) )
+			-- SetEntValues( ent, itbl, "inputs", t_lookup[ent_t.entity_type]["inputs"].STRUCT )
+         ApplyValueTable(itbl, t_lookup[ent_t.entity_type]["inputs"].STRUCT)
+			-- PrintTable(itbl)
+			if !table.IsEmpty( itbl ) and itbl["command"] != nil then
+				ent:Fire( itbl["command"], itbl["value"], itbl["delay"] )
 			end
 		end
 	end
