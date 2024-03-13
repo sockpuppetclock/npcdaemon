@@ -677,11 +677,15 @@ function DoRoutine( name )
 	end
 	local noerred, err
 	if routines[name].cr then
-		noerred, err = coroutine.resume( routines[name].cr )
-		if !noerred or err then Error("\ncoroutine \"" .. name .. "\" did something weird: ", err,"\n\n") end
+		-- noerred, err = coroutine.resume( routines[name].cr )
+		-- coroutine.resume( routines[name].cr )
+		routines[name].cr()
+		-- if !noerred or err then Error("\ncoroutine \"" .. name .. "\" did something weird: ", err,"\n\n") end
 	end
-	if ( !routines[name].cr or !noerred ) then
-		routines[name].cr = coroutine.create( routines[name].func )
+	-- if ( !routines[name].cr or !noerred ) then
+	if ( !routines[name].cr ) then
+		-- routines[name].cr = coroutine.create( routines[name].func )
+		routines[name].cr = coroutine.wrap( routines[name].func )
 	end
 end
 
