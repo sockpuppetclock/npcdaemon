@@ -283,6 +283,21 @@ end
 -- 	countupdated = true
 -- end
 
+function RecursiveValueSearch(tbl, find, onfind, depth, truth)
+   local d = depth or 0
+   if d > 10 then return nil end
+   local r = truth
+   for dk, dv in pairs(tbl) do
+      if istable(dv) then
+         if dk == find then
+            return onfind(dv)
+         end
+         r = RecursiveValueSearch(dv, find, onfind, d+1, r)
+      end
+   end
+   return r
+end
+
 local f_patches = {
 	// 20: squadpools removed from squads preset -> squadpools list their own spawns
 	[20] = function( typ, preset_name, insTable, profilename, onlyReturn, insert, displayprofname )
@@ -318,6 +333,32 @@ local f_patches = {
 			insTable["squadpools"] = nil
 		end
 	end,
+   // "inputs" table to struct
+   [47] = function(typ, preset_name, insTable, profilename, onlyReturn, insert, displayprofname)
+      
+      local f = function(tbl)
+         local p = false
+         for _, t in pairs(tbl) do
+            if !p and (t[1] or t[2] or t[3]) then p = true end
+            t["command"] = t["command"] or t[1]
+            t[1] = nil
+            t["value"] = t["value"] or t[2]
+            t[2] = nil
+            t["delay"] = t["delay"] or isnumber(t[3]) and t[3] or nil
+            t[3] = nil
+         end
+         return p
+      end
+
+      local patched = false
+      local profile = insert or profilename and Profiles[profilename] or nil
+		if !profile then return nil end
+      patched = RecursiveValueSearch(insTable, "inputs", f)
+      if patched then
+         local msg = "NPCD Preset \""..tostring(preset_name).."\" has been patched: Restructured \"inputs\" value (Entity I/O)"
+         AddPatchInform( msg )
+      end
+   end,
 }
 
 function PresetPatches( typ, preset_name, insTable, profilename, onlyReturn, insert, displayprofname )
