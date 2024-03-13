@@ -6632,9 +6632,9 @@ npcd.QueuePostQuery( profile_name, 30, function()
 		["maxhealth"] = 50,
 		["model"] = {
 			[1] = "__TBLRANDOM",
-			[2] = "models/props/CS_militia/bottle01.mdl",
-			[3] = "models/props/CS_militia/bottle02.mdl",
-			[4] = "models/props/CS_militia/bottle03.mdl",
+			[2] = "models/props_junk/garbage_glassbottle003a.mdl",
+         [3] = "models/props_junk/glassbottle01a.mdl",
+         [4] = "models/props_junk/garbage_glassbottle001a.mdl"
 		},
 		["npcd_enabled"] = true,
 		["physcollide"] = {
