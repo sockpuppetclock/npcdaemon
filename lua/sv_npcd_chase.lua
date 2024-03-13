@@ -436,7 +436,7 @@ function ManageSchedules()
 			if !IsValid(npc) then continue end
 			
 			// chasing: initiate chase
-			if valid_chase[npc] then
+			if valid_chase[npc] and activeNPC[npc] then
 				local c_ply = valid_chase[npc][math.random(1,#valid_chase[npc])]
 				if IsValid( c_ply ) then
 					activeNPC[npc]["chasing"] = c_ply
