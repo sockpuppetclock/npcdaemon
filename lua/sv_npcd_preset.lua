@@ -298,6 +298,7 @@ function RecursiveValueSearch(tbl, find, onfind, depth, truth)
    return r
 end
 
+// patch_save_queue[profile name] = RealTime() + delay
 local patch_save_queue = {}
 function PatchSaver()
    for p, time in pairs(patch_save_queue) do
