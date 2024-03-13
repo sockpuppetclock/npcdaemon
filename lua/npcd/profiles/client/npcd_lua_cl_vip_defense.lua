@@ -583,10 +583,10 @@ npcd.QueuePostQuery( profile_name, 30, function()
 		["gmod_allowphysgun"] = false,
 		["inputs"] = {
 			[1] = {
-				[1] = "Unpack",
+				["command"] = "Unpack",
 			},
 			[2] = {
-				[1] = "Wake",
+				["command"] = "Wake",
 			},
 		},
 		["material"] = {
@@ -740,7 +740,7 @@ npcd.QueuePostQuery( profile_name, 30, function()
 		["entity_type"] = "npc",
 		["inputs"] = {
 			[1] = {
-				[1] = "DisableWeaponPickup",
+				["command"] = "DisableWeaponPickup",
 			},
 		},
 		["material"] = "models/player/shared/gold_player",
@@ -910,10 +910,10 @@ npcd.QueuePostQuery( profile_name, 30, function()
 		["entity_type"] = "npc",
 		["inputs"] = {
 			[1] = {
-				[1] = "DisableWeaponPickup",
+				["command"] = "DisableWeaponPickup",
 			},
 			[2] = {
-				[1] = "MakeGameEndAlly",
+				["command"] = "MakeGameEndAlly",
 			},
 		},
 		["material"] = "models/player/shared/gold_player",

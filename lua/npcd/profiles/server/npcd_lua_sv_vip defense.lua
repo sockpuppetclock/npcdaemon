@@ -578,10 +578,10 @@ npcd.CreatePreset( "npc", "Brainhack", {
 	["gmod_allowphysgun"] = false,
 	["inputs"] = {
 		[1] = {
-			[1] = "Unpack",
+			["command"] = "Unpack",
 		},
 		[2] = {
-			[1] = "Wake",
+			["command"] = "Wake",
 		},
 	},
 	["material"] = {
@@ -735,7 +735,7 @@ npcd.CreatePreset( "npc", "VIP", {
 	["entity_type"] = "npc",
 	["inputs"] = {
 		[1] = {
-			[1] = "DisableWeaponPickup",
+			["command"] = "DisableWeaponPickup",
 		},
 	},
 	["material"] = "models/player/shared/gold_player",
@@ -905,10 +905,10 @@ npcd.CreatePreset( "npc", "VIP (Mission Critical)", {
 	["entity_type"] = "npc",
 	["inputs"] = {
 		[1] = {
-			[1] = "DisableWeaponPickup",
+			["command"] = "DisableWeaponPickup",
 		},
 		[2] = {
-			[1] = "MakeGameEndAlly",
+			["command"] = "MakeGameEndAlly",
 		},
 	},
 	["material"] = "models/player/shared/gold_player",

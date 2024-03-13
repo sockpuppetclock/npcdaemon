@@ -3271,10 +3271,10 @@ npcd.QueuePostQuery( profile_name, 30, function()
 		["gmod_allowphysgun"] = false,
 		["inputs"] = {
 			[1] = {
-				[1] = "Unpack",
+				["command"] = "Unpack",
 			},
 			[2] = {
-				[1] = "Wake",
+				["command"] = "Wake",
 			},
 		},
 		["material"] = {

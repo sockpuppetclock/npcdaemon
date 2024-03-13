@@ -3266,10 +3266,10 @@ npcd.CreatePreset( "npc", "Brainhack", {
 	["gmod_allowphysgun"] = false,
 	["inputs"] = {
 		[1] = {
-			[1] = "Unpack",
+			["command"] = "Unpack",
 		},
 		[2] = {
-			[1] = "Wake",
+			["command"] = "Wake",
 		},
 	},
 	["material"] = {
