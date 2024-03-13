@@ -654,7 +654,7 @@ cvar = {
 		sort = "NZ",
 	},
 	spawn_initdisabled = {
-		v = CreateConVar("npcd_spawn_startdisabled", 0, cf, "If true, auto-spawning is always disabled on map start", 0, 1),
+		v = CreateConVar("npcd_spawn_startdisabled", 1, cf, "If true, auto-spawning is always disabled on map start", 0, 1),
 		t = "boolean",
 		n = "Auto-Spawning Starts Disabled",
 		c = "Auto-Spawner",
