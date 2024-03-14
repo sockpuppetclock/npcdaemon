@@ -1071,7 +1071,7 @@ npcd.QueuePostQuery( profile_name, 30, function()
 			[3] = {
 				["despawn"] = true,
 				["despawn_tooclose"] = 3000,
-				["maxradius"] = 7800,
+				["maxradius"] = 32768,
 				["minradius"] = 0,
 				["nospawn"] = true,
 				["radius_autoadjust_max"] = true,

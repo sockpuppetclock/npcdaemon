@@ -1448,7 +1448,7 @@ npcd.CreatePreset( "squadpool", "Enemies", {
 		[2] = {
 			["despawn"] = true,
 			["despawn_ignorenear"] = 1250,
-			["maxradius"] = 15000,
+			["maxradius"] = 32768,
 			["minradius"] = 3000,
 			["radius_autoadjust_max"] = true,
 		},
