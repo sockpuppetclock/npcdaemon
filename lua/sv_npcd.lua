@@ -670,22 +670,28 @@ function AddRoutine( name, func )
 	-- routines[name].cr = nil
 end
 
+routine_dead = {
+   ["dead"] = true
+}
+
 function DoRoutine( name )
 	if !routines[name] then
 		Error( "npcd > DoRoutine > Invalid routine: ", name )
 		return
 	end
 	local noerred, err
-	if routines[name].cr then
+	if routines[name].cr and !routine_dead[coroutine.status(routines[name].thread)] then
 		-- noerred, err = coroutine.resume( routines[name].cr )
 		-- coroutine.resume( routines[name].cr )
 		routines[name].cr()
 		-- if !noerred or err then Error("\ncoroutine \"" .. name .. "\" did something weird: ", err,"\n\n") end
-	end
 	-- if ( !routines[name].cr or !noerred ) then
-	if ( !routines[name].cr ) then
+	-- if ( !routines[name].cr ) then
+   else
+      if debugged then print("npcd > DoRoutine > Starting routine: "..tostring(name)) end
 		-- routines[name].cr = coroutine.create( routines[name].func )
 		routines[name].cr = coroutine.wrap( routines[name].func )
+      routines[name].thread = routines[name].cr()
 	end
 end
 
@@ -701,6 +707,7 @@ end
 
 function DirectRoutine()
 	if !coroutine.running() then return end
+   coroutine.yield(coroutine.running())
 	local drtime = nil
 	while true do
 		coroutine.yield()
@@ -734,6 +741,7 @@ end
 
 function CoolerRoutine()
 	if !coroutine.running() then return end
+   coroutine.yield(coroutine.running())
 	while true do
 		coroutine.yield()
 		CoolNodes()
@@ -743,6 +751,7 @@ end
 
 function SpawnerRoutine()
 	if !coroutine.running() then return end
+   coroutine.yield(coroutine.running())
 	local drtime = nil
 	while true do
 		coroutine.yield()
@@ -791,6 +800,7 @@ end
 
 function ChaseRoutine()
 	if !coroutine.running() then return end
+   coroutine.yield(coroutine.running())
 	while true do
 		coroutine.yield()
 		if cvar.chase_enabled.v:GetBool() and CurTime() - lastChase > chaseDelay then
@@ -802,6 +812,7 @@ end
 
 function StressRoutine()
 	if !coroutine.running() then return end
+   coroutine.yield(coroutine.running())
 	while true do
 		coroutine.yield()
 		if CurTime() - lastStress > stressDelay then
@@ -860,6 +871,8 @@ net.Receive("npcd_cl_ready", function( len, ply )
 end)
 
 function InformClientRoutine()
+   coroutine.yield(coroutine.running())
+   
 	countupdated = true
 	while true do
 		coroutine.yield()
