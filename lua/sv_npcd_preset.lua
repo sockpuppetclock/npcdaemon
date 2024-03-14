@@ -301,13 +301,17 @@ end
 // patch_save_queue[profile name] = RealTime() + delay
 local patch_save_queue = {}
 function PatchSaver()
+   local keepqueue = false
    for p, time in pairs(patch_save_queue) do
       if RealTime() >= time then
          SaveProfile(p)
          patch_save_queue[p] = nil
       else
-         timer.Simple( 1, PatchSaver )
+         keepqueue = true
       end
+   end
+   if keepqueue then
+      timer.Simple( 1, PatchSaver )
    end
 end
 
