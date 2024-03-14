@@ -454,7 +454,7 @@ npcd.CreatePreset( "player", "High Impact", {
 		["f"] = 1,
 		["n"] = 1,
 	},
-	["friction_mult"] = 0,
+	["friction_mult"] = 0.2,
 	["fullrotation"] = true,
 	["maxspeed"] = 32768,
 	["npcd_enabled"] = true,

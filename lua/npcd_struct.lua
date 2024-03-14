@@ -3915,6 +3915,7 @@ t_basic_values = {
 	["friction_mult"] = {
 		CATEGORY = t_CAT.PHYSICAL,
 		FUNCTION = { "SetFriction", "__VALUE" },
+      FUNCTION_GET = { "GetFriction" },
 	},
 
 	["gmod_allowphysgun"] = {
