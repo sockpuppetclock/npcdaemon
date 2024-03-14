@@ -369,8 +369,10 @@ local f_patches = {
       if patched then
          local msg = "NPCD preset ["..tostring(displayprofname or profilename).." > "..tostring(preset_name).."] has been patched: Restructured \"Inputs\" value"
          AddPatchInform( msg )
+         if table.IsEmpty(patch_save_queue) then
+            timer.Simple( 2, PatchSaver )
+         end
          patch_save_queue[displayprofname or profilename] = RealTime() + 2
-         timer.Simple( 2, PatchSaver )
       end
    end,
 }

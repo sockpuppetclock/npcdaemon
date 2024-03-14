@@ -502,6 +502,140 @@ dmgf_cond_chks = {
 	},
 }
 
+// DamageInfo copy metatable
+local DamageCopy = {}
+local DamageCopy_meta = {}
+DamageCopy.__index = DamageCopy_meta
+function DamageCopy_meta.AddDamage( self, add )
+   self.Damage = self.Damage + add
+end
+function DamageCopy_meta.GetAmmoType( self )
+   return self.AmmoType
+end
+function DamageCopy_meta.GetAttacker( self )
+   return self.Attacker
+end
+function DamageCopy_meta.GetBaseDamage( self )
+   return self.BaseDamage
+end
+function DamageCopy_meta.GetDamage( self )
+   return self.Damage
+end
+function DamageCopy_meta.GetDamageBonus( self )
+   return self.DamageBonus
+end
+function DamageCopy_meta.GetDamageCustom( self )
+   return self.DamageCustom
+end
+function DamageCopy_meta.GetDamageForce( self )
+   return self.DamageForce
+end
+function DamageCopy_meta.GetDamagePosition( self )
+   return self.DamagePosition
+end
+function DamageCopy_meta.GetDamageType( self )
+   return self.DamageType
+end
+function DamageCopy_meta.GetInflictor( self )
+   return self.Inflictor
+end
+function DamageCopy_meta.GetMaxDamage( self )
+   return self.MaxDamage
+end
+function DamageCopy_meta.GetReportedPosition( self )
+   return self.ReportedPosition
+end
+function DamageCopy_meta.IsBulletDamage( self )
+   return bit.band(self:GetDamageType(), DMG_BULLET) != 0
+end
+function DamageCopy_meta.IsDamageType( self, dmgType )
+   return bit.band(self:GetDamageType(), dmgType) != 0
+end
+function DamageCopy_meta.IsExplosionDamage( self )
+   return bit.band(self:GetDamageType(), DMG_BLAST) != 0
+end
+function DamageCopy_meta.IsFallDamage( self )
+   return bit.band(self:GetDamageType(), DMG_FALL) != 0
+end
+function DamageCopy_meta.ScaleDamage( self, scale )
+   self.Damage = self.Damage * scale
+end
+function DamageCopy_meta.SetAmmoType( self, ammoType )
+   self.AmmoType = ammoType
+end
+function DamageCopy_meta.SetAttacker( self, ent )
+   self.Attacker = ent
+end
+function DamageCopy_meta.SetBaseDamage( self, number )
+   self.BaseDamage = number
+end
+function DamageCopy_meta.SetDamage( self, damage )
+   self.Damage = damage
+end
+function DamageCopy_meta.SetDamageBonus( self, damage )
+   self.DamageBonus = damage
+end
+function DamageCopy_meta.SetDamageCustom( self, dmgType )
+   self.DamageType = dmgType
+end
+function DamageCopy_meta.SetDamageForce( self, forcevector )
+   self.DamageForce = forcevector
+end
+function DamageCopy_meta.SetDamagePosition( self, pos )
+   self.DamagePosition = pos
+end
+function DamageCopy_meta.SetDamageType( self, type )
+   self.DamageType = type
+end
+function DamageCopy_meta.SetInflictor( self, inflictor )
+   self.Inflictor = inflictor
+end
+function DamageCopy_meta.SetMaxDamage( self, maxDamage )
+   self.MaxDamage = maxDamage
+end
+function DamageCopy_meta.SetReportedPosition( self, pos )
+   self.ReportedPosition = pos
+end
+function DamageCopy_meta.SubtractDamage( self, damage )
+   self.Damage = self.Damage - damage
+end
+function DamageCopy_meta.DamageInfo( self )
+   local dmg = DamageInfo()
+   dmg:SetAmmoType(self.AmmoType)
+   dmg:SetAttacker(self.Attacker)
+   dmg:SetBaseDamage(self.BaseDamage)
+   dmg:SetDamage(self.Damage)
+   dmg:SetDamageBonus(self.DamageBonus)
+   dmg:SetDamageCustom(self.DamageCustom)
+   dmg:SetDamageForce(self.DamageForce)
+   dmg:SetDamagePosition(self.DamagePosition)
+   dmg:SetDamageType(self.DamageType)
+   dmg:SetInflictor(self.Inflictor)
+   dmg:SetMaxDamage(self.MaxDamage)
+   dmg:SetReportedPosition(self.ReportedPosition)
+   return dmg
+end
+
+// returns stable copy of DamageInfo
+function CopyDamageInfo(dmg)
+   local copy = {
+      AmmoType = dmg:GetAmmoType(),
+      Attacker = dmg:GetAttacker(),
+      BaseDamage = dmg:GetBaseDamage(),
+      Damage = dmg:GetDamage(),
+      DamageBonus = dmg:GetDamageBonus(),
+      DamageCustom = dmg:GetDamageCustom(),
+      DamageForce = dmg:GetDamageForce(),
+      DamagePosition = dmg:GetDamagePosition(),
+      DamageType = dmg:GetDamageType(),
+      Inflictor = dmg:GetInflictor(),
+      MaxDamage = dmg:GetMaxDamage(),
+      ReportedPosition = dmg:GetReportedPosition()
+   }
+   setmetatable(copy, DamageCopy)
+   return copy
+end
+
 function ApplyDamageFilters( dmg, filter_tbl, atkr, victim, apply, restore, took )
 	local olddmg
 
@@ -664,7 +798,7 @@ function DamageFilter( dmg, afilter, atkr, victim, apply, took )
 	end
    
 	// >0 or ~=0 ? the purpose is because other filters may set dmg to 0, e.g. hitgroup filter
-	if ( dmg and dmg:GetDamage() != 0 or !filter["minmax_zero"] ) and ( filter["min"] or filter["max"] ) then
+	if ( dmg:GetDamage() != 0 or !filter["minmax_zero"] ) and ( filter["min"] or filter["max"] ) then
 		dmg:SetDamage(math.Clamp(dmg:GetDamage(), filter["min"] or -math.huge, filter["max"] or math.huge ))
 	end
 
@@ -1366,12 +1500,13 @@ hook.Add("ScalePlayerDamage", "NPCD Player Hitgroup", function( ent, hitgroup, d
 	HitgroupHook( ent, hitgroup, dmg )
 end )
 
-hook.Add("PostEntityTakeDamage", "NPCD Post-Damage", function( ent, dmg, took )
+hook.Add("PostEntityTakeDamage", "NPCD Post-Damage", function( ent, dmgInfo, took )
 	if !IsValid(ent) then return end
 
-	local atkr = dmg:GetAttacker()
+	local atkr = dmgInfo:GetAttacker()
 	local ent = ent
-	local dmg = dmg
+	-- local dmg = dmg
+	local dmg = CopyDamageInfo(dmgInfo)
 	local took = took
 
 	timer.Simple( engine.TickInterval(), function()
