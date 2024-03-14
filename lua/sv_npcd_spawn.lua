@@ -76,6 +76,9 @@ function GetOBB( npc_t )
 	if npc_t.scale then // set scale
 		npc:SetModelScale( npc_t.scale ) // set immediately
 	end
+	if npc_t.offset then // set model
+		SetEntValues(npc, npc_t, "offset", GetLookup( "offset", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
+	end
 
 	npc:Spawn()
 	npc:Activate()
@@ -113,7 +116,8 @@ function GetOBB( npc_t )
 	bounds[1] = Vector( xmin, ymin, zmin ) + offset
 	bounds[2] = Vector( xmax, ymax, zmax ) + offset
 	bounds[3] = offset
-	bounds[4] = { npc_t.offset } //wtf happens when this is a table
+	bounds[4] = { npc_t.offset } // list of entity offsets to test (i.e. per npc in squad)
+   // wtf happens when this is a table. answer: it just breaks
 
 	if debugged then
 		print( "npcd > GetOBB\n\tmin: ",bounds[1],"\n\tmax:",bounds[2],"\n\toffset:",bounds[3], "ent_offs:", #bounds[4])
@@ -138,14 +142,12 @@ function GetGroupOBB( group_t )
 	knownBounds[currentProfile][group_t.name] = knownBounds[currentProfile][group_t.name] or {}
 
 	for n, nsTbl in pairs( group_t["spawns"] ) do
-		if nsTbl["npc_t"] and nsTbl["npc_t"].offset then
-			table.insert( ent_offs, nsTbl["npc_t"].offset )
-		end
-		// already looked up
+		// already looked up, by preset
 		if knownBounds[currentProfile]
 		and knownBounds[currentProfile][group_t.name]
 		and knownBounds[currentProfile][group_t.name][nsTbl.name] then
-			for _, c in ipairs( knownBounds[currentProfile][group_t.name][nsTbl.name] ) do
+         local k = knownBounds[currentProfile][group_t.name][nsTbl.name]
+			for _, c in ipairs( {k[1], k[2]} ) do
 				xmax = math.max( xmax, c.x, math.abs( xmin ), ymax )
 				xmin = -xmax
 
@@ -155,6 +157,7 @@ function GetGroupOBB( group_t )
 				zmax = math.max( zmax, c.z )
 				zmin = math.min( zmin, c.z )
 			end
+         if k[3] then table.insert( ent_offs, k[3] ) end
 			spawned = true
 			continue
 		end
@@ -177,6 +180,10 @@ function GetGroupOBB( group_t )
 		if npc_t.scale then // set scale
 			-- SetEntValues( nil, npc_t, "scale", GetLookup( "scale", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
 			npc:SetModelScale( npc_t.scale ) // set immediately
+		end
+      if npc_t.offset then // set model
+         SetEntValues(npc, npc_t, "offset", GetLookup( "offset", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
+			table.insert( ent_offs, npc_t.offset )
 		end
 		-- if npc_t.angle then SetEntValues(npc, npc_t, "angle", GetLookup( "angle", npc_t.entity_type, nil, npc_t.classname ) )
 		-- else npc_t.angle = RandomAngle() end
@@ -214,7 +221,7 @@ function GetGroupOBB( group_t )
 		if !nsTbl["obb_random"] then
 			knownBounds[currentProfile] = knownBounds[currentProfile] or {}
 			knownBounds[currentProfile][group_t.name] = knownBounds[currentProfile][group_t.name] or {}
-			knownBounds[currentProfile][group_t.name][nsTbl.name] = { lc, hc }
+			knownBounds[currentProfile][group_t.name][nsTbl.name] = { lc, hc, npc_t.offset }
 		elseif knownBounds[currentProfile] and knownBounds[currentProfile][group_t.name] then
 			knownBounds[currentProfile][group_t.name][nsTbl.name] = nil
 		end
@@ -1389,13 +1396,13 @@ function GenerateSquad( s, override2_t, pool, squadIDOvr, override3_t )
 
 		for i=1,tospawn do
 			local n_t = table.Copy( npcTable )
-			local hasrandom = istable( n_t.model ) or istable( n_t.scale )
+			-- local hasrandom = istable( n_t.model ) or istable( n_t.scale ) or istable( n_t.offset )
 			ResolveEntValueTable( nil, n_t ) // preestablish npc_t, to keep GroupOBB consistent when using random values
 			table.insert( squad_t["spawns"], {
 				-- ["count"] = tospawn,
 				["name"] = npcname,
 				["npc_t"] = n_t,
-				["obb_random"] = hasrandom,
+				["obb_random"] = istable( n_t.model ) or istable( n_t.scale ) or istable( n_t.offset ),
 			} )
 		end
 	end
