@@ -74,6 +74,7 @@ function GetOBB( npc_t )
 		SetEntValues(npc, npc_t, "model", GetLookup( "model", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
 	end
 	if npc_t.scale then // set scale
+      SetEntValues( nil, npc_t, "scale", GetLookup( "scale", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
 		npc:SetModelScale( npc_t.scale ) // set immediately
 	end
 	if npc_t.offset then // set model
@@ -178,7 +179,7 @@ function GetGroupOBB( group_t )
 			SetEntValues(npc, npc_t, "model", GetLookup( "model", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
 		end
 		if npc_t.scale then // set scale
-			-- SetEntValues( nil, npc_t, "scale", GetLookup( "scale", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
+			SetEntValues( nil, npc_t, "scale", GetLookup( "scale", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
 			npc:SetModelScale( npc_t.scale ) // set immediately
 		end
       if npc_t.offset then // set model
