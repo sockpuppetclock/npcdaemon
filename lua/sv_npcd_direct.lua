@@ -881,11 +881,12 @@ function DirectorSpawn( todo )
 					-- CoIterate(0.5)
 					// check all entity offsets
 					for o, offset in ipairs( spawn_base_offsets ) do
-                  for b_k in pairs( todo.newSquad["spawns"] )
-                     if bounds[b_k] then
+                  -- for b_k in pairs( todo.newSquad["spawns"] ) do
+                  for b_k in pairs( bounds ) do
+                     -- if bounds[b_k] then
                         pos_valid = CheckSpawnPos( npos, bounds[b_k], offset + bounds[b_k].offset, water )
                         if !pos_valid then break end
-                     end
+                     -- end
                   end
 						-- pos_valid = CheckSpawnPos( npos, bounds[1], offset + bounds[1].offset, water )
 						-- if pos_valid then
@@ -1023,11 +1024,12 @@ function DirectorSpawn( todo )
 
 						// check all entity offsets
 						for o, offset in ipairs( spawn_base_offsets ) do
-							for b_k in pairs( todo.newSquad["spawns"] )
-                        if bounds[b_k] then
-                           pos_valid = CheckSpawnPos( npos, bounds[b_k], offset + bounds[b_k].offset, water )
+							-- for b_k in pairs( todo.newSquad["spawns"] ) do
+                     for b_k in pairs( bounds ) do
+                        -- if bounds[b_k] then
+                           pos_valid = CheckSpawnPos( pos, bounds[b_k], offset + bounds[b_k].offset, water )
                            if !pos_valid then break end
-                        end
+                        -- end
                      end
                      if pos_valid then
                         pos = pos + offset
@@ -1131,11 +1133,12 @@ function DirectorSpawn( todo )
 							
 							// check all entity offsets
 							for o, offset in ipairs( spawn_base_offsets ) do
-								for b_k in pairs( todo.newSquad["spawns"] )
-                           if bounds[b_k] then
-                              pos_valid = CheckSpawnPos( npos, bounds[b_k], offset + bounds[b_k].offset, water )
+								-- for b_k in pairs( todo.newSquad["spawns"] ) do
+								for b_k in pairs( bounds ) do
+                           -- if bounds[b_k] then
+                              pos_valid = CheckSpawnPos( pos, bounds[b_k], offset + bounds[b_k].offset, water )
                               if !pos_valid then break end
-                           end
+                           -- end
                         end
                         if pos_valid then
                            pos = pos + offset
@@ -1362,7 +1365,7 @@ local f_water_reqs = {
 
 function CheckSpawnPos( p, bounds, offset, water )
 	local offset = offset or Vector()
-	if !p then print("CheckSpawnPos nil") return nil end
+	if !p then print("npcd > CheckSpawnPos nil") return nil end
 
 	local pos = p + offset
 
