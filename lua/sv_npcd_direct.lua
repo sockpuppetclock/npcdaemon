@@ -762,6 +762,8 @@ function Direct( numQuota, numSqQuota, pool_t, mapLimit, squadLimit, RadiusTable
 	end
 end
 
+local spawn_base_offsets = { Vector(0,0,15), Vector(0,0,25), Vector(0,0,55) }
+
 // pick spawnpoint from positions/players given by Direct()
 function DirectorSpawn( todo )
 	if debugged then
@@ -850,7 +852,7 @@ function DirectorSpawn( todo )
 		or GetOBB( npc_t ) or nil
 	if bounds == nil then print( "npcd > DirectorSpawn > nil bounds") return nil end
 
-	local ent_offs = bounds[4]
+	-- local ent_offs = bounds[4]
 
 	local picked
 	local radiused
@@ -878,24 +880,28 @@ function DirectorSpawn( todo )
 				for k, npos in RandomPairs( todo.valid_nodes[rk] ) do
 					-- CoIterate(0.5)
 					// check all entity offsets
-					for o, offset in ipairs( { Vector(0,0,5), Vector(0,0,15), Vector(0,0,45) } ) do
-						pos_valid = CheckSpawnPos( npos, bounds, offset + ( ent_offs[1] or Vector() ), water )
-						if pos_valid then
-							if ent_offs[1] then
-								for eok=2,#ent_offs do
-									pos_valid = CheckSpawnPos( npos, bounds, offset + ent_offs[eok], water )
-									if !pos_valid then
-										break
-									end
-								end
-							end
-							if pos_valid then
-								pos = npos + offset
-								n = k
-								radiused = rk
-								break
-							end
-						end
+					for o, offset in ipairs( spawn_base_offsets ) do
+                  for b_k in pairs( todo.newSquad["spawns"] )
+                     if bounds[b_k] then
+                        pos_valid = CheckSpawnPos( npos, bounds[b_k], offset + bounds[b_k].offset, water )
+                        if !pos_valid then break end
+                     end
+                  end
+						-- pos_valid = CheckSpawnPos( npos, bounds[1], offset + bounds[1].offset, water )
+						-- if pos_valid then
+                  --    for b_k=2,#bounds do
+                  --       pos_valid = CheckSpawnPos( npos, bounds[b_k], offset + bounds[b_k].offset, water )
+                  --       if !pos_valid then
+                  --          break
+                  --       end
+                  --    end
+                  if pos_valid then
+                     pos = npos + offset
+                     n = k
+                     radiused = rk
+                     break
+                  end
+						-- end
 					end
 					if pos_valid then break end
 				end
@@ -916,10 +922,8 @@ function DirectorSpawn( todo )
 			if debugged then print("npcd > DirectorSpawn > picker: anywhere") end
 
 			local pos_valid
-			local tall = (bounds[2].z - bounds[1].z)
-
+			-- local tall = (bounds[2].z - bounds[1].z)
 			local i = 0
-
 			for rk, rply_t in RandomPairs( todo.valid_players ) do
 				// valid players for this radius
 				for k, ply in RandomPairs( rply_t ) do
@@ -955,14 +959,12 @@ function DirectorSpawn( todo )
 						-- end
 
 						-- if tr.HitNoDraw or tr.HitNonWorld or tr.HitSky or !util.IsInWorld(tr.HitPos) then
-                        if !util.IsInWorld(tr.HitPos) then
-							pos_valid = false
-							continue
-						end
+                  if !util.IsInWorld(tr.HitPos) then
+                     pos_valid = false
+                     continue
+                  end
 			
 						pos = tr.HitPos
-
-						-- print( pos )
 
 						local distpos_sqr = pos:DistToSqr( pos_tbl[ply] )
 						if !pos or not ( distpos_sqr > r_t[rk].minRadius_sqr and distpos_sqr <= r_t[rk].maxRadius_sqr ) then
@@ -1020,23 +1022,17 @@ function DirectorSpawn( todo )
 						-- end
 
 						// check all entity offsets
-						for o, offset in ipairs( { Vector(0,0,5), Vector(0,0,15), Vector(0,0,45) } ) do
-							pos_valid = CheckSpawnPos( pos, bounds, offset + ( ent_offs[1] or Vector() ), water )
-							if pos_valid then
-								if ent_offs[1] then
-									for eok=2,#ent_offs do
-										pos_valid = CheckSpawnPos( pos, bounds, offset + ent_offs[eok], water )
-										if !pos_valid then
-											-- print("checkpos")
-											break
-										end
-									end
-								end
-								if pos_valid then
-									pos = pos + offset
-									break
-								end
-							end
+						for o, offset in ipairs( spawn_base_offsets ) do
+							for b_k in pairs( todo.newSquad["spawns"] )
+                        if bounds[b_k] then
+                           pos_valid = CheckSpawnPos( npos, bounds[b_k], offset + bounds[b_k].offset, water )
+                           if !pos_valid then break end
+                        end
+                     end
+                     if pos_valid then
+                        pos = pos + offset
+                        break
+                     end
 						end
 					end
 
@@ -1134,22 +1130,17 @@ function DirectorSpawn( todo )
 							-- end
 							
 							// check all entity offsets
-							for o, offset in ipairs( { Vector(0,0,5), Vector(0,0,15), Vector(0,0,45) } ) do
-								pos_valid = CheckSpawnPos( pos, bounds, offset + ( ent_offs[1] or Vector() ), water )
-								if pos_valid then
-									if ent_offs[1] then
-										for eok=2,#ent_offs do
-											pos_valid = CheckSpawnPos( pos, bounds, offset + ent_offs[eok], water )
-											if !pos_valid then
-												break
-											end
-										end
-									end
-									if pos_valid then
-										pos = pos + offset
-										break
-									end
-								end
+							for o, offset in ipairs( spawn_base_offsets ) do
+								for b_k in pairs( todo.newSquad["spawns"] )
+                           if bounds[b_k] then
+                              pos_valid = CheckSpawnPos( npos, bounds[b_k], offset + bounds[b_k].offset, water )
+                              if !pos_valid then break end
+                           end
+                        end
+                        if pos_valid then
+                           pos = pos + offset
+                           break
+                        end
 							end
 						end
 
@@ -1180,7 +1171,7 @@ function DirectorSpawn( todo )
 		return nil
 	end
 
-	pos = pos + Vector( 0, 0, 10 ) // see: GetGroupOBB()
+	-- pos = pos + Vector( 0, 0, 10 ) // see: GetGroupOBB()
 
 	if debugged_spawner then
 		print( "npcd > DirectorSpawn > Radius: ".. tostring(radiused) .. ", Picker used: " .. picked )
@@ -1189,18 +1180,19 @@ function DirectorSpawn( todo )
 	// spawn it
 	if todo.type == "squad" then
 		if debugged then 
-			print("npcd > DirectorSpawn > SpawnSquad(", todo.newSquad, pos + bounds[3],")")
+			print("npcd > DirectorSpawn > SpawnSquad(", todo.newSquad, pos,")")
 		end
 		todo.newSquad["bounds"] = bounds
-		return SpawnSquad( todo.newSquad, pos + bounds[3] ), radiused
+		-- return SpawnSquad( todo.newSquad, pos + bounds[3] ), radiused
+		return SpawnSquad( todo.newSquad, pos ), radiused
 	else
 		if debugged then 
-			print("npcd > DirectorSpawn > SpawnNPC(", todo.name, npc_t, pos + bounds[3], todo.pool," true )")
+			print("npcd > DirectorSpawn > SpawnNPC(", todo.name, npc_t, pos + bounds[1].zoff, todo.pool," true )")
 		end
 		return SpawnNPC(
 			todo.name, --presetName, anpc_t, pos, ang, squad_t, npcOverride, doFadeIns, pool, nocopy, nopoolovr, oldsquad
 			npc_t, --anpc_t
-			pos + bounds[3], --pos
+			pos + bounds[1].zoff, --pos
 			nil,  --ang
 			nil, --squad_t
 			nil, --npcOverride
@@ -1353,7 +1345,7 @@ function PickAnywhere( vectors, bounds )
 			if pos_valid then return pos + offset end
 		end
 	end
-	if i > 1000 then print("npcd > PickAnywhere > pickanywhere break") end
+	if i > 1000 then print("npcd > PickAnywhere > Limit break (1000)") end
 	return nil
 end
 
@@ -1429,16 +1421,16 @@ function CheckSpawnPos( p, bounds, offset, water )
 
 	// return whether bound is in world
 	if bounds then
-		local off = bounds[3]
-		local minb = bounds[1] + off
-		local maxb = bounds[2] + off
+		-- local off = bounds.offset
+		-- local minb = bounds.mino
+		-- local maxb = bounds.maxo
 
 		local htr = util.TraceHull(
 			{
 				start = pos,
 				endpos = pos,
-				mins = minb,
-				maxs = maxb,
+				mins = bounds.mino,
+				maxs = bounds.maxo,
 				mask = MASK_NPCSOLID_BRUSHONLY,
 			}
 		)

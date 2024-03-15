@@ -58,8 +58,9 @@ end
 function GetOBB( npc_t )
 	if !npc_t then return nil end
 	local bounds = {}
-	local xmin, xmax, ymin, ymax, zmin, zmax = 0, 0, 0, 0, 0, 0
-	local offset = Vector()
+	-- local xmin, xmax, ymin, ymax, zmin, zmax = 0, 0, 0, 0, 0, 0
+	-- local offset = Vector()
+   -- local off = Vector()
 
 	-- local npc_t = table.Copy( nsTbl["npc_t"] )
 	// [x] problem: GetGroupOBB and SpawnNPC will come out differently if it has a random value for scale or model
@@ -67,6 +68,8 @@ function GetOBB( npc_t )
 	local npc = ents.Create( GetPresetName( npc_t.classname ) )
 
 	if !IsValid(npc) then return nil end
+
+   bounds[1] = {}
 
 	npc:SetPos( game.GetWorld():GetPos() )
 
@@ -79,6 +82,7 @@ function GetOBB( npc_t )
 	end
 	if npc_t.offset then // set model
 		SetEntValues(npc, npc_t, "offset", GetLookup( "offset", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
+      -- offset = npc_t.offset
 	end
 
 	npc:Spawn()
@@ -91,7 +95,7 @@ function GetOBB( npc_t )
 	end
 	local lc, hc = npc:GetCollisionBounds()
 	local model = npc:GetModel()
-	npc:Remove()
+   npc:Remove()
 	CoIterate(75)
 
 	if model and !cachedModels[model] then
@@ -99,30 +103,35 @@ function GetOBB( npc_t )
 		CoIterate(100)
 	end
 
-	
+	local xmax = hc.x, ymax = hc.y, zmin = lc.z, zmax = hc.z
 	for _, c in ipairs( { lc, hc } ) do
 		xmax = math.max( xmax, c.x, math.abs( xmin ), ymax )
-		xmin = -xmax
-
+		-- xmin = -xmax
 		ymax = math.max( ymax, c.y, math.abs( ymin ), xmax )
-		ymin = -ymax
-
+		-- ymin = -ymax
 		zmax = math.max( zmax, c.z )
 		zmin = math.min( zmin, c.z )
 	end	
+   
+   bounds[1].min = Vector( -xmax, -ymax, zmin )
+   bounds[1].max = Vector( xmax, ymax, zmax )
+   bounds[1].offset = npc_t.offset or Vector()
+   if zmin < 0 then bounds[1].offset.z = bounds[1].offset.z + math.abs(zmin) end // zmin should always be z=0
+   bounds[1].mino = bounds[1].min + bounds[1].offset
+   bounds[1].maxo = bounds[1].max + bounds[1].offset
 
-	if zmin < 0 then offset.z = math.abs(zmin) end
-	zmax = zmax + 10 // a little off the ground
+	-- if zmin < 0 then offset.z = math.abs(zmin) end
+	-- zmax = zmax + 10 // a little off the ground
 
-	bounds[1] = Vector( xmin, ymin, zmin ) + offset
-	bounds[2] = Vector( xmax, ymax, zmax ) + offset
-	bounds[3] = offset
-	bounds[4] = { npc_t.offset } // list of entity offsets to test (i.e. per npc in squad)
-   // wtf happens when this is a table. answer: it just breaks
+	-- bounds[1] = Vector( xmin, ymin, zmin ) + offset
+	-- bounds[2] = Vector( xmax, ymax, zmax ) + offset
+	-- bounds[3] = offset
+	-- bounds[4] = { npc_t.offset } // list of entity offsets to test (i.e. per npc in squad)
+   -- // wtf happens when this is a table. answer: it just breaks
 
-	if debugged then
-		print( "npcd > GetOBB\n\tmin: ",bounds[1],"\n\tmax:",bounds[2],"\n\toffset:",bounds[3], "ent_offs:", #bounds[4])
-	end
+	-- if debugged then
+	-- 	print( "npcd > GetOBB\n\tmin: ",bounds[1],"\n\tmax:",bounds[2],"\n\toffset:",bounds[3], "ent_offs:", #bounds[4])
+	-- end
 	
 	return bounds
 end
@@ -134,31 +143,18 @@ function GetGroupOBB( group_t )
 	end
 
 	local bounds = {}
-	local xmin, xmax, ymin, ymax, zmin, zmax = 0, 0, 0, 0, 0, 0
+	-- local xmin, xmax, ymin, ymax, zmin, zmax = 0, 0, 0, 0, 0, 0
 	local spawned = false
-	local offset = Vector()
-	local ent_offs = {}
+	-- local offset = Vector()
+	-- local ent_offs = {}
 
 	knownBounds[currentProfile] = knownBounds[currentProfile] or {}
 	knownBounds[currentProfile][group_t.name] = knownBounds[currentProfile][group_t.name] or {}
-
+   
 	for n, nsTbl in pairs( group_t["spawns"] ) do
 		// already looked up, by preset
-		if knownBounds[currentProfile]
-		and knownBounds[currentProfile][group_t.name]
-		and knownBounds[currentProfile][group_t.name][nsTbl.name] then
-         local k = knownBounds[currentProfile][group_t.name][nsTbl.name]
-			for _, c in ipairs( {k[1], k[2]} ) do
-				xmax = math.max( xmax, c.x, math.abs( xmin ), ymax )
-				xmin = -xmax
-
-				ymax = math.max( ymax, c.y, math.abs( ymin ), xmax )
-				ymin = -ymax
-
-				zmax = math.max( zmax, c.z )
-				zmin = math.min( zmin, c.z )
-			end
-         if k[3] then table.insert( ent_offs, k[3] ) end
+		if !nsTbl["obb_random"] and knownBounds[currentProfile][group_t.name][nsTbl.name] then
+         bounds[count] = knownBounds[currentProfile][group_t.name][nsTbl.name]
 			spawned = true
 			continue
 		end
@@ -184,7 +180,7 @@ function GetGroupOBB( group_t )
 		end
       if npc_t.offset then // set model
          SetEntValues(npc, npc_t, "offset", GetLookup( "offset", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
-			table.insert( ent_offs, npc_t.offset )
+			-- table.insert( ent_offs, npc_t.offset )
 		end
 		-- if npc_t.angle then SetEntValues(npc, npc_t, "angle", GetLookup( "angle", npc_t.entity_type, nil, npc_t.classname ) )
 		-- else npc_t.angle = RandomAngle() end
@@ -205,43 +201,48 @@ function GetGroupOBB( group_t )
 			cachedModels[model] = true
 			CoIterate(100)
 		end
-		
+      
+		local xmax = hc.x, ymax = hc.y, zmin = lc.z, zmax = hc.z
 		for _, c in ipairs( { lc, hc } ) do
 			xmax = math.max( xmax, c.x, math.abs( xmin ), ymax )
-			xmin = -xmax
-
+			-- xmin = -xmax
 			ymax = math.max( ymax, c.y, math.abs( ymin ), xmax )
-			ymin = -ymax
-
+			-- ymin = -ymax
 			zmax = math.max( zmax, c.z )
 			zmin = math.min( zmin, c.z )
-		end	
+		end
+
+      bounds[n] = {}
+      bounds[n].min = Vector( -xmax, -ymax, zmin )
+      bounds[n].max = Vector( xmax, ymax, zmax )
+      bounds[n].zoff = Vector(0,0,zmin < 0 and math.abs(zmin) or 0) // zmin should always be z=0
+      bounds[n].offset = npc_t.offset or Vector()
+      bounds[n].offset = bounds[n].offset + bounds[n].zoff
+      bounds[n].mino = bounds[n].min + bounds[n].offset
+      bounds[n].maxo = bounds[n].max + bounds[n].offset
+
+      nsTbl["bounds"] = bounds[n]
 
 		spawned = true
 
 		if !nsTbl["obb_random"] then
-			knownBounds[currentProfile] = knownBounds[currentProfile] or {}
-			knownBounds[currentProfile][group_t.name] = knownBounds[currentProfile][group_t.name] or {}
-			knownBounds[currentProfile][group_t.name][nsTbl.name] = { lc, hc, npc_t.offset }
-		elseif knownBounds[currentProfile] and knownBounds[currentProfile][group_t.name] then
-			knownBounds[currentProfile][group_t.name][nsTbl.name] = nil
+			knownBounds[currentProfile][group_t.name][nsTbl.name] = bounds[n]
 		end
-
 	end
 
 	if !spawned then return nil end // didn't spawn anything
 
-	if zmin < 0 then offset.z = math.abs(zmin) end
-	zmax = zmax + 10 // a little off the ground
+	-- if zmin < 0 then offset.z = math.abs(zmin) end
+	-- zmax = zmax + 10 // a little off the ground
 
-	bounds[1] = Vector( xmin, ymin, zmin ) + offset
-	bounds[2] = Vector( xmax, ymax, zmax ) + offset
-	bounds[3] = offset
-	bounds[4] = ent_offs
+	-- bounds[1] = Vector( xmin, ymin, zmin ) + offset
+	-- bounds[2] = Vector( xmax, ymax, zmax ) + offset
+	-- bounds[3] = offset
+	-- bounds[4] = ent_offs
 
-	if debugged then
-		print( "npcd > GetGroupOBB\n\tmin: ",bounds[1],"\n\tmax:",bounds[2],"\n\toffset:",bounds[3],"ent_offs:", #bounds[4] )
-	end
+	-- if debugged then
+	-- 	print( "npcd > GetGroupOBB\n\tmin: ",bounds[1],"\n\tmax:",bounds[2],"\n\toffset:",bounds[3],"ent_offs:", #bounds[4] )
+	-- end
 	
 	return bounds
 end
@@ -1404,6 +1405,7 @@ function GenerateSquad( s, override2_t, pool, squadIDOvr, override3_t )
 				["name"] = npcname,
 				["npc_t"] = n_t,
 				["obb_random"] = istable( n_t.model ) or istable( n_t.scale ) or istable( n_t.offset ),
+            ["bounds"] = {}, // singular entry from GroupOBB table
 			} )
 		end
 	end
@@ -1414,6 +1416,7 @@ end
 function SpawnSquad( newSquad, pos, announce, fadein )
 	if debugged then print("npcd > SpawnSquad(", newSquad, pos, announce, fadein, ")" ) end
 	local spawned = {}
+   local spawned_squad_t = {} // reverse lookup to newSquad
 	local spawnedcount = 0
 	if !pos then print("no pos") return 0 end
 	local i = 0
@@ -1439,7 +1442,7 @@ function SpawnSquad( newSquad, pos, announce, fadein )
 		local new = SpawnNPC(
 			presetName, --presetName, anpc_t, pos, ang, squad_t, npcOverride, doFadeIns, pool, nocopy, nopoolovr, oldsquad
 			npc_t, --anpc_t
-			pos, --pos
+			pos + (v.bounds.zoff or Vector()), --pos
 			nil,  --ang
 			newSquad, --squad_t
 			nil, --npcOverride
@@ -1452,6 +1455,7 @@ function SpawnSquad( newSquad, pos, announce, fadein )
 
 		if IsValid( new ) then
 			table.insert( spawned, new )
+         spawned_squad_t[new] = v
 			si = si + 1
 
 			// spawnforce
@@ -1551,7 +1555,7 @@ function SpawnSquad( newSquad, pos, announce, fadein )
 
 	// check if nextbot spawn grid is needed
 	local useNBspawn = false
-	local bounds, gc, gw, gh, w, h
+	local bounds, gc, gw, gh, w, h, up
 	for i, npc in ipairs(spawned) do
 		if !IsValid(npc) then
 			continue
@@ -1564,8 +1568,13 @@ function SpawnSquad( newSquad, pos, announce, fadein )
 			bounds = newSquad["bounds"] or activeNPC[npc]["squad_t"] and activeNPC[npc]["squad_t"]["bounds"] or GetGroupOBB( newSquad )
 			if bounds != nil then
 				gc = math.ceil( math.sqrt(#spawned) ) //square grid
-				w = (bounds[2].x - bounds[1].x) + eb
-				h = (bounds[2].y - bounds[1].y) + eb
+            for i, npc in ipairs(spawned) do
+               if spawned_squad_t[npc].bounds.max then
+                  w =  math.max( w or  (spawned_squad_t[npc].bounds.max.x - spawned_squad_t[npc].bounds.min.x) + eb, (spawned_squad_t[npc].bounds.max.x - spawned_squad_t[npc].bounds.min.x) + eb )
+                  h =  math.max( h or  (spawned_squad_t[npc].bounds.max.y - spawned_squad_t[npc].bounds.min.y) + eb, (spawned_squad_t[npc].bounds.max.y - spawned_squad_t[npc].bounds.min.y) + eb )
+                  up = math.max( up or (spawned_squad_t[npc].bounds.max.z - spawned_squad_t[npc].bounds.min.z) + eb, (spawned_squad_t[npc].bounds.max.z - spawned_squad_t[npc].bounds.min.z) + eb )
+               end
+            end
 				gw =  w * gc / 2
 				if #spawned > 2 then
 					gh = h * gc / 2
@@ -1611,21 +1620,23 @@ function SpawnSquad( newSquad, pos, announce, fadein )
 
 		// grid spawn
 		if useNBspawn then
+         local offz = spawned_squad_t[npc].bounds.maxo and Vector(0,0,spawned_squad_t[npc].bounds.maxo.z+10) or Vector()
+         local off = spawned_squad_t[npc].bounds.max and spawned_squad_t[npc].bounds.max or Vector()
 			x = -gw + ( w * math.mod( i , gc ) ) + w/2
 			y = -gh + ( h * math.floor( (i-1) / gc ) ) + h/2
 			local npos = util.TraceLine({
-				start = pos + bounds[2],
-				endpos = pos + bounds[2] + Vector( x, y, 0 ),
+				start = pos + offz,
+				endpos = pos + offz + Vector( x, y, 0 ),
 				mask = MASK_NPCSOLID,
 			} )
 			local tr = util.TraceLine({
-				start = npos.HitPos + bounds[2],
-				endpos = npos.HitPos - bounds[2],
+				start = npos.HitPos,
+				endpos = npos.HitPos - off,
 				mask = MASK_NPCSOLID,
 			})
 			if not ( tr.HitNoDraw or tr.HitNonWorld or tr.HitSky or !util.IsInWorld(tr.HitPos) )
-			and CheckSpawnPos( tr.HitPos + bounds[3], bounds, nil, newSquad.values.spawn_req_water ) then
-				npc:SetPos( tr.HitPos + bounds[3] )
+			and CheckSpawnPos( tr.HitPos, spawned_squad_t[npc].bounds, nil, newSquad.values.spawn_req_water ) then
+				npc:SetPos( tr.HitPos + (spawned_squad_t[npc].bounds.zoff or Vector()) )
 			end
 		end
 
