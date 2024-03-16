@@ -3931,6 +3931,7 @@ t_basic_values = {
 
 	["numhealth"] = {
 		CATEGORY = t_CAT.HEALTH,
+      NAME = "Initial Health",
 		DESC = "Sets initial health. Does not change max health",
 		FUNCTION = { "SetHealth", "__VALUE" },        
 		FUNCTION_GET = { "Health" },        
@@ -4098,6 +4099,7 @@ t_basic_values = {
 
 	["maxhealth"] = {
 		CATEGORY = t_CAT.HEALTH,
+      NAME = "Max Health",
 		DESC = "Will also adjust the initial health unless specifically set",
 		FUNCTION = { "SetMaxHealth", "__VALUE" },        -- DEFAULT = "-1",
 		FUNCTION_GET = { "GetMaxHealth" },
