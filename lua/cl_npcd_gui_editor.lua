@@ -7,6 +7,8 @@ PendingView = PendingView or {}
 ValueEditors = ValueEditors or {}
 
 local valuelist_queue = {}
+local valuelist_storage = {}
+local valuelist_all = {}
 
 co_valuelister = nil
 
@@ -571,6 +573,186 @@ function CreateValueEditor( prof, set, prs, inspanel, parentpanel, windowed )
 	return vpanel
 end
 
+local tooltip_uncatagory = {
+   ["DESC"] = true,
+   ["NAME"] = true,
+   ["CATEGORY"] = true,
+   ["STRUCT"] = true,
+   ["TBLSTRUCT"] = true,
+   ["STRUCT_TBLMAINKEY"] = true,
+   ["STRUCT_RECURSIVE"] = true,
+   ["FUNCTION"] = true,
+   ["FUNCTION_GET"] = true,
+   ["ENUM"] = true,
+   ["ENUM_SORT"] = true,
+}
+
+local adder_icon = {
+	['*'..t_CAT.REQUIRED] = "icon16/asterisk_yellow.png",
+	[t_CAT.REQUIRED] = "icon16/asterisk_yellow.png",
+	[t_CAT.PHYSICAL] = "icon16/anchor.png",
+	[t_CAT.COMBAT] = "icon16/gun.png",
+	[t_CAT.HEALTH] = "icon16/heart.png",
+	[t_CAT.BEHAVIOR] = "icon16/group_large.png",
+	[t_CAT.CHASE] = "icon16/car.png",
+	[t_CAT.VISUAL] = "icon16/palette.png",
+	[t_CAT.NPCD] = UI_ICONS.npcd,
+	[t_CAT.MISC] = "icon16/lightning.png",
+	[t_CAT.OVERRIDE] = "icon16/shape_move_forwards.png",
+	[t_CAT.ANNOUNCE] = "icon16/bell.png",
+	[t_CAT.DAMAGE] = "icon16/fire.png",
+	[t_CAT.MOVEMENT] = "icon16/car.png",
+	[t_CAT.EQUIP] = "icon16/bricks.png",
+}
+
+function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
+	local cpane = vgui.Create( "Panel", panel )
+	cpane:Dock( TOP )
+	cpane:SetWide( panel:GetWide() )
+
+   cpane.panel = panel
+   cpane.vpanel = vpanel
+   cpane.prof = prof
+   cpane.set = set
+   cpane.prs = prs
+
+   local adder = vgui.Create( "DButton", cpane )
+   cpane.adder = adder
+   adder.cpane = cpane
+   adder:SetText("Add Value...")
+   adder:SetWide( math.min( cpane:GetWide() - 20, 260 ) )
+   adder:SetTall( adder:GetTall() + 10 )
+   adder:SetPos( math.max(0, cpane:GetWide() - adder:GetWide()), 5 )
+
+   cpane.AnimationThink = function( self )
+		if !IsValid( vpanel ) then
+			self:Remove()
+		end
+      self:SetWide( self.panel:GetWide() )
+      self:SizeToChildren( false, true )
+      self:SetTall( self:GetTall() + 10 )
+      local scroll = self.panel:GetVBar():GetScroll()
+      if IsValid(self.vpanel) and IsValid(self.vpanel.infopane) then
+         if scroll < self.vpanel.infopane:GetTall() then
+            self:SetPos( 0, self.vpanel.infopane:GetTall() )
+         else
+            self:SetPos( 0, self.panel:GetVBar():GetScroll() )
+         end
+      end
+      self.adder:SetWide( math.min( self:GetWide() - 20, 260 ) )
+      self.adder:SetPos( math.max(0, 0.5*(self:GetWide() - self.adder:GetWide())), 5 )
+	end
+
+   adder.DoClick = function( self )
+      local menu = DermaMenu()
+      local prof = self.cpane.prof
+      local set = self.cpane.set
+      local prs = self.cpane.prs
+      local pan = self.cpane.panel
+      local t = GetPrsTbl(valuelist_all, prof, set, prs )
+      local t_stored = GetPrsTbl(valuelist_storage, prof, set, prs )
+      local sorted_key = {}
+		if t then
+         for vn, v in pairs(t) do
+            if v.category == t_CAT.DESC then continue end
+            sorted_key[v.category] = sorted_key[v.category] or {}
+            sorted_key[v.category][vn] = string.lower(v.displayname)
+         end
+         for cat in SortedPairs(sorted_key) do
+            local submenu, subbutt = menu:AddSubMenu(tostring(cat))
+            if adder_icon[cat] then
+               subbutt:SetIcon(adder_icon[cat])
+            end
+
+            for vn in SortedPairsByValue(sorted_key[cat]) do
+               local v = t[vn]
+               -- local cat = v.fpanel
+               local butt = submenu:AddOption( v.displayname, function()
+                  if not UnstoreValuelist(prof, set, prs, vn) then
+                     if IsValid(pan) and IsValid(v.selfpanel) then
+                        pan:ScrollToChild(v.selfpanel) // scroll for new value is done in valuelist routine
+                     end
+                  end
+               end )
+
+               if not (t_stored and t_stored[vn]) then
+                  butt:SetIsCheckable(true)
+                  butt:SetChecked(true)
+               end
+               
+               butt.tooltip = v.displayname
+               if v.structTbl.DESC then
+                  butt.tooltip = butt.tooltip .. "\n" .. tostring( v.structTbl.DESC )
+               end
+               for k, v in SortedPairs( v.structTbl ) do
+                  if tooltip_uncatagory[k] then
+                     continue
+                  end
+                  local str
+                  if istable( v ) then
+                     -- str = table.ToString( v )
+                     local first = true
+                     local c = 0
+                     str = ""
+                     for kk, vv in pairs( v ) do
+                        c = c + 1
+                        if c > 10 then
+                           str = tostring( v )
+                           break
+                        end
+                        if istable(vv) then
+                           str = tostring( v )
+                           break
+                        end
+                        if first then
+                           str = str..tostring( vv )
+                           first = false
+                        else
+                           str = str..", "..tostring( vv )
+                        end
+                     end
+                  else
+                     str = tostring( v )
+                  end
+                  butt.extratip = ( butt.extratip and butt.extratip.."\n" or "" ) .. k .. ": " .. str
+               end
+
+               butt.tippan = vgui.Create( "Panel", butt )
+               butt.tippan:SetVisible( true )
+               butt.tippan.Think = function( self )
+                  if !IsValid(self) then return end
+                  self.text:SetWrap( true )
+                  if self.extratext then self.extratext:SetWrap( true ) end
+                  self:SetSize( 312.5, self.text:GetTall() + ( self.extratext and self.extratext:GetTall() or 0 ) )
+               end
+               -- butt.tippan:SetBackgroundColor( Color( 0, 0, 0, 0 ) )
+               butt.tippan.text = vgui.Create( "DLabel", butt.tippan )
+               butt.tippan.text:SetText( butt.tooltip )
+               butt.tippan.text:SetDark( true )
+               butt.tippan.text:Dock( TOP )
+               butt.tippan.text:SetAutoStretchVertical( true )
+               butt.tippan.text:SetWidth( 250 )
+               if butt.extratip then
+                  butt.tippan.extratext = vgui.Create( "DLabel", butt.tippan )
+                  butt.tippan.extratext:SetText( butt.extratip )
+                  butt.tippan.extratext:SetColor( Color( 0, 0, 0, 172 ) )
+                  butt.tippan.extratext:Dock( TOP )
+                  butt.tippan.extratext:SetAutoStretchVertical( true )
+                  butt.tippan.extratext:SetWidth( 250 )
+               end
+
+               -- butt:SetContentAlignment( 5 )
+               butt:SetTooltipPanel( butt.tippan )
+               butt:SetTooltipDelay( 0 )
+
+            end
+         end
+      end
+      menu:Open()
+   end
+
+end
+
 function InfoPan( panel, vpanel, prof, set, prs, parentpanel )
 	local infopane = vgui.Create( "Panel", panel )
 	infopane:Dock( TOP )
@@ -1084,6 +1266,7 @@ function CreateValueEditorList( panel, prof, set, prs, parentpanel )
 	end
 
 	vpanel.infopane = InfoPan( panpan, vpanel, prof, set, prs, parentpanel )
+   vpanel.controlpane = ControlPane( panpan, vpanel, prof, set, prs, parentpanel )
 
 	panpan:SetVisible( true )
 
@@ -1150,6 +1333,7 @@ function CreateValueEditorList( panel, prof, set, prs, parentpanel )
 		valuelist_cat_selectors[cat]:SizeToContentsX( 30 )
 		-- valuelist_cat_selectors[cat]:SetZPos( 32767 ) // i don't know how to make it stay above the windows
 		valuelist_cat_selectors[cat].c = c
+		valuelist_cat_selectors[cat].header = valuelist_cat_t[cat]
 		c=c+1
 
 		maxselectw = math.max( maxselectw, valuelist_cat_selectors[cat]:GetWide() )
@@ -1236,15 +1420,20 @@ function CreateValueEditorList( panel, prof, set, prs, parentpanel )
 						parentpanel = parentpanel,
 						panel = panel,
 						vpanel = vpanel,
+                  scrollpanel = panpan,
 
-						cat = valuelist_cat_selectors[cat],
+						cat = valuelist_cat_selectors[cat], // selector, not form
+
+                  required = valueTbl.REQUIRED or valueTbl.CATEGORY == t_CAT.REQUIRED or valueTbl.CATEGORY == t_CAT.DESC,
+                  displayname = valueTbl.NAME or valueName,
+                  category = cat,
 
 						prof = prof,
 						set = set,
 						prs = prs,
 
 						//AddValuePanel args
-						fpanel = valuelist_cat_t[cat],
+						fpanel = valuelist_cat_t[cat], // form panel
 						structTbl = valueTbl,
 						typ = nil,
 						valueName = valueName,
@@ -1263,12 +1452,24 @@ function CreateValueEditorList( panel, prof, set, prs, parentpanel )
 	-- return panpan
 end
 
-local valuelist_storage = {}
-
-function UnstoreValuelist(prof, set, prs)
-   if HasPreset(valuelist_storage, prof, set, prs) then
-      table.insert( valuelist_queue, HasPreset(valuelist_storage, prof, set, prs))
+function UnstoreValuelist(prof, set, prs, valuename, all)
+   local t = HasPreset(valuelist_storage, prof, set, prs)
+   if t and t[valuename] != nil then
+      if all then
+         for vn, v in pairs(t) do
+            v.forceshow = true
+            table.insert( valuelist_queue, v )
+         end
+         return true
+      else
+         t[valuename].forcepan = true
+         t[valuename].forceshow = true
+         table.insert( valuelist_queue, t[valuename])
+         t[valuename] = nil
+         return true
+      end
    end
+   return nil
 end
 
 function FillValueListRoutine()
@@ -1334,9 +1535,13 @@ function FillValueListRoutine()
 						if cl_Profiles[q.prof]
 						and IsValid( q.parentpanel ) and IsValid( q.panel ) and IsValid( q.vpanel )
 						and HasPreset( PendingSettings, q.prof, q.set, q.prs ) then
-                     -- if !q.pendingTbl or q.pendingTbl[q.valueName] == nil then
-                        -- AddPresetPend(valuelist_storage, q.prof, q.set, q.prs, q)
-                     -- else
+                     local vl_all = GetPrsTbl(valuelist_all, q.prof, q.set, q.prs)
+                     vl_all[q.valueName] = q
+                     
+                     if !q.required and (!q.pendingTbl or q.pendingTbl[q.valueName] == nil)
+                     and !q.forceshow then
+                        GetPrsTbl(valuelist_storage, q.prof, q.set, q.prs)[q.valueName] = q
+                     else
                         q.vpanel.values = q.vpanel.values or {} // aka ValueEditor[prof][set][prs].ValueList.values
                         q.fpanel.values = q.vpanel.values // parent dform
 
@@ -1352,18 +1557,26 @@ function FillValueListRoutine()
                            q.hierarchy
                         )
                         q.vpanel.values[q.valueName] = newpanel
+                        vl_all[q.valueName].selfpanel = newpanel
 
                         -- q.parentpanel:OnSizeChanged()
 
                         -- q.vpanel:InvalidateLayout()
                         -- q.vpanel:SizeToChildren( nil, true )
                         -- q.vpanel:SetTall( q.vpanel:GetTall() + 15 )
-                        if q.cat and q.cat.header == nil then
+                        if q.cat and (q.cat.header == q.fpanel or q.cat.header == nil ) then
                            q.cat.header = newpanel
+                        end
+                        if q.forcepan and IsValid(q.scrollpanel) then
+                           timer.Simple(engine.TickInterval()*4, function()
+                              if IsValid(q.scrollpanel) and IsValid(newpanel) then
+                                 q.scrollpanel:ScrollToChild(newpanel)
+                              end
+                           end )
                         end
 
                         done = true
-                     -- end
+                     end
 						end
 					end
 				end
@@ -2144,7 +2357,7 @@ function AddValuePanel( fpanel, structTbl, typ, valueName, existingTbl, pendingT
 	npanel.descpanel.tippan.Think = function( self )
 		npanel.descpanel.tippan.text:SetWrap( true )
 		if npanel.descpanel.tippan.extratext then npanel.descpanel.tippan.extratext:SetWrap( true ) end
-		npanel.descpanel.tippan:SetSize( 312.5, npanel.descpanel.tippan.text:GetTall() + ( npanel.descpanel.tippan.extratext and npanel.descpanel.tippan.extratext:GetTall() ) )
+		npanel.descpanel.tippan:SetSize( 312.5, npanel.descpanel.tippan.text:GetTall() + ( npanel.descpanel.tippan.extratext and npanel.descpanel.tippan.extratext:GetTall() or 0) )
 	end
 	-- npanel.descpanel.tippan:SetBackgroundColor( Color( 0, 0, 0, 0 ) )
 	npanel.descpanel.tippan.text = vgui.Create( "DLabel", npanel.descpanel.tippan )
