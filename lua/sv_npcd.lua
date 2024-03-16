@@ -703,7 +703,6 @@ end
 
 function DirectRoutine()
 	if !coroutine.running() then return end
-   coroutine.yield(coroutine.running())
 	local drtime = nil
 	while true do
 		coroutine.yield()
@@ -737,7 +736,6 @@ end
 
 function CoolerRoutine()
 	if !coroutine.running() then return end
-   coroutine.yield(coroutine.running())
 	while true do
 		coroutine.yield()
 		CoolNodes()
@@ -747,7 +745,6 @@ end
 
 function SpawnerRoutine()
 	if !coroutine.running() then return end
-   coroutine.yield(coroutine.running())
 	local drtime = nil
 	while true do
 		coroutine.yield()
@@ -796,7 +793,6 @@ end
 
 function ChaseRoutine()
 	if !coroutine.running() then return end
-   coroutine.yield(coroutine.running())
 	while true do
 		coroutine.yield()
 		if cvar.chase_enabled.v:GetBool() and CurTime() - lastChase > chaseDelay then
@@ -808,7 +804,6 @@ end
 
 function StressRoutine()
 	if !coroutine.running() then return end
-   coroutine.yield(coroutine.running())
 	while true do
 		coroutine.yield()
 		if CurTime() - lastStress > stressDelay then
@@ -867,8 +862,6 @@ net.Receive("npcd_cl_ready", function( len, ply )
 end)
 
 function InformClientRoutine()
-   coroutine.yield(coroutine.running())
-   
 	countupdated = true
 	while true do
 		coroutine.yield()
