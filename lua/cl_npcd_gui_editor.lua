@@ -666,7 +666,7 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
    opts.ShowDefaultsChanged = function( self )
       local ts = GetPrsTbl(valuelist_all, prof, set, prs )
       local t_key = {}
-      for vn, v in SortedPairs(ts) do
+      for vn, v in pairs(ts) do
          t_key[vn] = string.lower(v.displayname)
       end
       if showdefaults then
@@ -675,12 +675,42 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
                UnstoreValuelist(prof, set, prs, vn, nil, true)
             end
          end
-      else
+      elseif not cl_cvar.valuelist_showall.v:GetBool() then
          for vn in SortedPairsByValue(t_key) do
             if IsValid(ts[vn].selfpanel) and ts[vn].hasdefault and (!GetPendingTbl(prof, set, prs) or GetPendingTbl(prof, set, prs)[vn] == nil) then
                ts[vn].selfpanel:Remove()
                ts[vn].selfpanel = nil
+               ts[vn].forceshow = nil
                GetPrsTbl(valuelist_storage, ts[vn].prof, ts[vn].set, ts[vn].prs)[vn] = ts[vn]
+            end
+         end
+      end
+   end
+   opts.ShowAllChanged = function( self )
+      local t = GetPrsTbl(valuelist_all, prof, set, prs )
+      local ts = GetPrsTbl(valuelist_storage, prof, set, prs )
+      local t_key = {}
+      local ts_key = {}
+      for vn, v in pairs(t) do
+         t_key[vn] = string.lower(v.displayname)
+      end
+      if cl_cvar.valuelist_showall.v:GetBool() then
+         for vn in SortedPairsByValue(t_key) do
+            if ts[vn] then
+               UnstoreValuelist(prof, set, prs, vn, nil, true)
+            end
+         end
+      else
+         for vn in SortedPairsByValue(t_key) do
+            if IsValid(t[vn].selfpanel)
+            and (!GetPendingTbl(prof, set, prs) or GetPendingTbl(prof, set, prs)[vn] == nil)
+            and (!t[vn].hasdefault or t[vn].hasdefault and !showdefaults)
+            and !t[vn].required
+            then
+               t[vn].selfpanel:Remove()
+               t[vn].selfpanel = nil
+               t[vn].forceshow = nil
+               GetPrsTbl(valuelist_storage, t[vn].prof, t[vn].set, t[vn].prs)[vn] = t[vn]
             end
          end
       end
@@ -694,6 +724,12 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
       end)
       deffer:SetIsCheckable(true)
       deffer:SetChecked(showdefaults)
+      local aller = menu:AddOption("Always show all values", function()
+         cl_cvar.valuelist_showall.v:SetBool(!cl_cvar.valuelist_showall.v:GetBool())
+         self.ShowAllChanged()
+      end)
+      aller:SetIsCheckable(true)
+      aller:SetChecked(cl_cvar.valuelist_showall.v:GetBool())
       menu:Open()
    end
 
@@ -1598,7 +1634,10 @@ function FillValueListRoutine()
                      local vl_all = GetPrsTbl(valuelist_all, q.prof, q.set, q.prs)
                      vl_all[q.valueName] = q
                      
-                     if (!q.hasdefault or q.hasdefault and !showdefaults) and !showall and !q.required and (!q.pendingTbl or q.pendingTbl[q.valueName] == nil)
+                     if (!q.hasdefault or q.hasdefault and !showdefaults)
+                     and !showall
+                     and !q.required
+                     and (!q.pendingTbl or q.pendingTbl[q.valueName] == nil)
                      and !q.forceshow then
                         GetPrsTbl(valuelist_storage, q.prof, q.set, q.prs)[q.valueName] = q
                      else
