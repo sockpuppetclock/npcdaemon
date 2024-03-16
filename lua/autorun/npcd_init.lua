@@ -548,8 +548,8 @@ cvar = {
 		sort = "b4",
 	},
 	debug = {
-		v = CreateConVar("npcd_verbose", 0, cf, "Prints more info from functions", 0, 1 ),
-		t = "boolean",
+		v = CreateConVar("npcd_verbose", 0, cf, "Prints more info from functions", 0, 2 ),
+		t = "int",
 		n = "Verbose",
 		c = "Debug",
 	},
@@ -657,7 +657,8 @@ cvar = {
 		v = CreateConVar("npcd_spawn_startdisabled", 1, cf, "If true, auto-spawning is always disabled on map start", 0, 1),
 		t = "boolean",
 		n = "Auto-Spawning Starts Disabled",
-		c = "Auto-Spawner",
+		-- c = "Auto-Spawner",
+		c = "TOP",
 		sort = "Z",
 	},
 	chase_enabled = {
