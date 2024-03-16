@@ -620,6 +620,7 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
    cpane.adder = adder
    adder.cpane = cpane
    adder:SetText("Add Value...")
+   -- adder:SetIcon("icon16/add.png")
    adder:SetWide( math.min( cpane:GetWide() - 20, 260 ) )
    adder:SetTall( adder:GetTall() + 10 )
    adder:SetPos( math.max(0, cpane:GetWide() - adder:GetWide()), 5 )
@@ -675,7 +676,8 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
                   end
                end )
 
-               if not (t_stored and t_stored[vn]) then
+               -- if not (t_stored and t_stored[vn]) then
+               if GetPendingTbl(prof, set, prs) and GetPendingTbl(prof, set, prs)[vn] != nil then
                   butt:SetIsCheckable(true)
                   butt:SetChecked(true)
                end
@@ -1425,6 +1427,7 @@ function CreateValueEditorList( panel, prof, set, prs, parentpanel )
 						cat = valuelist_cat_selectors[cat], // selector, not form
 
                   required = valueTbl.REQUIRED or valueTbl.CATEGORY == t_CAT.REQUIRED or valueTbl.CATEGORY == t_CAT.DESC,
+                  hasdefault = valueTbl.DEFAULT != nil,
                   displayname = valueTbl.NAME or valueName,
                   category = cat,
 
@@ -1481,6 +1484,7 @@ function FillValueListRoutine()
 		if #valuelist_queue == 0 then continue end
 
 		local rate = cl_cvar.valuelist_rate.v:GetInt()
+      local showall = cl_cvar.valuelist_showall.v:GetBool()
 		rate = math.max( 1, rate )
 
 		for i=1,rate do
@@ -1538,7 +1542,7 @@ function FillValueListRoutine()
                      local vl_all = GetPrsTbl(valuelist_all, q.prof, q.set, q.prs)
                      vl_all[q.valueName] = q
                      
-                     if !q.required and (!q.pendingTbl or q.pendingTbl[q.valueName] == nil)
+                     if !showall and !q.required and (!q.pendingTbl or q.pendingTbl[q.valueName] == nil)
                      and !q.forceshow then
                         GetPrsTbl(valuelist_storage, q.prof, q.set, q.prs)[q.valueName] = q
                      else

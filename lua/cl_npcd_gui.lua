@@ -73,6 +73,13 @@ cl_cvar = {
 		c = "Profiles",
 		p = PERM_CLIENT,
 	},
+	valuelist_showall = {
+		v = CreateConVar("npcd_settings_window_valuelist_showall", 0, cl_cf, "If unchecked, only pending or existing values are shown in the preset editor", 0, 1),
+		t = "boolean",
+		n = "Always Show All Values (Client)",
+		c = "Profiles",
+		p = PERM_CLIENT,
+	},
 }
 
 for name, cv in pairs( cl_cvar ) do
