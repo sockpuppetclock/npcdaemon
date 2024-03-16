@@ -3987,6 +3987,19 @@ function AddFunctionPanel( npanel, inspanel )
 				or istable( npanel.structTbl.DEFAULT ) and npanel.structTbl.DEFAULT[1] == inspanel.valuer.func and isnumber( npanel.structTbl.DEFAULT[3] ) and npanel.structTbl.DEFAULT[3] or npanel.structTbl.MAX or 1
 		end
 
+      // avoids forcing PendingAdd every time value box is loaded
+      // MathRandom is a unique case as it uses MIN and MAX and "default" values could be incorrect
+      inspanel.valuer.funcpanel.SafeInit = function()
+         local low = isnumber( npanel.pendingTbl[npanel.valueName][2] ) and npanel.pendingTbl[npanel.valueName][2] 
+				or istable( npanel.structTbl.DEFAULT ) and npanel.structTbl.DEFAULT[1] == inspanel.valuer.func and isnumber( npanel.structTbl.DEFAULT[2] ) and npanel.structTbl.DEFAULT[2] or npanel.structTbl.MIN or 0
+			local high = isnumber( npanel.pendingTbl[npanel.valueName][3] ) and npanel.pendingTbl[npanel.valueName][3] 
+				or istable( npanel.structTbl.DEFAULT ) and npanel.structTbl.DEFAULT[1] == inspanel.valuer.func and isnumber( npanel.structTbl.DEFAULT[3] ) and npanel.structTbl.DEFAULT[3] or npanel.structTbl.MAX or 1
+         if low != npanel.pendingTbl[npanel.valueName][2] and low != 0
+         or high != npanel.pendingTbl[npanel.valueName][3] and high != 1 then
+            inspanel.valuer.funcpanel:InitPend()
+         end
+      end
+
 		inspanel.valuer.funcpanel.min:SetValue( istable( npanel.pendingTbl[npanel.valueName] ) and isnumber( npanel.pendingTbl[npanel.valueName][2] ) and npanel.pendingTbl[npanel.valueName][2] 
 			or istable( npanel.structTbl.DEFAULT ) and npanel.structTbl.DEFAULT[1] == inspanel.valuer.func and isnumber( npanel.structTbl.DEFAULT[2] ) and npanel.structTbl.DEFAULT[2]
 			or npanel.structTbl.MIN
@@ -4029,9 +4042,9 @@ function AddFunctionPanel( npanel, inspanel )
 			inspanel.valuer.funcpanel.min:SetDecimals( 0 )
 			inspanel.valuer.funcpanel.max:SetDecimals( 0 )
 			
-			inspanel.valuer.funcpanel:InitPend()
+			inspanel.valuer.funcpanel:SafeInit()
       elseif inspanel.valuer.func == "__RAND" then
-         inspanel.valuer.funcpanel:InitPend()
+         inspanel.valuer.funcpanel:SafeInit()
 		end
 
 		inspanel.valuer.funcpanel:SetHeight( inspanel.valuer.funcpanel.min:GetTall() + inspanel.valuer.funcpanel.max:GetTall() )
