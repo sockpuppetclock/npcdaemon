@@ -206,8 +206,10 @@ function Direct( numQuota, numSqQuota, pool_t, mapLimit, squadLimit, RadiusTable
 
 	if debugged then
 		print("npcd > Direct > valid squads #: ", table.Count(valid_squads) )
-		PrintTable( valid_squads )
-		PrintTable( todo_mins )
+      if debugged_more then
+         PrintTable( valid_squads )
+         PrintTable( todo_mins )
+      end
 	end
 	-- if true then return end
 	
@@ -769,9 +771,12 @@ function DirectorSpawn( todo )
 	if debugged then
 		print( "npcd > DirectorSpawn" )
 		if todo then
-			for k, v in pairs( todo ) do
-				print( tostring( k ) .. " = " .. tostring( v ) )
-			end
+         MsgN("\tname = ",todo.name)
+         MsgN("\ttype = ",todo.type)
+         MsgN("\tpool = ",todo.pool)
+			-- for k, v in pairs( todo ) do
+				-- print( tostring( k ) .. " = " .. tostring( v ) )
+			-- end
 		end
 	end
 	if !todo then 
@@ -849,7 +854,7 @@ function DirectorSpawn( todo )
 	// group bounds, for making sure spawn doesn't start stuck
 	//[1] = mins, [2] = maxs, [3] = neg offset, [4] = all npc_t.offset
 	local bounds = todo.newSquad and GetGroupOBB( todo.newSquad )
-		or GetOBB( npc_t ) or nil
+		or GetOBB( npc_t, todo.name ) or nil
 	if bounds == nil then print( "npcd > DirectorSpawn > nil bounds") return nil end
 
 	-- local ent_offs = bounds[4]

@@ -6569,8 +6569,8 @@ t_squadpool_values = {
 				},
 				{
 					["minradius"] = 0,
-					["maxradius"] = 7800,
-					["radius_entity_limit"] = 60,
+					["maxradius"] = 32768,
+					-- ["radius_entity_limit"] = 60,
 					-- ["radius_squad_limit"] = nil,
 					["nospawn"] = true,
 					["despawn"] = true,
@@ -6592,7 +6592,7 @@ t_squadpool_values = {
 			},
 			{
 				["minradius"] = 0,
-				["maxradius"] = 7800,
+				["maxradius"] = 32768,
 				-- ["radius_squad_limit"] = nil,
 				["nospawn"] = true,
 				["despawn"] = true,
