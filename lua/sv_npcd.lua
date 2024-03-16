@@ -172,6 +172,7 @@ SpawnMapScale = 1
 cachedEffects = {}
 cachedModels = {}
 knownBounds = {}
+knownBoundsEnt = {}
 
 directQueue = {}
 spawnerQueue = {} // for spawnmenu spawns
@@ -208,6 +209,7 @@ local sent_manifest = {} // last sent manifest to player
 updated_profiles = {} // last time profile was updated
 local prof_manifest = {} // profile manifest with spawn counts
 debugged = cvar.debug.v:GetBool()
+debugged_more = cvar.debug.v:GetInt() > 1
 debugged_spawner = cvar.direct_print.v:GetBool()
 debugged_chase = cvar.debug_chase.v:GetBool()
 

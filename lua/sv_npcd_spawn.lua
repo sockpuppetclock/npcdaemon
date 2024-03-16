@@ -55,7 +55,7 @@ function OverrideTable( tbl, ovr_t, typ, lup_typ, isEnt, copy, lup )
 	return o_t
 end
 
-function GetOBB( npc_t )
+function GetOBB( npc_t, presetname )
 	if !npc_t then return nil end
 	local bounds = {}
 	-- local xmin, xmax, ymin, ymax, zmin, zmax = 0, 0, 0, 0, 0, 0
@@ -64,6 +64,12 @@ function GetOBB( npc_t )
 
 	-- local npc_t = table.Copy( nsTbl["npc_t"] )
 	// [x] problem: GetGroupOBB and SpawnNPC will come out differently if it has a random value for scale or model
+   knownBoundsEnt[npc_t.entity_type] = knownBoundsEnt[npc_t.entity_type] or {}
+   local hasrandom = istable( npc_t.model ) or istable( npc_t.scale ) or istable( npc_t.offset )
+      or (npc_t.setboundary and (istable(npc_t.setboundary.min) or istable(npc_t.setboundary.max)))
+   if presetname and knownBoundsEnt[npc_t.entity_type][presetname] != nil and !hasrandom then
+      return knownBoundsEnt[npc_t.entity_type][presetname]
+   end
 
 	local npc = ents.Create( GetPresetName( npc_t.classname ) )
 
@@ -142,6 +148,10 @@ function GetOBB( npc_t )
       -- print("npcd > GetOBB")
       -- PrintTable(bounds)
 	-- end
+
+   if presetname and !hasrandom then
+      knownBoundsEnt[npc_t.entity_type][presetname] = bounds
+   end
 	
 	return bounds
 end
@@ -318,7 +328,7 @@ end
 
 function SpawnNPC( presetName, anpc_t, pos, ang, squad_t, npcOverride, doFadeIns, pool, nocopy, nopoolovr, oldsquad )
 	if !anpc_t then Error("\nError: npcd > SpawnNPC > NO NPC_T ",presetName,"\n\n") return nil end
-	if debugged then
+	if debugged_more then
 		print("npcd > SpawnNPC(", presetName, anpc_t, pos, ang, squad_t, npcOverride, doFadeIns, pool, nocopy, nopoolovr, oldsquad,")" )	
 	end
 	if anpc_t["npcd_enabled"] == false then return nil end
@@ -1418,7 +1428,8 @@ function GenerateSquad( s, override2_t, pool, squadIDOvr, override3_t )
 
 		for i=1,tospawn do
 			local n_t = table.Copy( npcTable )
-			local hasrandom = istable( n_t.model ) or istable( n_t.scale ) or istable( n_t.offset ) // must be checked before resolve
+			local hasrandom = istable( n_t.model ) or istable( n_t.scale ) or istable( n_t.offset )
+            or ( n_t.setboundary and ( istable( n_t.setboundary.min ) or istable( n_t.setboundary.max ) ) ) // must be checked before resolve
 			ResolveEntValueTable( nil, n_t ) // preestablish npc_t, to keep GroupOBB consistent when using random values
 			table.insert( squad_t["spawns"], {
 				-- ["count"] = tospawn,
