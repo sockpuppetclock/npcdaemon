@@ -10,6 +10,8 @@ local valuelist_queue = {}
 local valuelist_storage = {}
 local valuelist_all = {}
 
+local showdefaults = false
+
 co_valuelister = nil
 
 function SettingsWindowDefaults()
@@ -617,13 +619,27 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
    cpane.prs = prs
 
    local adder = vgui.Create( "DButton", cpane )
+   local opts = vgui.Create( "DButton", cpane )
+   -- local deffer = vgui.Create( "DCheckBoxLabel", cpane )
    cpane.adder = adder
+   cpane.opts = opts
+   -- cpane.deffer = deffer
    adder.cpane = cpane
    adder:SetText("Add Value...")
    -- adder:SetIcon("icon16/add.png")
    adder:SetWide( math.min( cpane:GetWide() - 20, 260 ) )
    adder:SetTall( adder:GetTall() + 10 )
-   adder:SetPos( math.max(0, cpane:GetWide() - adder:GetWide()), 5 )
+   adder:SetPos( math.max(0, cpane:GetWide() - adder:GetWide() + UI_BUTTON_W), 5 )
+
+   opts:SetText("")
+   opts:SetIcon("icon16/table_gear.png")
+   opts:SetSize(UI_ICONBUTTON_W, UI_BUTTON_H)
+   opts:SetPos( adder:GetPos() - UI_BUTTON_W, 5 )
+   opts:SetTall( adder:GetTall() )
+
+   -- deffer:SetChecked( showdefaults )
+   -- deffer:SetText("Show values with defaults")
+   -- deffer:SetTextColor( Color( 23, 23, 23 ) )
 
    cpane.AnimationThink = function( self )
 		if !IsValid( vpanel ) then
@@ -636,13 +652,51 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
       if IsValid(self.vpanel) and IsValid(self.vpanel.infopane) then
          if scroll < self.vpanel.infopane:GetTall() then
             self:SetPos( 0, self.vpanel.infopane:GetTall() )
+            -- self.deffer:SetPos(0, 0)
          else
             self:SetPos( 0, self.panel:GetVBar():GetScroll() )
+            -- self.deffer:SetPos(0, self.vpanel.infopane:GetTall()-self.panel:GetVBar():GetScroll())
          end
       end
-      self.adder:SetWide( math.min( self:GetWide() - 20, 260 ) )
-      self.adder:SetPos( math.max(0, 0.5*(self:GetWide() - self.adder:GetWide())), 5 )
+      self.adder:SetWide( math.min( self:GetWide() - 20 - UI_BUTTON_W, 260 ) )
+      self.adder:SetPos( math.max(0, (self:GetWide() - self.adder:GetWide() + UI_BUTTON_W/2)/2), 5 )
+      self.opts:SetPos( self.adder:GetPos() - UI_BUTTON_W, 5 )
 	end
+
+   opts.ShowDefaultsChanged = function( self )
+      local ts = GetPrsTbl(valuelist_all, prof, set, prs )
+      local t_key = {}
+      for vn, v in SortedPairs(ts) do
+         t_key[vn] = string.lower(v.displayname)
+      end
+      if showdefaults then
+         for vn in SortedPairsByValue(t_key) do
+            if ts[vn].hasdefault then
+               UnstoreValuelist(prof, set, prs, vn, nil, true)
+            end
+         end
+      else
+         for vn in SortedPairsByValue(t_key) do
+            if IsValid(ts[vn].selfpanel) and ts[vn].hasdefault and (!GetPendingTbl(prof, set, prs) or GetPendingTbl(prof, set, prs)[vn] == nil) then
+               ts[vn].selfpanel:Remove()
+               ts[vn].selfpanel = nil
+               GetPrsTbl(valuelist_storage, ts[vn].prof, ts[vn].set, ts[vn].prs)[vn] = ts[vn]
+            end
+         end
+      end
+   end
+
+   opts.DoClick = function( self )
+      local menu = DermaMenu()
+      local deffer = menu:AddOption("Show values that have defaults", function()
+         showdefaults = !showdefaults
+         self.ShowDefaultsChanged()
+      end)
+      deffer:SetIsCheckable(true)
+      deffer:SetChecked(showdefaults)
+      menu:Open()
+   end
+
 
    adder.DoClick = function( self )
       local menu = DermaMenu()
@@ -1455,7 +1509,7 @@ function CreateValueEditorList( panel, prof, set, prs, parentpanel )
 	-- return panpan
 end
 
-function UnstoreValuelist(prof, set, prs, valuename, all)
+function UnstoreValuelist(prof, set, prs, valuename, all, nopan)
    local t = HasPreset(valuelist_storage, prof, set, prs)
    if t and t[valuename] != nil then
       if all then
@@ -1465,7 +1519,9 @@ function UnstoreValuelist(prof, set, prs, valuename, all)
          end
          return true
       else
-         t[valuename].forcepan = true
+         if !nopan then
+            t[valuename].forcepan = true
+         end
          t[valuename].forceshow = true
          table.insert( valuelist_queue, t[valuename])
          t[valuename] = nil
@@ -1542,7 +1598,7 @@ function FillValueListRoutine()
                      local vl_all = GetPrsTbl(valuelist_all, q.prof, q.set, q.prs)
                      vl_all[q.valueName] = q
                      
-                     if !showall and !q.required and (!q.pendingTbl or q.pendingTbl[q.valueName] == nil)
+                     if (!q.hasdefault or q.hasdefault and !showdefaults) and !showall and !q.required and (!q.pendingTbl or q.pendingTbl[q.valueName] == nil)
                      and !q.forceshow then
                         GetPrsTbl(valuelist_storage, q.prof, q.set, q.prs)[q.valueName] = q
                      else
