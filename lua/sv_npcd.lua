@@ -672,9 +672,9 @@ function AddRoutine( name, func )
 	-- routines[name].cr = nil
 end
 
-routine_dead = {
-   ["dead"] = true
-}
+-- routine_dead = {
+--    ["dead"] = true
+-- }
 
 function DoRoutine( name )
 	if !routines[name] then
@@ -682,18 +682,12 @@ function DoRoutine( name )
 		return
 	end
 	local noerred, err
-	if routines[name].cr and !routine_dead[coroutine.status(routines[name].thread)] then
-		-- noerred, err = coroutine.resume( routines[name].cr )
-		-- coroutine.resume( routines[name].cr )
-		routines[name].cr()
-		-- if !noerred or err then Error("\ncoroutine \"" .. name .. "\" did something weird: ", err,"\n\n") end
-	-- if ( !routines[name].cr or !noerred ) then
-	-- if ( !routines[name].cr ) then
-   else
-      if debugged then print("npcd > DoRoutine > Starting routine: "..tostring(name)) end
-		-- routines[name].cr = coroutine.create( routines[name].func )
-		routines[name].cr = coroutine.wrap( routines[name].func )
-      routines[name].thread = routines[name].cr()
+   if routines[name].cr then
+		noerred, err = coroutine.resume( routines[name].cr )
+		if !noerred or err then Error("\n[NPC Daemon] [Coroutine \"" .. name .. "\"]", err,"\n\n") end
+	end
+	if ( !routines[name].cr or !noerred ) then
+		routines[name].cr = coroutine.create( routines[name].func )
 	end
 end
 
