@@ -1263,6 +1263,14 @@ function CreateValueEditorList( panel, prof, set, prs, parentpanel )
 	-- return panpan
 end
 
+local valuelist_storage = {}
+
+function UnstoreValuelist(prof, set, prs)
+   if HasPreset(valuelist_storage, prof, set, prs) then
+      table.insert( valuelist_queue, HasPreset(valuelist_storage, prof, set, prs))
+   end
+end
+
 function FillValueListRoutine()
 	local valid
 	local c = 0
@@ -1326,36 +1334,36 @@ function FillValueListRoutine()
 						if cl_Profiles[q.prof]
 						and IsValid( q.parentpanel ) and IsValid( q.panel ) and IsValid( q.vpanel )
 						and HasPreset( PendingSettings, q.prof, q.set, q.prs ) then
-							-- valid = false
-							-- end
+                     -- if !q.pendingTbl or q.pendingTbl[q.valueName] == nil then
+                        -- AddPresetPend(valuelist_storage, q.prof, q.set, q.prs, q)
+                     -- else
+                        q.vpanel.values = q.vpanel.values or {} // aka ValueEditor[prof][set][prs].ValueList.values
+                        q.fpanel.values = q.vpanel.values // parent dform
 
-							-- if valid then
-							q.vpanel.values = q.vpanel.values or {} // aka ValueEditor[prof][set][prs].ValueList.values
-							q.fpanel.values = q.vpanel.values // parent dform
+                        local newpanel = AddValuePanel(
+                           q.fpanel,
+                           q.structTbl,
+                           q.typ,
+                           q.valueName,
+                           q.existingTbl,
+                           q.pendingTbl,
+                           q.viewTbl,
+                           q.lookupclass,
+                           q.hierarchy
+                        )
+                        q.vpanel.values[q.valueName] = newpanel
 
-							local newpanel = AddValuePanel(
-								q.fpanel,
-								q.structTbl,
-								q.typ,
-								q.valueName,
-								q.existingTbl,
-								q.pendingTbl,
-								q.viewTbl,
-								q.lookupclass,
-								q.hierarchy
-							)
-							q.vpanel.values[q.valueName] = newpanel
+                        -- q.parentpanel:OnSizeChanged()
 
-							-- q.parentpanel:OnSizeChanged()
+                        -- q.vpanel:InvalidateLayout()
+                        -- q.vpanel:SizeToChildren( nil, true )
+                        -- q.vpanel:SetTall( q.vpanel:GetTall() + 15 )
+                        if q.cat and q.cat.header == nil then
+                           q.cat.header = newpanel
+                        end
 
-							-- q.vpanel:InvalidateLayout()
-							-- q.vpanel:SizeToChildren( nil, true )
-							-- q.vpanel:SetTall( q.vpanel:GetTall() + 15 )
-							if q.cat and q.cat.header == nil then
-								q.cat.header = newpanel
-							end
-
-							done = true
+                        done = true
+                     -- end
 						end
 					end
 				end
@@ -7299,6 +7307,16 @@ function CreateSettingsPanel()
 		end
 	end
 
+	PresetsButtons.SetPresetStatus = function( status )
+      if CheckClientPerm( LocalPlayer(), cvar.perm_prof.v:GetInt() ) and PresetsList:GetSelectedLine() and active_prof and active_set then
+         for k, line in pairs( PresetsList:GetSelected() ) do
+				local prs = line:GetColumnText(2) -- active_prs
+            if PresetsList.boxes[prs] then
+               PresetsList.boxes[prs]:SetValue( status )
+            end
+         end
+      end
+   end
 	PresetsButtons.RenameRef = function()
 		if CheckClientPerm( LocalPlayer(), cvar.perm_prof.v:GetInt() ) and PresetsList:GetSelectedLine() and active_prof and active_set then --and active_prof and active_set and active_prs then
 			for k, line in pairs( PresetsList:GetSelected() ) do
@@ -7525,6 +7543,13 @@ function CreateSettingsPanel()
 				self.RenameRef()
 			end )
 		end
+      menu:AddOption( "Enable selected", function()
+         self.SetPresetStatus(true)
+      end )
+      menu:AddOption( "Disable selected", function()
+         self.SetPresetStatus(false)
+      end )
+
 		menu:AddOption( "Add New", function()
 			self.add:OnReleased()
 		end )
