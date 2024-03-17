@@ -7878,11 +7878,8 @@ function CreateSettingsPanel()
 		menu:AddOption( "Add New", function()
 			self.add:OnReleased()
 		end )
-		menu:AddOption( multiselect and "Copy selected presets" or "Copy preset", function()
-			self.copy:OnReleased()
-		end )
 		
-		menu:AddOption( "#spawnmenu.menu.copy", function()
+		menu:AddOption( multiselect and "Copy names to clipboard" or "Copy name to clipboard", function()
 			local str = ""
 			local first = true
 			for _, line in ipairs( PresetsList:GetSelected() ) do
@@ -7896,10 +7893,13 @@ function CreateSettingsPanel()
 			SetClipboardText( str )
 		end )
 		
+		menu:AddOption( multiselect and "Duplicate selected presets" or "Duplicate preset", function()
+			self.copy:OnReleased()
+		end )
 		menu:AddOption( multiselect and "Move selected to other profile" or "Move to other profile", function()
 			self.move:OnReleased()
 		end )
-		menu:AddOption( multiselect and "Copy selected to other profile" or "Copy to other profile", function()
+		menu:AddOption( multiselect and "Duplicate selected to other profile" or "Duplicate to other profile", function()
 			self.copymove:OnReleased()
 		end )
 		menu:AddOption( multiselect and "Delete selected" or "Delete", function()

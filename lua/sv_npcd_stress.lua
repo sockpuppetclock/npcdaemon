@@ -150,9 +150,11 @@ function StressOut()
 
 	// peak check
 	if pressure >= 1 and !prsr_peaked then
-		if debugged_spawner then
+		if debugged_spawner or debugged then
 			print("npcd > StressOut > PRESSURE PEAKED in ",CurTime() - prsr_rise_start)
-			PrintDirects()
+         if debugged_more then
+			   PrintDirects()
+         end
 		end
 		direct_times = {}
 		prsr_peaked = true
