@@ -224,11 +224,15 @@ function Direct( numQuota, numSqQuota, pool_t, mapLimit, squadLimit, RadiusTable
 	if mapLimit then
 		local psum = NPCMapCount( PoolFilter )
 		local rem_spawn = math.max( mapLimit - psum, 0 )
-		entityquota = numQuota or math.max( 0,
-			pool_t["quota_entity_min"] and math.min( pool_t["quota_entity_min"], rem_spawn ) or cvar.spawn_quotaf_rawmin_spawn.v:GetFloat(),
-			math.min( pool_t["quota_entity_max"] or math.huge,
-				rem_spawn,
-				mapLimit * math.Rand( quota_min, quota_max ) * ( pool_t["quota_entity_mult"] or 1 ) ) )
+		entityquota = numQuota or math.max(
+            0,
+			   -- pool_t["quota_entity_min"] and math.min( pool_t["quota_entity_min"], rem_spawn ) or cvar.spawn_quotaf_rawmin_spawn.v:GetFloat(),
+			   pool_t["quota_entity_min"] or cvar.spawn_quotaf_rawmin_spawn.v:GetFloat(),
+			   math.min( pool_t["quota_entity_max"] or math.huge,
+                  -- rem_spawn,
+				      mapLimit * math.Rand( quota_min, quota_max ) * ( pool_t["quota_entity_mult"] or 1 )
+               )
+            )
 		entityquota = math.Round( entityquota, 3 )
 		-- if debugged_spawner then
 		-- 	for _, v in ipairs( { mapLimit, psum, rem_spawn, quota_min, quota_max, math.Rand( quota_min, quota_max ), pool_t["quota_entity_mult"], pool_t["quota_entity_min"] and math.min( pool_t["quota_entity_min"], rem_spawn ) or cvar.spawn_quotaf_rawmin_spawn.v:GetFloat() } ) do
@@ -286,14 +290,29 @@ function Direct( numQuota, numSqQuota, pool_t, mapLimit, squadLimit, RadiusTable
 		for k, radtbl in pairs( table.Copy( RadiusTable ) ) do
 			ApplyValueTable( radtbl, t_lookup["squadpool"]["radiuslimits"].STRUCT )
 
+         local r_npc_lim, r_sq_lim
+         // prevent double applying map scale
+         if radtbl["radius_entity_limit"] then
+            r_npc_lim = radtbl["radius_entity_limit"] * ( radtbl["radius_spawn_autoadjust"] != false and SpawnMapScale or 1 )
+         else
+            r_npc_lim = mapLimit or math.huge
+         end
+         if radtbl["radius_squad_limit"] then
+            r_sq_lim = radtbl["radius_squad_limit"] * ( radtbl["radius_spawn_autoadjust"] != false and SpawnMapScale or 1 )
+         else
+            r_sq_lim = squadLimit or math.huge
+         end
+
 			local rk = table.insert( radiuses, {
 				minRadius = radtbl["minradius"] and ( radtbl["minradius"] * ( radtbl["radius_autoadjust_min"] and MapScale or 1 ) ) or 0,
-				radiusNPCLimit = ( radtbl["radius_entity_limit"] or mapLimit or math.huge ) * ( radtbl["radius_spawn_autoadjust"] != false and SpawnMapScale or 1 ), // either radius or pool limit
-				radiusSqLimit = ( radtbl["radius_squad_limit"] or squadLimit or math.huge ) * ( radtbl["radius_spawn_autoadjust"] != false and SpawnMapScale or 1 ),
+				radiusNPCLimit = r_npc_lim, // either radius or pool limit
+				radiusSqLimit = r_sq_lim,
 				toDespawn = radtbl["despawn"] or false,
 				toDespawn_near = radtbl["despawn_tooclose"],
+				toDespawn_addquota = radtbl["despawn_addquota"],
 				chkrad = radtbl["spawn_tooclose"] or 0,
 				nospawn = radtbl["nospawn"],
+				outside = radtbl["outside"],
 				skip = false, // changed when radius has no valid players
 			} )
 
@@ -419,9 +438,10 @@ function Direct( numQuota, numSqQuota, pool_t, mapLimit, squadLimit, RadiusTable
 						dist_tbl[ply][npc] = dist_tbl[ply][npc] or npc_pos:DistToSqr(ply_pos)
 						local dist_sqr = dist_tbl[ply][npc]
 
-						if dist_sqr >= r.minRadius_sqr and dist_sqr < r.maxRadius_sqr then
+						if (dist_sqr >= r.minRadius_sqr and dist_sqr < r.maxRadius_sqr)
+                  or (r.outside and dist_sqr > r.maxRadius_sqr) then
 							count = count + ntbl["weight"]
-							table.insert(npcs_in, { ["npc"] = npc, ["dist_sqr"] = dist_sqr } )
+							table.insert(npcs_in, { ["npc"] = npc, ["dist_sqr"] = dist_sqr, ["weight"] = ntbl["weight"], } )
 
 							local kvals = ntbl["squad_t"]["name"] or npc:GetKeyValues()["squadname"]
 							if kvals then
@@ -433,15 +453,21 @@ function Direct( numQuota, numSqQuota, pool_t, mapLimit, squadLimit, RadiusTable
 				end
 
 				local sqcount = #sqcount_t
+            local ecount = count + (r.toDespawn_addquota and entityquota or 0)
+            // this only works correctly for certain if despawn radius fills entire map
 
 				// if invalid/valid player
-				local overnpcrad = ( r.radiusNPCLimit and count >= r.radiusNPCLimit )
+				local overnpcrad = r.radiusNPCLimit and ecount >= r.radiusNPCLimit //the radius limit after the quota
+            -- print(r.toDespawn, r.radiusNPCLimit,ecount,entityquota,overnpcrad, r.maxRadius)
 				if overnpcrad or ( r.radiusSqLimit and sqcount >= r.radiusSqLimit) then // invalid player
-					-- print( ply, "invalid", radiusNPCLimit, count, radiusSqLimit, sqcount )
 					// despawn until at npc limit
 					if r.toDespawn and overnpcrad then
 						table.SortByMember(npcs_in, "dist_sqr")
-						for i=1,( count - r.radiusNPCLimit ) do
+                  local i = 0
+                  local j = (ecount - r.radiusNPCLimit)
+                  while overnpcrad and i < j do
+                     i = i + 1
+						-- for i=1,( ecount - r.radiusNPCLimit ) do
 							local dnpc = npcs_in[i] and npcs_in[i]["npc"]
 
 							if IsValid( dnpc ) then
@@ -451,7 +477,7 @@ function Direct( numQuota, numSqQuota, pool_t, mapLimit, squadLimit, RadiusTable
 										break
 									end
 
-									// ugh
+									// *all* players
 									local ok = true
 									for _, ply in ipairs( player.GetAll() ) do
 										if !IsValid(ply) then continue end
@@ -464,23 +490,38 @@ function Direct( numQuota, numSqQuota, pool_t, mapLimit, squadLimit, RadiusTable
 											break
 										end
 									end
-									if !ok then continue end
+									if not ok then continue end
 								end
 
 								// despawn
 								if debugged then print( "npcd > Direct > ".. tostring( dnpc ) ..  " REMOVED, over limit of radius " .. k .. ", dist_sqr " .. npcs_in[i].dist_sqr ) end
+                        despawnedcount = despawnedcount + npcs_in[i]["weight"]
+                        ecount = ecount - npcs_in[i]["weight"]
+                        count = count - npcs_in[i]["weight"]
+                        mapCount = mapCount - npcs_in[i]["weight"]
+                        overnpcrad = r.radiusNPCLimit and ecount >= r.radiusNPCLimit
 								dnpc:Remove()
-								despawnedcount = despawnedcount + 1
 							end
+                     -- print(i,j,ecount,overnpcrad)
 						end
+                  if r.radiusNPCLimit and count >= r.radiusNPCLimit then
+                     table.insert(invalid_players[k], ply)
+                     if debugged then MsgN( "npcd > Direct > radius over limit for player ", ply, " at radius ", k, " [",count,"/",r.radiusNPCLimit,"]" ) end
+                  else
+                     table.insert(valid_players[k], ply)
+                     if debugged then print( "npcd > Direct > radius-valid player ", ply, "at radius", k, " with despawned ", despawnedcount) end
+                  end
+               else
+                  if r.radiusNPCLimit and count >= r.radiusNPCLimit then
+                     table.insert(invalid_players[k], ply)
+                     if debugged then MsgN( "npcd > Direct > radius over limit for player ", ply, " at radius ", k, " [",count,"/",r.radiusNPCLimit,"]" ) end
+                  else
+                     if debugged then print( "npcd > Direct > radius-valid player ", ply, "at radius", k ) end
+      					table.insert(valid_players[k], ply)
+                  end
 					end
-
-					if debugged then print( "npcd > Direct > invalid player", ply, "at radius", k ) end
-
-					table.insert(invalid_players[k], ply)
 				else // valid player
-					if debugged then print( "npcd > Direct > valid player", ply, "at radius", k ) end
-
+					if debugged then print( "npcd > Direct > radius-valid player ", ply, "at radius", k ) end
 					table.insert(valid_players[k], ply)
 				end
 			end
@@ -496,6 +537,7 @@ function Direct( numQuota, numSqQuota, pool_t, mapLimit, squadLimit, RadiusTable
 				valid_navmesh[k] = nil
 				continue
 			end
+         
 
 			// valid players
 			for _, ply in ipairs( valid_players[k] ) do
@@ -503,7 +545,19 @@ function Direct( numQuota, numSqQuota, pool_t, mapLimit, squadLimit, RadiusTable
 				// add valid navmeshes
 				if HasNavMesh then
 					valid_navmesh_tmp[k][ply] = {}
-					local vnav = navmesh.Find(ply_pos, r.maxRadius, math.huge, math.huge)
+
+					local vnav
+               if r.outside then
+                  local c = #navmesh.Find(Entity(1):GetPos(), math.max(0,r.maxRadius-250), math.huge, math.huge)
+                  vnav = navmesh.Find(Entity(1):GetPos(), math.huge, math.huge, math.huge)
+                  for i=1,c do
+                     table.remove(vnav,1)
+                  end
+               else
+                  vnav = navmesh.Find(ply_pos, r.maxRadius, math.huge, math.huge)
+               end
+
+               // fill table by key (prevent duplicates)
 					if !table.IsEmpty(vnav) then
 						for _, nav in pairs( vnav ) do
 							valid_navmesh_tmp[k][ply][nav] = true
@@ -513,7 +567,11 @@ function Direct( numQuota, numSqQuota, pool_t, mapLimit, squadLimit, RadiusTable
 
 				// add valid nodes surrounding this valid player
 				if !table.IsEmpty(cold_nodes) then
-					GetValidNodes( ply_pos, r.minRadius, r.maxRadius, cold_nodes, valid_nodes[k] )
+               if r.outside then
+					   GetValidNodes( ply_pos, r.maxRadius, nil, cold_nodes, valid_nodes[k] )
+               else
+					   GetValidNodes( ply_pos, r.minRadius, r.maxRadius, cold_nodes, valid_nodes[k] )
+               end
 					-- local vnodes = GetValidNodes( ply_pos, r.minRadius, r.maxRadius, cold_nodes )
 					-- if !table.IsEmpty(vnodes) then
 						-- for nk, node in pairs( vnodes ) do
@@ -527,7 +585,11 @@ function Direct( numQuota, numSqQuota, pool_t, mapLimit, squadLimit, RadiusTable
 			for _, ply in ipairs( invalid_players[k] ) do
 				// add invalid nodes surrounding invalid players
 				if !table.IsEmpty(cold_nodes) then
-					GetValidNodes( pos_tbl[ply], r.minRadius, r.maxRadius, cold_nodes, invalid_nodes )
+               if r.outside then
+					   GetValidNodes( pos_tbl[ply], r.maxRadius, nil, cold_nodes, invalid_nodes )
+               else
+					   GetValidNodes( pos_tbl[ply], r.minRadius, r.maxRadius, cold_nodes, invalid_nodes )
+               end
 					-- local invnodes = GetValidNodes( pos_tbl[ply], r.minRadius, r.maxRadius, cold_nodes )
 					-- if !table.IsEmpty(invnodes) then
 					-- 	for nk, node in pairs( invnodes ) do
@@ -616,7 +678,7 @@ function Direct( numQuota, numSqQuota, pool_t, mapLimit, squadLimit, RadiusTable
 		if iter >= 100 then
 			quotadone = true
 			reason = "Loop Limit"
-			print("npcd > Direct > BREAK!")
+			print("npcd > Direct > LOOP BREAK!")
 		end
 
 		-- if iter < 0 then
@@ -642,7 +704,7 @@ function Direct( numQuota, numSqQuota, pool_t, mapLimit, squadLimit, RadiusTable
 				print("npcd > Direct > DIRECTED IN: "..math.Round( CurTime()-dstime, 3 ).."s\t END: " .. reason .."\t TIME SINCE LAST/INIT: "..math.Round( last_time, 3 ) .. " / " .. cur .."\t POOL: "..(PoolFilter or "Default").."\t ITER:"..iter)
 				print("\tSPAWNED/QUOTA/LIMIT: "..spawnedcount.." / "..(entityquota or "nil").." / "..(mapLimit or "nil").."\t SQSPAWNED/SQUOTA/SQLIMIT: "..squadcount.." / "..(squadquota or "nil").." / "..(squadLimit or "nil") .. "\t DESPAWNED: "..despawnedcount ) --.."\t ONMAP/LIMIT: ".. mapCount.."("..table.Count(activeNPC)..") / "..(mapLimit or "nil").."\t SQONMAP/SQLIMIT: ".. totalsquads .." / "..(squadLimit or "nil"))
 				print("\tNODES/COOL/HOT: ".. table.Count(Nodes).. " / ".. table.Count(cold_nodes) .. " / " .. table.Count(hot_nodes) .. " | RADIUS/SPAWNSCALE: " .. math.Round( MapScale, 3 ) .. " / " .. math.Round( SpawnMapScale, 3 ) )
-				print("\tPOOLED/ONMAP: ".. psum .." / " .. asum .. " (".. pcount .. "/" .. acount ..") | SQPOOLED/SQONMAP: ".. totalsquads .. " / ".. mapsquadtot )
+				print("\tPOOL/ALL: ".. psum .." / " .. asum .. " (".. pcount .. "/" .. acount ..") | SQPOOL/SQALL: ".. totalsquads .. " / ".. mapsquadtot )
 				if !table.IsEmpty( radius_counts ) then
 					print("\tRADIUS USE COUNTS:")
 					PrintTable( radius_counts, 2 )
@@ -1181,7 +1243,7 @@ function DirectorSpawn( todo )
 
 	-- pos = pos + Vector( 0, 0, 10 ) // see: GetGroupOBB()
 
-	if debugged_spawner then
+	if debugged_spawner and debugged_more then
 		print( "npcd > DirectorSpawn > Radius: ".. tostring(radiused) .. ", Picker used: " .. picked )
 	end
 

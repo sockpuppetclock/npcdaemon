@@ -6511,9 +6511,21 @@ t_squadpool_values = {
 				DEFAULT = false,
 			},
 			["despawn_tooclose"] = {
-				NAME = "Despawn Over Limit: Distance Threshold",
-				DESC = "Will not despawn if entity is this close from any player",
+				NAME = "Despawn Over Limit: Player Minimum Distance",
+				DESC = "Will not despawn if entity is this close to any player",
 				TYPE = "number",
+			},
+			["despawn_addquota"] = {
+				NAME = "Despawn Over Limit: Make Room For Spawn Quota",
+				DESC = "If true, then instead of only despawning when over the radius/pool limit, it will despawn enough under the limit to fit the spawn quota. Caution: If there are multiple players and the radius is too small, it might despawn more than the spawn quota",
+				TYPE = "boolean",
+            DEFAULT = true,
+			},
+			["outside"] = {
+				NAME = "Use Outside Area",
+				DESC = "If true, use the area OUTSIDE the radius",
+				TYPE = "boolean",
+            DEFAULT = false,
 			},
 			["spawn_tooclose"] = {
 				NAME = "Spawn Distance Hard Minimum",
