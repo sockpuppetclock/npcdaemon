@@ -58,45 +58,47 @@ end
 function GetOBB( npc_t, presetname )
 	if !npc_t then return nil end
 	local bounds = {}
-	-- local xmin, xmax, ymin, ymax, zmin, zmax = 0, 0, 0, 0, 0, 0
-	-- local offset = Vector()
-   -- local off = Vector()
 
-	-- local npc_t = table.Copy( nsTbl["npc_t"] )
-	// [x] problem: GetGroupOBB and SpawnNPC will come out differently if it has a random value for scale or model
    knownBoundsEnt[npc_t.entity_type] = knownBoundsEnt[npc_t.entity_type] or {}
-   local hasrandom = istable( npc_t.model ) or istable( npc_t.scale ) or istable( npc_t.offset )
-      or (npc_t.setboundary and (istable(npc_t.setboundary.min) or istable(npc_t.setboundary.max)))
-   if presetname and knownBoundsEnt[npc_t.entity_type][presetname] != nil and !hasrandom then
-      return knownBoundsEnt[npc_t.entity_type][presetname]
+   local hasrandom = istable(npc_t.model) or (npc_t.setboundary and (istable(npc_t.setboundary.min) or istable(npc_t.setboundary.max)))
+   local flc, fhc, lc, hc
+
+   if !presetname or knownBoundsEnt[npc_t.entity_type][presetname] == nil or hasrandom then
+      CoIterate(75)
+
+      local npc = ents.Create( GetPresetName( npc_t.classname ) )
+
+      if !IsValid(npc) then return nil end
+
+      npc:SetPos( game.GetWorld():GetPos() )
+
+      if npc_t.model then // set model
+         SetEntValues(npc, npc_t, "model", GetLookup( "model", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
+      end
+
+      npc:Spawn()
+      npc:Activate()
+      if npc_t.setboundary then
+         SetEntValues(npc, npc_t, "setboundary", GetLookup( "setboundary", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
+         if istable(npc_t.setboundary) then
+            npc:SetCollisionBounds( npc_t.setboundary.min, npc_t.setboundary.max )
+         end
+      end
+      flc, fhc = npc:GetCollisionBounds()
+      model = npc:GetModel()
+      npc:Remove()
+      
+      if model and !cachedModels[model] then
+         cachedModels[model] = true
+         CoIterate(100)
+      end
+   else
+      flc = knownBoundsEnt[npc_t.entity_type][presetname][1]
+      fhc = knownBoundsEnt[npc_t.entity_type][presetname][2]
    end
 
-	local npc = ents.Create( GetPresetName( npc_t.classname ) )
-
-	if !IsValid(npc) then return nil end
-
-	npc:SetPos( game.GetWorld():GetPos() )
-
-	if npc_t.model then // set model
-		SetEntValues(npc, npc_t, "model", GetLookup( "model", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
-	end
-	if npc_t.offset then // set model
-		SetEntValues(npc, npc_t, "offset", GetLookup( "offset", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
-      -- offset = npc_t.offset
-	end
-
-	npc:Spawn()
-	npc:Activate()
-	if npc_t.setboundary then
-		SetEntValues(npc, npc_t, "setboundary", GetLookup( "setboundary", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
-		if istable(npc_t.setboundary) then
-			npc:SetCollisionBounds( npc_t.setboundary.min, npc_t.setboundary.max )
-		end
-	end
-	local lc, hc = npc:GetCollisionBounds()
-	local model = npc:GetModel()
-   npc:Remove()
-	CoIterate(75)
+   lc = flc
+   hc = fhc
 
    if npc_t.scale then // set scale
       SetEntValues( nil, npc_t, "scale", GetLookup( "scale", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
@@ -105,9 +107,9 @@ function GetOBB( npc_t, presetname )
       hc = hc * npc_t.scale
 	end
 
-	if model and !cachedModels[model] then
-		cachedModels[model] = true
-		CoIterate(100)
+	if npc_t.offset then // set model
+		SetEntValues( nil, npc_t, "offset", GetLookup( "offset", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
+      -- offset = npc_t.offset
 	end
 
    local xmin = lc.x
@@ -150,7 +152,9 @@ function GetOBB( npc_t, presetname )
 	-- end
 
    if presetname and !hasrandom then
-      knownBoundsEnt[npc_t.entity_type][presetname] = bounds
+      knownBoundsEnt[npc_t.entity_type][presetname] = {flc, fhc}
+   else
+      knownBoundsEnt[npc_t.entity_type][presetname] = nil
    end
 	
 	return bounds
@@ -163,67 +167,66 @@ function GetGroupOBB( group_t )
 	end
 
 	local bounds = {}
-	-- local xmin, xmax, ymin, ymax, zmin, zmax = 0, 0, 0, 0, 0, 0
 	local spawned = false
-	-- local offset = Vector()
-	-- local ent_offs = {}
 
 	knownBounds[currentProfile] = knownBounds[currentProfile] or {}
 	knownBounds[currentProfile][group_t.name] = knownBounds[currentProfile][group_t.name] or {}
    
 	for n, nsTbl in pairs( group_t["spawns"] ) do
 		// already looked up, by preset
+      local flc, fhc, lc, hc
+      local npc_t = nsTbl["npc_t"]
 		if !nsTbl["obb_random"] and knownBounds[currentProfile][group_t.name][nsTbl.name] != nil then
-         bounds[n] = knownBounds[currentProfile][group_t.name][nsTbl.name]
-			spawned = true
-			continue
-		end
+         -- bounds[n] = knownBounds[currentProfile][group_t.name][nsTbl.name]
+         flc = knownBounds[currentProfile][group_t.name][nsTbl.name][1]
+         fhc = knownBounds[currentProfile][group_t.name][nsTbl.name][2]
+			-- spawned = true
+			-- continue
+      else
+         CoIterate(75)
+		   // [x] problem: GetGroupOBB and SpawnNPC will come out differently if it has a random value for scale or model
 
-		CoIterate(75)
+         local npc = ents.Create( GetPresetName( npc_t.classname ) )
 
-		-- local npc_t = table.Copy( nsTbl["npc_t"] )
-		local npc_t = nsTbl["npc_t"]
-		// [x] problem: GetGroupOBB and SpawnNPC will come out differently if it has a random value for scale or model
+         if !IsValid(npc) then print("npcd > INVALID NPC ",npc_t.classname) continue end
 
-		local npc = ents.Create( GetPresetName( npc_t.classname ) )
+         npc:SetPos( game.GetWorld():GetPos() )
 
-		if !IsValid(npc) then print("INVALID NPC") continue end
+         if npc_t.model then // set model
+            SetEntValues(npc, npc_t, "model", GetLookup( "model", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
+         end
 
-		npc:SetPos( game.GetWorld():GetPos() )
+         npc:Spawn()
+         npc:Activate()
+         if npc_t.setboundary then
+            SetEntValues(npc, npc_t, "setboundary", GetLookup( "setboundary", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
+            if istable(npc_t.setboundary) then
+               npc:SetCollisionBounds( npc_t.setboundary.min, npc_t.setboundary.max )
+            end
+         end
+         flc, fhc = npc:GetCollisionBounds()
+         local model = npc:GetModel()
+         npc:Remove()
 
-		if npc_t.model then // set model
-			SetEntValues(npc, npc_t, "model", GetLookup( "model", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
-		end
+         if model and !cachedModels[model] then
+            cachedModels[model] = true
+            CoIterate(100)
+         end
+      end
+
+      lc = flc
+      hc = fhc
+      
       if npc_t.offset then // set model
-         SetEntValues(npc, npc_t, "offset", GetLookup( "offset", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
-			-- table.insert( ent_offs, npc_t.offset )
-		end
-		-- if npc_t.angle then SetEntValues(npc, npc_t, "angle", GetLookup( "angle", npc_t.entity_type, nil, npc_t.classname ) )
-		-- else npc_t.angle = RandomAngle() end
-
-		npc:Spawn()
-		npc:Activate()
-		if npc_t.setboundary then
-			SetEntValues(npc, npc_t, "setboundary", GetLookup( "setboundary", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
-			if istable(npc_t.setboundary) then
-				npc:SetCollisionBounds( npc_t.setboundary.min, npc_t.setboundary.max )
-			end
-		end
-		local lc, hc = npc:GetCollisionBounds()
-		local model = npc:GetModel()
-		npc:Remove()
-
+         SetEntValues( nil, npc_t, "offset", GetLookup( "offset", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
+      end
+      
       if npc_t.scale then // set scale
-			SetEntValues( nil, npc_t, "scale", GetLookup( "scale", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
-			-- npc:SetModelScale( npc_t.scale ) // set immediately
+         SetEntValues( nil, npc_t, "scale", GetLookup( "scale", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
+         -- npc:SetModelScale( npc_t.scale ) // set immediately
          lc = lc * npc_t.scale
          hc = hc * npc_t.scale
-		end
-
-		if model and !cachedModels[model] then
-			cachedModels[model] = true
-			CoIterate(100)
-		end
+      end
       
 		local xmin = lc.x
       local xmax = hc.x
@@ -254,7 +257,9 @@ function GetGroupOBB( group_t )
 		spawned = true
 
 		if !nsTbl["obb_random"] then
-			knownBounds[currentProfile][group_t.name][nsTbl.name] = bounds[n]
+			knownBounds[currentProfile][group_t.name][nsTbl.name] = { flc, fhc }
+      else
+         knownBounds[currentProfile][group_t.name][nsTbl.name] = nil
 		end
 	end
 
@@ -1428,8 +1433,10 @@ function GenerateSquad( s, override2_t, pool, squadIDOvr, override3_t )
 
 		for i=1,tospawn do
 			local n_t = table.Copy( npcTable )
-			local hasrandom = istable( n_t.model ) or istable( n_t.scale ) or istable( n_t.offset )
-            or ( n_t.setboundary and ( istable( n_t.setboundary.min ) or istable( n_t.setboundary.max ) ) ) // must be checked before resolve
+          // must be checked before resolve
+			local hasrandom = istable( n_t.model ) 
+            or ( n_t.setboundary and ( istable( n_t.setboundary.min ) or istable( n_t.setboundary.max ) ) )
+            // or istable( n_t.scale ) or istable( n_t.offset )
 			ResolveEntValueTable( nil, n_t ) // preestablish npc_t, to keep GroupOBB consistent when using random values
 			table.insert( squad_t["spawns"], {
 				-- ["count"] = tospawn,
