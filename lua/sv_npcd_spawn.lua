@@ -123,35 +123,38 @@ function GetOBB( npc_t, presetname )
    local ymax = hc.y
    local zmin = lc.z
    local zmax = hc.z
-	for _, c in ipairs( { lc, hc } ) do
-		xmax = math.max( xmax, c.x, math.abs( xmin ), ymax )
-		ymax = math.max( ymax, c.y, math.abs( ymin ), xmax )
-		zmax = math.max( zmax, c.z )
-		zmin = math.min( zmin, c.z )
-	end	
+   xmax = math.max(
+      math.abs(lc.x), math.abs(hc.x),
+      math.abs(lc.y), math.abs(hc.y) )
+   ymax = xmax
+   zmax = math.max( lc.z, hc.z )
+   zmin = math.min( lc.z, hc.z )
    xmin = -xmax
    ymin = -ymax
    
    bounds[1] = {}
    bounds[1].min = Vector( xmin, ymin, zmin )
    bounds[1].max = Vector( xmax, ymax, zmax )
+   bounds[1].maxz = Vector( 0, 0, zmax )
    bounds[1].zoff = Vector(0,0,zmin < 0 and math.abs(zmin) or 0) // zmin should always be z=0
    bounds[1].offset = npc_t.offset or zero_vector
    bounds[1].offset = bounds[1].offset + bounds[1].zoff
+   bounds[1].offz = Vector(0,0,bounds[1].offset.z)
    bounds[1].mino = bounds[1].min + bounds[1].offset
    bounds[1].maxo = bounds[1].max + bounds[1].offset
    bounds[1].ceiling = npc_t.spawn_ceiling
 
-	-- if debugged then
-	-- 	print( "npcd > GetOBB\n\tmin: ",bounds[1],"\n\tmax:",bounds[2],"\n\toffset:",bounds[3], "ent_offs:", #bounds[4])
-      -- print("npcd > GetOBB")
-      -- PrintTable(bounds)
-	-- end
+	if debugged then
+      print("npcd > GetOBB")
+      PrintTable(bounds)
+	end
 
-   if presetname and !hasrandom then
-      knownBoundsEnt[npc_t.entity_type][presetname] = {flc, fhc}
-   else
-      knownBoundsEnt[npc_t.entity_type][presetname] = nil
+   if presetname then
+      if !hasrandom then
+         knownBoundsEnt[npc_t.entity_type][presetname] = {flc, fhc}
+      else
+         knownBoundsEnt[npc_t.entity_type][presetname] = nil
+      end
    end
 	
 	return bounds
@@ -231,21 +234,23 @@ function GetGroupOBB( group_t )
       local ymax = hc.y
       local zmin = lc.z
       local zmax = hc.z
-		for _, c in ipairs( { lc, hc } ) do
-			xmax = math.max( xmax, c.x, math.abs( xmin ), ymax )
-			ymax = math.max( ymax, c.y, math.abs( ymin ), xmax )
-			zmax = math.max( zmax, c.z )
-			zmin = math.min( zmin, c.z )
-		end
+		xmax = math.max(
+         math.abs(lc.x), math.abs(hc.x),
+         math.abs(lc.y), math.abs(hc.y) )
+      ymax = xmax
+      zmax = math.max( lc.z, hc.z )
+      zmin = math.min( lc.z, hc.z )
       xmin = -xmax
       ymin = -ymax
 
       bounds[n] = {}
       bounds[n].min = Vector( xmin, ymin, zmin )
       bounds[n].max = Vector( xmax, ymax, zmax )
+      bounds[n].maxz = Vector( 0, 0, zmax )
       bounds[n].zoff = Vector(0,0,zmin < 0 and math.abs(zmin) or 0) // zmin should always be z=0
       bounds[n].offset = npc_t.offset or Vector()
       bounds[n].offset = bounds[n].offset + bounds[n].zoff
+      bounds[n].offz = Vector(0,0,bounds[n].offset.z)
       bounds[n].mino = bounds[n].min + bounds[n].offset
       bounds[n].maxo = bounds[n].max + bounds[n].offset
       bounds[n].ceiling = npc_t.spawn_ceiling
@@ -416,16 +421,20 @@ function SpawnNPC( rq )
 
 	ResolveEntValueTable( npc, npc_t ) // do value funcs
 
+   local hitpos, postfixpos
    if npc_t.spawn_ceiling then
-      -- npc:SetPos( util.TraceLine({
-      --    start = pos,
-      --    endpos = pos + vector_up,
-      --    mask = MASK_NPCSOLID,
-      -- }).HitPos )
+      local hitpos = CheckCeiling( npc:GetPos(), true )
+      if rq.maxz then
+         npc:SetPos( hitpos - rq.maxz )
+      else
+         local bounds = GetOBB(npc_t, nil)
+         npc:SetPos( hitpos - bounds[1].maxz )
+      end
    end
-	if npc_t.offset then
-		npc:SetPos( npc:GetPos() + npc_t.offset )
-	end
+   if npc_t.offset then
+      npc:SetPos( npc:GetPos() + npc_t.offset )
+   end
+   
 	local startpos = npc:GetPos()
 
 	// prespawn misc
@@ -583,7 +592,7 @@ function SpawnNPC( rq )
 				wepmax = wep_t and wep_t.renderamt or 255,
 				starttime = CurTime(),
 				ready = false,
-				nodelay = squad_t["values"]["fadein_nodelay"]
+				nodelay = npc_t.spawn_ceiling or squad_t["values"]["fadein_nodelay"]
 			}
 		else // skip DoFadeIns()
 			activeNPC[npc]["spawned"] = true
@@ -1522,6 +1531,7 @@ function SpawnSquad( newSquad, pos, announce, fadein, ceil_pos )
          pool =         newSquad["originpool"],
          nocopy =       true,
          nopoolovr =    true,
+         maxz =         v.bounds.maxz,
       })
 		-- 	presetName, --presetName, anpc_t, pos, ang, squad_t, npcOverride, doFadeIns, pool, nocopy, nopoolovr, oldsquad
 		-- 	npc_t, --anpc_t
@@ -2456,11 +2466,14 @@ function TargetSpawnPreset( targ, typ, argstr, caller )
 			elseif typ == "drop_set" then
 				AddDropQueue( targ, targ:GetPos() + ( targ:OBBCenter() * 0.33 ), targ:GetAngles(), Settings[typ][argstr], activeNPC[targ] or activePly[targ] or nil )
 			elseif typ == "npc" or typ == "entity" or typ == "nextbot" then
+            local tr = targ:GetEyeTrace()
+            local SpawnPos = tr.HitPos + tr.HitNormal * 15
 				local npc = SpawnNPC({
 					presetName =   argstr,
                anpc_t =       Settings[typ][argstr],
-               pos =          GetPlyTrPos( targ ) + Vector( 0, 0, 15 ),
+               pos =          SpawnPos,
                doFadeIns =    false, //fadeIns
+               targetspawn =  true,
 				})
 				if IsValid( npc ) then
 					if IsValid( caller ) then
@@ -2478,16 +2491,16 @@ function TargetSpawnPreset( targ, typ, argstr, caller )
 						undo.Finish()
 					end
 					if !activeNPC[npc] then
-						Error( "what" )
+						Error( "npcd > error: what" )
 					else
 						-- if activeFade[npc] then activeFade[npc].ready = true end
 						activeNPC[npc]["spawned"] = true
 					end
-					local pos = npc:GetPos()
-					local bound = npc:OBBMins()
-					if bound.z < 0 then
-						npc:SetPos( Vector( pos.x, pos.y, pos.z + -bound.z ) )
-					end
+					-- local pos = npc:GetPos()
+					-- local bound = npc:OBBMins()
+					-- if bound.z < 0 then
+					-- 	npc:SetPos( Vector( pos.x, pos.y, pos.z + -bound.z ) )
+					-- end
 				end
 			elseif typ == "player" and IsValid( targ ) and targ:IsPlayer() then
 				if !Settings[typ][argstr]["condition"]
@@ -2533,10 +2546,12 @@ function TargetSpawnPreset( targ, typ, argstr, caller )
 		else
 			local npc_t = GetCharacterPresetTable( argstr )
 			if npc_t then
+            local tr = targ:GetEyeTrace()
+            local SpawnPos = tr.HitPos + tr.HitNormal * 15
 				local npc = SpawnNPC({
 					presetName =   argstr,
                anpc_t =       npc_t,
-               pos =          GetPlyTrPos( targ ) + Vector(0, 0, 5),
+               pos =          SpawnPos,
                doFadeIns =    false,
 				})
 				if IsValid( npc ) then
@@ -2547,16 +2562,16 @@ function TargetSpawnPreset( targ, typ, argstr, caller )
 						undo.Finish()
 					end
 					if !activeNPC[npc] then
-						Error( "what" )
+						Error( "npcd > error: what" )
 					else
 						-- if activeFade[npc] then activeFade[npc].ready = true end
 						activeNPC[npc]["spawned"] = true
 					end
-					local pos = npc:GetPos()
-					local bound = npc:OBBMins()
-					if bound.z < 0 then
-						npc:SetPos( Vector( pos.x, pos.y, pos.z + -bound.z ) )
-					end
+					-- local pos = npc:GetPos()
+					-- local bound = npc:OBBMins()
+					-- if bound.z < 0 then
+					-- 	npc:SetPos( Vector( pos.x, pos.y, pos.z + -bound.z ) )
+					-- end
 				end
 			end
 		end

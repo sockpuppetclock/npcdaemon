@@ -828,6 +828,7 @@ function Direct( numQuota, numSqQuota, pool_t, mapLimit, squadLimit, RadiusTable
 end
 
 local spawn_base_offsets = { Vector(0,0,15), Vector(0,0,25), Vector(0,0,55) }
+local spawn_ceil_offsets = { Vector(0,0,0), Vector(0,0,00), Vector(0,0,000) }
 // pick spawnpoint from positions/players given by Direct()
 function DirectorSpawn( todo )
 	if debugged then
@@ -860,6 +861,7 @@ function DirectorSpawn( todo )
 
 	local valid
 	local pos
+	local cpos
 	local pos_tbl = {}
 
 	local hotpointdist_sqr = cvar.point_radius.v:GetFloat()
@@ -947,11 +949,19 @@ function DirectorSpawn( todo )
 				for k, npos in RandomPairs( todo.valid_nodes[rk] ) do
 					-- CoIterate(0.5)
 					// check all entity offsets
+               local hitpos = CheckCeiling(npos)
 					for o, offset in ipairs( spawn_base_offsets ) do
                   -- for b_k in pairs( todo.newSquad["spawns"] ) do
                   for b_k in pairs( bounds ) do
-                     if bounds[b_k].ceiling and !CheckCeiling(npos) then continue end
-                     pos_valid = CheckSpawnPos( npos, bounds[b_k], offset + bounds[b_k].offset, water )
+                     if bounds[b_k].ceiling then
+                        if hitpos then
+                           pos_valid = CheckSpawnPos( hitpos, bounds[b_k], spawn_ceil_offsets[o] - bounds[b_k].maxz + bounds[b_k].offset, water )
+                        else
+                           pos_valid = false
+                        end
+                     else
+                        pos_valid = CheckSpawnPos( npos, bounds[b_k], offset + bounds[b_k].offset, water )
+                     end
                      if !pos_valid then break end
                   end
 						-- pos_valid = CheckSpawnPos( npos, bounds[1], offset + bounds[1].offset, water )
@@ -1084,11 +1094,19 @@ function DirectorSpawn( todo )
 						if !pos_valid then continue end
                   
 						// check all entity offsets
+                  local hitpos = CheckCeiling(pos)
 						for o, offset in ipairs( spawn_base_offsets ) do
 							-- for b_k in pairs( todo.newSquad["spawns"] ) do
                      for b_k in pairs( bounds ) do
-                        if bounds[b_k].ceiling and !CheckCeiling(pos) then continue end
-                        pos_valid = CheckSpawnPos( pos, bounds[b_k], offset + bounds[b_k].offset, water )
+                        if bounds[b_k].ceiling then
+                           if hitpos then
+                              pos_valid = CheckSpawnPos( hitpos, bounds[b_k], spawn_ceil_offsets[o] - bounds[b_k].maxz + bounds[b_k].offset, water )
+                           else
+                              pos_valid = false
+                           end
+                        else
+                           pos_valid = CheckSpawnPos( pos, bounds[b_k], offset + bounds[b_k].offset, water )
+                        end
                         if !pos_valid then break end
                      end
                      if pos_valid then
@@ -1185,15 +1203,21 @@ function DirectorSpawn( todo )
 							end
 							if !pos_valid then continue end
 
+                     local hitpos = CheckCeiling(pos)
 							// check all entity offsets
 							for o, offset in ipairs( spawn_base_offsets ) do
 								-- for b_k in pairs( todo.newSquad["spawns"] ) do
 								for b_k in pairs( bounds ) do
-                           -- if bounds[b_k] then
-                              if bounds[b_k].ceiling and !CheckCeiling(pos) then continue end
+                           if bounds[b_k].ceiling then
+                              if hitpos then
+                                 pos_valid = CheckSpawnPos( hitpos, bounds[b_k], spawn_ceil_offsets[o] - bounds[b_k].maxz + bounds[b_k].offset, water )
+                              else
+                                 pos_valid = false
+                              end
+                           else
                               pos_valid = CheckSpawnPos( pos, bounds[b_k], offset + bounds[b_k].offset, water )
-                              if !pos_valid then break end
-                           -- end
+                           end
+                           if !pos_valid then break end
                         end
                         if pos_valid then
                            pos = pos + offset
@@ -1252,6 +1276,8 @@ function DirectorSpawn( todo )
             anpc_t =       npc_t,
             pos =          pos + bounds[1].zoff,
             pool =         todo.pool,
+            maxz =         bounds[1].maxz,
+            offz =         bounds[1].offz,
          }),
          radiused
 	end
@@ -1388,13 +1414,13 @@ function GetAnywhere( start_pos, minRadius, maxRadius )
 	return pos
 end
 
-function CheckCeiling(pos)
+function CheckCeiling(pos, force)
    local tr = util.TraceLine({
       start = pos,
       endpos = pos + vector_up,
       mask = MASK_NPCSOLID,
    })
-   if tr.HitNoDraw or tr.HitNonWorld or tr.HitSky or !util.IsInWorld(tr.HitPos) then
+   if !force and (tr.HitNoDraw or tr.HitNonWorld or tr.HitSky or !util.IsInWorld(tr.HitPos)) then
       return nil
    else
       return tr.HitPos

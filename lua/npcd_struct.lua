@@ -3545,7 +3545,7 @@ t_active_values = {
 	["spawn_ceiling"] = {
 		CATEGORY = t_CAT.PHYSICAL,
 		NAME = "Spawn on Ceiling",
-		DESC = "If true, will spawn from the ceiling, instead of the ground",
+		DESC = "If true, will spawn from the ceiling, instead of the ground. Autospawner will avoid spawning on the sky. Any spawn offset will be applied from the ceiling point",
 		TYPE = "boolean",
 	},
 
