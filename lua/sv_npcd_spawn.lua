@@ -2,6 +2,9 @@
 
 module( "npcd", package.seeall )
 
+local vector_up = Vector(0,0,32768)
+local zero_vector = Vector()
+
 function OverrideValues( tbl, ovr, soft )
 	for k, v in pairs( ovr ) do
 		if soft and tbl[k] != nil then continue end
@@ -109,8 +112,10 @@ function GetOBB( npc_t, presetname )
 
 	if npc_t.offset then // set model
 		SetEntValues( nil, npc_t, "offset", GetLookup( "offset", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
-      -- offset = npc_t.offset
 	end
+   if npc_t.spawn_ceiling then
+      SetEntValues( nil, npc_t, "spawn_ceiling", GetLookup( "spawn_ceiling", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
+   end
 
    local xmin = lc.x
 	local xmax = hc.x
@@ -131,19 +136,11 @@ function GetOBB( npc_t, presetname )
    bounds[1].min = Vector( xmin, ymin, zmin )
    bounds[1].max = Vector( xmax, ymax, zmax )
    bounds[1].zoff = Vector(0,0,zmin < 0 and math.abs(zmin) or 0) // zmin should always be z=0
-   bounds[1].offset = npc_t.offset or Vector()
+   bounds[1].offset = npc_t.offset or zero_vector
    bounds[1].offset = bounds[1].offset + bounds[1].zoff
    bounds[1].mino = bounds[1].min + bounds[1].offset
    bounds[1].maxo = bounds[1].max + bounds[1].offset
-
-	-- if zmin < 0 then offset.z = math.abs(zmin) end
-	-- zmax = zmax + 10 // a little off the ground
-
-	-- bounds[1] = Vector( xmin, ymin, zmin ) + offset
-	-- bounds[2] = Vector( xmax, ymax, zmax ) + offset
-	-- bounds[3] = offset
-	-- bounds[4] = { npc_t.offset } // list of entity offsets to test (i.e. per npc in squad)
-   -- // wtf happens when this is a table. answer: it just breaks
+   bounds[1].ceiling = npc_t.spawn_ceiling
 
 	-- if debugged then
 	-- 	print( "npcd > GetOBB\n\tmin: ",bounds[1],"\n\tmax:",bounds[2],"\n\toffset:",bounds[3], "ent_offs:", #bounds[4])
@@ -177,11 +174,8 @@ function GetGroupOBB( group_t )
       local flc, fhc, lc, hc
       local npc_t = nsTbl["npc_t"]
 		if !nsTbl["obb_random"] and knownBounds[currentProfile][group_t.name][nsTbl.name] != nil then
-         -- bounds[n] = knownBounds[currentProfile][group_t.name][nsTbl.name]
          flc = knownBounds[currentProfile][group_t.name][nsTbl.name][1]
          fhc = knownBounds[currentProfile][group_t.name][nsTbl.name][2]
-			-- spawned = true
-			-- continue
       else
          CoIterate(75)
 		   // [x] problem: GetGroupOBB and SpawnNPC will come out differently if it has a random value for scale or model
@@ -220,6 +214,9 @@ function GetGroupOBB( group_t )
       if npc_t.offset then // set model
          SetEntValues( nil, npc_t, "offset", GetLookup( "offset", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
       end
+      if npc_t.spawn_ceiling then
+         SetEntValues( nil, npc_t, "spawn_ceiling", GetLookup( "spawn_ceiling", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
+      end
       
       if npc_t.scale then // set scale
          SetEntValues( nil, npc_t, "scale", GetLookup( "scale", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
@@ -251,6 +248,7 @@ function GetGroupOBB( group_t )
       bounds[n].offset = bounds[n].offset + bounds[n].zoff
       bounds[n].mino = bounds[n].min + bounds[n].offset
       bounds[n].maxo = bounds[n].max + bounds[n].offset
+      bounds[n].ceiling = npc_t.spawn_ceiling
 
       nsTbl["bounds"] = bounds[n]
 
@@ -273,7 +271,7 @@ function GetGroupOBB( group_t )
 	-- bounds[3] = offset
 	-- bounds[4] = ent_offs
 
-	if debugged then
+	if debugged_more then
 	-- 	print( "npcd > GetGroupOBB\n\tmin: ",bounds[1],"\n\tmax:",bounds[2],"\n\toffset:",bounds[3],"ent_offs:", #bounds[4] )
          print("npcd > GetGroupOBB")
          PrintTable(bounds)
@@ -331,7 +329,36 @@ function ResolveEntValueTable( npc, npc_t )
 	end
 end
 
-function SpawnNPC( presetName, anpc_t, pos, ang, squad_t, npcOverride, doFadeIns, pool, nocopy, nopoolovr, oldsquad )
+-- {
+--    presetName =   
+--    anpc_t =       
+--    pos =          
+--    ang =          
+--    squad_t =      
+--    npcOverride =  
+--    doFadeIns =    
+--    pool =         
+--    nocopy =       
+--    nopoolovr =    
+--    oldsquad =     
+-- }
+
+-- function SpawnNPC( presetName, anpc_t, pos, ang, squad_t, npcOverride, doFadeIns, pool, nocopy, nopoolovr, oldsquad )
+function SpawnNPC( rq )
+   if !rq then Error("\nError: npcd > SpawnNPC > Empty spawn request") return nil end
+   // too scared
+   local presetName =   rq.presetName
+   local anpc_t =       rq.anpc_t
+   local pos =          rq.pos
+   local ang =          rq.ang
+   local squad_t =      rq.squad_t
+   local npcOverride =  rq.npcOverride
+   local doFadeIns =    rq.doFadeIns
+   local pool =         rq.pool
+   local nocopy =       rq.nocopy
+   local nopoolovr =    rq.nopoolovr
+   local oldsquad =     rq.oldsquad
+   
 	if !anpc_t then Error("\nError: npcd > SpawnNPC > NO NPC_T ",presetName,"\n\n") return nil end
 	if debugged_more then
 		print("npcd > SpawnNPC(", presetName, anpc_t, pos, ang, squad_t, npcOverride, doFadeIns, pool, nocopy, nopoolovr, oldsquad,")" )	
@@ -389,6 +416,13 @@ function SpawnNPC( presetName, anpc_t, pos, ang, squad_t, npcOverride, doFadeIns
 
 	ResolveEntValueTable( npc, npc_t ) // do value funcs
 
+   if npc_t.spawn_ceiling then
+      -- npc:SetPos( util.TraceLine({
+      --    start = pos,
+      --    endpos = pos + vector_up,
+      --    mask = MASK_NPCSOLID,
+      -- }).HitPos )
+   end
 	if npc_t.offset then
 		npc:SetPos( npc:GetPos() + npc_t.offset )
 	end
@@ -1453,7 +1487,7 @@ end
 
 local spawn_base_offsets = { Vector(0,0,15), Vector(0,0,25), Vector(0,0,55) }
 
-function SpawnSquad( newSquad, pos, announce, fadein )
+function SpawnSquad( newSquad, pos, announce, fadein, ceil_pos )
 	if debugged then print("npcd > SpawnSquad(", newSquad, pos, announce, fadein, ")" ) end
 	local spawned = {}
    local spawned_squad_t = {} // reverse lookup to newSquad
@@ -1479,19 +1513,28 @@ function SpawnSquad( newSquad, pos, announce, fadein )
 		local presetName = v["name"]
 		local npc_t = v["npc_t"]
 		
-		local new = SpawnNPC(
-			presetName, --presetName, anpc_t, pos, ang, squad_t, npcOverride, doFadeIns, pool, nocopy, nopoolovr, oldsquad
-			npc_t, --anpc_t
-			pos + (v.bounds.zoff or Vector()), --pos
-			nil,  --ang
-			newSquad, --squad_t
-			nil, --npcOverride
-			fadein, --doFadeIns
-			newSquad["originpool"], --pool
-			true, --nocopy
-			true, --nopoolovr
-			nil --oldsquad
-		)
+		local new = SpawnNPC({
+         presetName =   presetName,
+         anpc_t =       npc_t,
+         pos =          pos + (v.bounds.zoff or zero_vector),
+         squad_t =      newSquad,
+         doFadeIns =    fadein,
+         pool =         newSquad["originpool"],
+         nocopy =       true,
+         nopoolovr =    true,
+      })
+		-- 	presetName, --presetName, anpc_t, pos, ang, squad_t, npcOverride, doFadeIns, pool, nocopy, nopoolovr, oldsquad
+		-- 	npc_t, --anpc_t
+		-- 	pos + (v.bounds.zoff or Vector()), --pos
+		-- 	nil,  --ang
+		-- 	newSquad, --squad_t
+		-- 	nil, --npcOverride
+		-- 	fadein, --doFadeIns
+		-- 	newSquad["originpool"], --pool
+		-- 	true, --nocopy
+		-- 	true, --nopoolovr
+		-- 	nil --oldsquad
+		-- )
 
 		if IsValid( new ) then
 			table.insert( spawned, new )
@@ -2099,17 +2142,26 @@ function SpawnDrop( ent, dpos, ang, drop_t, ntbl, dset_t, depth )
 
 			squadtbl["values"] = squadtbl["values"] or {}
 
-			valid = SpawnNPC(
-				dropPreset, 
-				npcTable, 
-				pos + ( drop_t.offset or Vector() ), -- ent:GetPos() + ( ent:OBBCenter() * 0.33 ) + ( drop_t.offset or Vector() ), 
-				pr_t.keepangle and ang,
-				squadtbl,
-				nil,
-				false,
-				ntbl != nil and ( ntbl["pool"] or ntbl["squad_t"] and ntbl["squad_t"]["originpool"] ) or nil,
-				true
-			)
+			valid = SpawnNPC({
+               presetName =   dropPreset, 
+               anpc_t =       npcTable, 
+               pos =          pos + ( drop_t.offset or Vector() ), -- ent:GetPos() + ( ent:OBBCenter() * 0.33 ) + ( drop_t.offset or Vector() ), 
+               ang =          pr_t.keepangle and ang,
+               squad_t =      squadtbl,
+               doFadeIns =    false,
+               pool =         ntbl != nil and ( ntbl["pool"] or ntbl["squad_t"] and ntbl["squad_t"]["originpool"] ) or nil,
+               nocopy =       true,
+            })
+			-- 	dropPreset, 
+			-- 	npcTable, 
+			-- 	pos + ( drop_t.offset or Vector() ), -- ent:GetPos() + ( ent:OBBCenter() * 0.33 ) + ( drop_t.offset or Vector() ), 
+			-- 	pr_t.keepangle and ang,
+			-- 	squadtbl,
+			-- 	nil,
+			-- 	false,
+			-- 	ntbl != nil and ( ntbl["pool"] or ntbl["squad_t"] and ntbl["squad_t"]["originpool"] ) or nil,
+			-- 	true
+			-- )
 
 			if valid and activeNPC[valid] then
 				activeNPC[valid]["spawned"] = true
@@ -2404,16 +2456,12 @@ function TargetSpawnPreset( targ, typ, argstr, caller )
 			elseif typ == "drop_set" then
 				AddDropQueue( targ, targ:GetPos() + ( targ:OBBCenter() * 0.33 ), targ:GetAngles(), Settings[typ][argstr], activeNPC[targ] or activePly[targ] or nil )
 			elseif typ == "npc" or typ == "entity" or typ == "nextbot" then
-				local npc = SpawnNPC(
-					argstr,
-					Settings[typ][argstr],
-					GetPlyTrPos( targ ) + Vector( 0, 0, 15 ),
-					nil,
-					nil,				
-					nil,
-					false, //fadeIns
-					nil
-				)
+				local npc = SpawnNPC({
+					presetName =   argstr,
+               anpc_t =       Settings[typ][argstr],
+               pos =          GetPlyTrPos( targ ) + Vector( 0, 0, 15 ),
+               doFadeIns =    false, //fadeIns
+				})
 				if IsValid( npc ) then
 					if IsValid( caller ) then
 						undo.Create( argstr )
@@ -2447,16 +2495,12 @@ function TargetSpawnPreset( targ, typ, argstr, caller )
 				or CheckPlayerPrsCondition( targ, argstr, Settings[typ][argstr]["condition"] ) then
 					FixPlayer( targ )
 					activePly[targ] = nil
-					local valid = SpawnNPC(
-						argstr,
-						Settings[typ][argstr],														
-						nil,
-						nil,
-						nil,
-						targ,
-						false,
-						nil
-					)
+					local valid = SpawnNPC({
+						presetName =   argstr,
+                  anpc_t =       Settings[typ][argstr],
+                  npcOverride =  targ,
+                  doFadeIns =    false,
+					})
 					if valid and IsValid( caller ) then
 						undo.Create( argstr )
 							undo.SetPlayer( caller )
@@ -2489,16 +2533,12 @@ function TargetSpawnPreset( targ, typ, argstr, caller )
 		else
 			local npc_t = GetCharacterPresetTable( argstr )
 			if npc_t then
-				local npc = SpawnNPC(
-					argstr,
-					npc_t,
-					GetPlyTrPos( targ ) + Vector(0, 0, 5),
-					nil,
-					nil,				
-					nil,
-					false,
-					nil
-				)
+				local npc = SpawnNPC({
+					presetName =   argstr,
+               anpc_t =       npc_t,
+               pos =          GetPlyTrPos( targ ) + Vector(0, 0, 5),
+               doFadeIns =    false,
+				})
 				if IsValid( npc ) then
 					if IsValid( caller ) then
 						undo.Create( argstr )

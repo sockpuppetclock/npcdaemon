@@ -4,6 +4,8 @@ module( "npcd", package.seeall )
 
 local IN_MOVE = bit.bor( IN_FORWARD, IN_BACK, IN_MOVELEFT, IN_MOVERIGHT )
 local IN_MOVE_SPEED = bit.bor( IN_SPEED, IN_MOVE )
+local zero_vector = Vector()
+local vector_up = Vector(0, 0, 32768)
 
 // apply unique npcd properties, every think
 function DoActiveEffects()
@@ -53,7 +55,7 @@ function DoActiveEffects()
 							or npc:EyeAngles():Forward():Dot(phys:GetVelocity():GetNormalized())
 						local ler = (dp / 2) + 0.5
 						ler = math.pow( 1 - ler, 1.2 )
-						ler = Lerp( ler , npc:GetAimVector() * npc_t.accelerate.accel_rate, Vector() )
+						ler = Lerp( ler , npc:GetAimVector() * npc_t.accelerate.accel_rate, zero_vector )
 						phys:AddVelocity( ler )
 					end
 				end
@@ -163,9 +165,8 @@ function CalcMovement( ply, accel_t, mv )
 	local vdir = v:GetNormalized()
 	local forward = mv:GetMoveAngles():Forward()
 	local aimv = forward
-	local movev = Vector()
 	if mv:KeyDown( IN_MOVE ) then
-		movev = Vector(mv:GetForwardSpeed(), mv:GetSideSpeed(), 0):GetNormalized()
+		local movev = Vector(mv:GetForwardSpeed(), mv:GetSideSpeed(), 0):GetNormalized()
 		aimv:Rotate(movev:Angle() * -1)
 	end
 
@@ -316,7 +317,7 @@ function FadeIns()
 			// fix for game crashing when npc dies on sky
 			if !ntbl["spawned"] then
 				if ntbl["squad_t"]["values"]["spawnfix"] or ntbl["npc_t"]["spawnfix"] then
-					npc:SetAbsVelocity( Vector(0,0,0) )
+					npc:SetAbsVelocity( zero_vector )
 					npc:SetPos( ntbl["startpos"] or npc:GetPos() )
 				end
 
@@ -327,7 +328,7 @@ function FadeIns()
 				if ntbl["spawnfix_checkstate"] <= 0 then
 					local tr = util.TraceLine({
 						start = npc:GetPos(),
-						endpos = npc:GetPos() - Vector(0, 0, 32768),
+						endpos = npc:GetPos() - vector_up,
 						mask = MASK_NPCSOLID,
 					})
 					
@@ -557,8 +558,8 @@ end
 function CreateParticle( npc, eff_t, pos, aeff_t )
 	PrecacheEffect(eff_t["pcf"], eff_t["name"])
 
-	local ppos = IsValid(npc) and npc:GetPos() or pos or Vector()
-	local centerpos = eff_t["centered"] and IsValid(npc) and npc:OBBCenter() or Vector()
+	local ppos = IsValid(npc) and npc:GetPos() or pos or zero_vector
+	local centerpos = eff_t["centered"] and IsValid(npc) and npc:OBBCenter() or zero_vector
 	local offsetpos = eff_t["offset"] and CopyData( eff_t["offset"] ) or Vector()
 
 	if eff_t["offset_angadd"] then
@@ -589,6 +590,8 @@ function CreateParticle( npc, eff_t, pos, aeff_t )
 	end
 end
 
+local vector_normal_up = Vector(0,0,1)
+
 // engine effect
 function CreateEff( npc, eff_t, pos, aeff_t )
 	local ef = eff_t["EffectData"] or EffectData() // different from "effect_data"
@@ -602,7 +605,7 @@ function CreateEff( npc, eff_t, pos, aeff_t )
 		-- ef:SetHitBox( number hitBoxIndex )
 		ef:SetMagnitude( eff_t["effect_data"]["magnitude"] or 1 )
 		-- ef:SetMaterialIndex( number materialIndex )
-		ef:SetNormal(eff_t["effect_data"]["normal"] or Vector(0,0,1) )
+		ef:SetNormal(eff_t["effect_data"]["normal"] or vector_normal_up )
 		ef:SetRadius( eff_t["effect_data"]["radius"] or 1 )
 		ef:SetScale( eff_t["effect_data"]["scale"] or 1 )
 		-- ef:SetStart( Vector start )
@@ -612,8 +615,8 @@ function CreateEff( npc, eff_t, pos, aeff_t )
 	ef:SetAngles( eff_t["ang"] or IsValid(npc) and npc:GetAngles() or RandomAngle() )
 
 	// position
-	local ppos = IsValid(npc) and npc:GetPos() or pos or Vector()
-	local centerpos = eff_t["centered"] and IsValid(npc) and npc:OBBCenter() or Vector()
+	local ppos = IsValid(npc) and npc:GetPos() or pos or zero_vector
+	local centerpos = eff_t["centered"] and IsValid(npc) and npc:OBBCenter() or zero_vector
 	
 	local offsetpos =  eff_t["offset"] and CopyData( eff_t["offset"] ) or Vector()
 	if eff_t["offset_angadd"] then
@@ -717,10 +720,10 @@ function CreateAttachRope( from, from_a, to, to_a, width, mat )
 		if attachf then
 			frompos = WorldToLocal( from:GetAttachment(attachf).Pos, from:GetAttachment(attachf).Ang, from:GetPos(), from:GetAngles() )
 		else
-			frompos = Vector()
+			frompos = zero_vector
 		end
 	else
-		frompos = Vector()
+		frompos = zero_vector
 	end
 
 	if attacht and attacht != 0 then
@@ -735,10 +738,10 @@ function CreateAttachRope( from, from_a, to, to_a, width, mat )
 		if attacht then
 			topos = WorldToLocal(to:GetAttachment(attacht).Pos, to:GetAttachment(attacht).Ang, to:GetPos(), to:GetAngles())
 		else
-			topos = Vector()
+			topos = zero_vector
 		end
 	else
-		topos = Vector()
+		topos = zero_vector
 	end
 
 	constraint.CreateKeyframeRope( from:GetPos(),

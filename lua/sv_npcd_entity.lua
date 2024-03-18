@@ -473,19 +473,28 @@ function OverrideEntity( ent, p_ntbl, squad_t, preset_type, preset_name, extra_o
 	local prepos = e:GetPos()
 	local prebound = e:OBBMins()
 
-	local npc = SpawnNPC(
-		preset_name, --preset
-		npc_t, --npc_t
-		nil, -- ent:GetPos(),
-		nil, -- ent:GetAngles(),
-		squad_t, --squad_t
-		e, --npcOverride
-		false, --doFadeIns
-		squad_t and squad_t["originpool"], --poolOverride
-		true, --nocopy
-		nil, --nopoolovr
-		hadtable and hadtable["squad"] --oldsquad
-	)
+	local npc = SpawnNPC({
+      presetName =   preset_name,
+      anpc_t =       npc_t,
+      squad_t =      squad_t,
+      npcOverride =  e,
+      doFadeIns =    false,
+      pool =         squad_t and squad_t["originpool"],
+      nocopy =       true,
+      oldsquad =     hadtable and hadtable["squad"],
+   })
+	-- 	preset_name, --preset
+	-- 	npc_t, --npc_t
+	-- 	nil, -- ent:GetPos(),
+	-- 	nil, -- ent:GetAngles(),
+	-- 	squad_t, --squad_t
+	-- 	e, --npcOverride
+	-- 	false, --doFadeIns
+	-- 	squad_t and squad_t["originpool"], --poolOverride
+	-- 	true, --nocopy
+	-- 	nil, --nopoolovr
+	-- 	hadtable and hadtable["squad"] --oldsquad
+	-- )
 
 	if !IsValid( npc ) then print( "ncpd > OverrideEntity > INVALID NPC", npc ) return end
 
@@ -543,7 +552,7 @@ local override_ents = {
 
 hook.Add("OnEntityCreated", "NPCD Entity Created", function(ent)
 	if !IsValid(ent) then return end
-	if ent:IsNPC() then
+	if ent:IsNPC() then // only can use this cause none of override_ents are non-npc yet
 		// override child entities
 		local entovr = override_ents[ent:GetClass()] or nil
 		if entovr and !activeNPC[ent] then

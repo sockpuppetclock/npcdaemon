@@ -232,6 +232,8 @@ end
 
 hook.Add("PlayerSpawn", "NPCD Player Spawn", function( ply, transition )
 	if !IsValid( ply ) then return end
+   ply.npcd_damage_taken = 0
+   ply.npcd_damage_table = {}
 	if !cvar.enabled.v:GetBool() then
 		net.Start( "npcd_ply_preset" )
 			net.WriteString( "" )
@@ -305,7 +307,12 @@ hook.Add("PlayerSpawn", "NPCD Player Spawn", function( ply, transition )
 
 				presetted = true
 				timer.Simple( delay, function()
-					if SpawnNPC( ply_preset, Settings["player"][ply_preset], nil, nil, nil, ply, false, nil) then
+					if SpawnNPC({
+                  presetName =   ply_preset,
+                  anpc_t =       Settings["player"][ply_preset],
+                  npcOverride =  ply,
+                  doFadeIns =    false,
+               }) then
 						// add to history
 						ply_preset_hist[ply][ply_preset] = true
 					else // failed
