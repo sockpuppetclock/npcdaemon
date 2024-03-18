@@ -3530,14 +3530,14 @@ t_active_values = {
 
 	["spawn_req_navmesh"] = {
 		CATEGORY = t_CAT.NPCD,
-		NAME = "Require Map Navmesh",
+		NAME = "Spawn Requires Map Navmesh",
 		DESC = "Map must have navmeshes for this to be allowed to spawn",
 		TYPE = "boolean",
 	},
 
 	["spawn_req_nodes"] = {
 		CATEGORY = t_CAT.NPCD,
-		NAME = "Require Map Nodes",
+		NAME = "Spawn Requires Map Nodes",
 		DESC = "Map must have nodes for this to be allowed to spawn",
 		TYPE = "boolean",
 	},
@@ -3545,13 +3545,14 @@ t_active_values = {
 	["spawn_ceiling"] = {
 		CATEGORY = t_CAT.PHYSICAL,
 		NAME = "Spawn on Ceiling",
-		DESC = "If true, will spawn from the ceiling, instead of the ground. Autospawner will avoid spawning on the sky. Any spawn offset will be applied from the ceiling point",
+		DESC = "If true, the entity will spawn from the ceiling, instead of the ground. Auto-Spawner will avoid spawning onto the sky. Any spawn offset will be applied from the ceiling point",
 		TYPE = "boolean",
 	},
 
 	["spawn_req_water"] = {
-		CATEGORY = t_CAT.PHYSICAL,
-        DESC = "Note: The entity's water requirement is ignored when spawned in a squad, change the squad's water spawn requirement instead",
+      NAME = "Spawn Requires Water",
+		CATEGORY = t_CAT.NPCD,
+      DESC = "Water level required for Auto-Spawner. Note: The entity's water requirement is ignored when spawned in a squad, change the squad's water spawn requirement instead",
 		TYPE = "enum",
 		ENUM = {
 			["Any"] = -1,
@@ -6394,8 +6395,9 @@ t_squad_values = {
 	},
 
 	["spawn_req_water"] = {
-		CATEGORY = t_CAT.PHYSICAL,
-        DESC = "Note: Individual entities' water spawn requirements are ignored when spawned in a squad",
+		NAME = "Spawn Requires Water",
+		CATEGORY = t_CAT.NPCD,
+      DESC = "Water level required for Auto-Spawner to spawn entire squad. Note: Individual entities' water spawn requirements are ignored when spawned in a squad",
 		TYPE = "enum",
 		ENUM = {
 			["Any"] = -1,
@@ -6553,7 +6555,7 @@ t_squadpool_values = {
 		REQUIRED = true,
 		CATEGORY = t_CAT.NPCD,
 		NAME = "Radiuses",
-		DESC = "Determines where entities can be spawned, and how many, based on radial distance from players/beacons. The spawnpoint chosen will be valid for at least one player/beacon in a randomly chosen radius around them, but the spawnpoint cannot be within any over-limit radius around any player/beacon",
+		DESC = "Determines where entities can be spawned by the Auto-Spawner, and how many, based on radial distance from players/beacons. Any spawnpoint that is chosen must be valid for at least one player/beacon in a randomly chosen radius around them. A spawnpoint is invalid if it would cause the radius around anyone to go over their limit",
 		TYPE = "struct_table",
 		SORTNAME = "b",
 		STRUCT = {
@@ -6586,31 +6588,31 @@ t_squadpool_values = {
 				TYPE = "boolean",
 			},
 			["despawn"] = {
-				NAME = "Despawn Over Limit",
+				NAME = "Despawn",
 				DESC = "Requires either a radius or pool entity limit. Despawns entities if over entity limit, within each players' radius",
 				TYPE = "boolean",
 				DEFAULT = false,
 			},
 			["despawn_tooclose"] = {
-				NAME = "Despawn Over Limit: Player Minimum Distance",
-				DESC = "Will not despawn if entity is this close to any player",
+				NAME = "Despawn: Player Minimum Distance",
+				DESC = "Will not despawn any entity this close to any player",
 				TYPE = "number",
 			},
 			["despawn_addquota"] = {
-				NAME = "Despawn Over Limit: Make Room For Spawn Quota",
+				NAME = "Despawn: Make Room For Spawn Quota",
 				DESC = "If true, then instead of only despawning when over the radius/pool limit, it will despawn enough under the limit to fit the spawn quota. Caution: If there are multiple players and the radius is too small, it might despawn more than the spawn quota",
 				TYPE = "boolean",
             DEFAULT = true,
 			},
 			["outside"] = {
 				NAME = "Use Outside Area",
-				DESC = "If true, use the area OUTSIDE the radius",
+				DESC = "If true, use the area OUTSIDE the radius (WIP, but works)",
 				TYPE = "boolean",
             DEFAULT = false,
 			},
 			["spawn_tooclose"] = {
 				NAME = "Spawn Distance Hard Minimum",
-				DESC = "Will not attempt to spawn anything this close to any player (only players). Spawn velocity may still push enemies closer, though",
+				DESC = "Will not attempt to spawn anything this close to any player (only players). Note: Spawn velocity could still push enemies closer",
 				TYPE = "number",
 				SORTNAME = "a5",
 				DEFAULT = 500,

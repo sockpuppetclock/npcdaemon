@@ -405,22 +405,22 @@ dmgf_cond_chks = {
          local taken = 0
          if val.timelimit then
             local backtime = CurTime() - val.timelimit
-            if atkr.npcd_damage_table then
-               for t, d in pairs(atkr.npcd_damage_table) do
+            if damageTakenTable[atkr] then
+               for t, d in pairs(damageTakenTable[atkr]) do
                   if t >= backtime then
                      taken = taken + d
                   end
                end
             end
          else
-            taken = atkr.npcd_damage_taken or 0
+            taken = damageTakenTotals[atkr] or 0
          end
 
          local pass = compare_funcs[val.compare_cond] and compare_funcs[val.compare_cond](
             taken, val.damage
          )
          if pass and val.reset_on_pass then
-            atkr.npcd_damage_taken = 0
+            damageTakenTotals[atkr] = 0
          end
          return pass
       end,
@@ -482,22 +482,22 @@ dmgf_cond_chks = {
          local taken = 0
          if val.timelimit then
             local backtime = CurTime() - val.timelimit
-            if victim.npcd_damage_table then
-               for t, d in pairs(victim.npcd_damage_table) do
+            if damageTakenTable[victim] then
+               for t, d in pairs(damageTakenTable[victim]) do
                   if t >= backtime then
                      taken = taken + d
                   end
                end
             end
          else
-            taken = victim.npcd_damage_taken or 0
+            taken = damageTakenTotals[victim] or 0
          end
 
          local pass = compare_funcs[val.compare_cond] and compare_funcs[val.compare_cond](
             taken, val.damage
          )
          if pass and val.reset_on_pass then
-            victim.npcd_damage_taken = 0
+            damageTakenTotals[victim] = 0
          end
          return pass
       end,
@@ -1568,12 +1568,12 @@ hook.Add("PostEntityTakeDamage", "NPCD Post-Damage", function( ent, dmgInfo, too
 	local took = took
 
    if took then
-      ent.npcd_damage_taken = (ent.npcd_damage_taken or 0) + dmg:GetDamage()
+      damageTakenTotals[ent] = (damageTakenTotals[ent] or 0) + dmg:GetDamage()
 
       // yippee
-      ent.npcd_damage_table = ent.npcd_damage_table or {}
+      damageTakenTable[ent] = damageTakenTable[ent] or {}
       local time = math.Round(CurTime(),1)
-      ent.npcd_damage_table[time] = (ent.npcd_damage_table[time] or 0) + dmg:GetDamage()
+      damageTakenTable[ent][time] = (damageTakenTable[ent][time] or 0) + dmg:GetDamage()
    end
 
 	timer.Simple( engine.TickInterval(), function()
