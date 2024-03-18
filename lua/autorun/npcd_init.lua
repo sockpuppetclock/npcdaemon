@@ -27,7 +27,7 @@ function RandomColor( huemin, huemax, satmin, satmax, valmin, valmax )
 end
 
 function RandomAngle( pmin, pmax, ymin, ymax, rmin, rmax )
-	return Angle( math.Rand( pmin or 0, pmax or 0 ), math.Rand( ymin or -180, ymax or 180 ), math.Rand( zmin or 0, zmax or 0 ) )
+	return Angle( math.Rand( pmin or 0, pmax or 0 ), math.Rand( ymin or -180, ymax or 180 ), math.Rand( rmin or 0, rmax or 0 ) )
 end
 
 function RandomVector( xmin, xmax, ymin, ymax, zmin, zmax )

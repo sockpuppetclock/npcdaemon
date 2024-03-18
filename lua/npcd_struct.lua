@@ -6360,12 +6360,21 @@ t_squad_values = {
 	-- },
 	["nocollide"] = {
 		CATEGORY = t_CAT.PHYSICAL,
-		DESC = "Entities in this squad will always not collide with each other. Note: Most NPCs of the same class will always not collide with each other",
+      NAME = "No Collide",
+		DESC = "Entities in this squad will always not collide with each other",
 		TYPE = "boolean",
+	},
+	["spawncollide_time"] = {
+		CATEGORY = t_CAT.PHYSICAL,
+      NAME = "Spawn Collision Min Duration",
+		DESC = "Minimum time in seconds for spawned entities to stay in a no-collision state. After spawning, entities will only return to normal collision when they are not stuck in anything",
+		TYPE = "number",
+      DEFAULT = 1,
 	},
 	["spawncollide_fast"] = {
 		CATEGORY = t_CAT.PHYSICAL,
-		DESC = "If true, entities in this squad will return to normal collision after spawning without checking if they are still within any other character",
+      NAME = "Spawn Collision Fast End",
+		DESC = "If true, entities in this squad will return to normal collision after spawning without checking if they are still stuck in anyone",
 		TYPE = "boolean",
 	},
 	["spawngrid"] = {
