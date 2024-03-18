@@ -605,6 +605,7 @@ local adder_icon = {
 	[t_CAT.DAMAGE] = "icon16/fire.png",
 	[t_CAT.MOVEMENT] = "icon16/car.png",
 	[t_CAT.EQUIP] = "icon16/bricks.png",
+	[t_CAT.SPAWN] = "icon16/wand.png",
 }
 
 function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
