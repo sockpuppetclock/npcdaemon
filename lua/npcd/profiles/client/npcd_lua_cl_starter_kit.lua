@@ -236,7 +236,7 @@ npcd.QueuePostQuery( profile_name, 30, function()
 			["type"] = "NPC",
 		},
 		["entity_type"] = "npc",
-		["offset"] = Vector( 0, 0, 0 ),
+		["spawn_ceiling"] = true,
 		["spawnflags"] = 32,
 	} )
 
@@ -703,7 +703,7 @@ npcd.QueuePostQuery( profile_name, 30, function()
 			["type"] = "NPC",
 		},
 		["entity_type"] = "npc",
-		["offset"] = Vector( 0, 0, 2 ),
+      ["spawn_ceiling"] = true,
 	} )
 
 	npcd.InsertPending( profile_name, "npc", "G-Man", {
@@ -781,7 +781,8 @@ npcd.QueuePostQuery( profile_name, 30, function()
 			["type"] = "NPC",
 		},
 		["entity_type"] = "npc",
-		["offset"] = Vector( 0, 0, 2 ),
+		["offset"] = Vector( 0, 0, -2 ),
+      ["spawn_ceiling"] = true,
 	} )
 
 	npcd.InsertPending( profile_name, "npc", "Odessa Cubbage", {
@@ -1076,7 +1077,6 @@ npcd.QueuePostQuery( profile_name, 30, function()
 				["nospawn"] = true,
 				["radius_autoadjust_max"] = true,
 				["radius_autoadjust_min"] = true,
-				["radius_entity_limit"] = 60,
 				["radius_spawn_autoadjust"] = true,
 			},
 		},

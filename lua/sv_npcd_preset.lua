@@ -246,6 +246,9 @@ function CreatePreset( typ, preset_name, args_t, profilename, onlyReturn, insert
 				end
 			end
 		end
+      if knownBoundsEnt[typ] then
+         knownBoundsEnt[typ][preset_name] = nil
+      end
 	end
 	
 	return insTable

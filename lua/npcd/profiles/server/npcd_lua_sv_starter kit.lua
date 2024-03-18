@@ -231,7 +231,7 @@ npcd.CreatePreset( "npc", "Ceiling Turret", {
 		["type"] = "NPC",
 	},
 	["entity_type"] = "npc",
-	["offset"] = Vector( 0, 0, 0 ),
+   ["spawn_ceiling"] = true,
 	["spawnflags"] = 32,
 }, profile_name )
 
@@ -698,7 +698,7 @@ npcd.CreatePreset( "npc", "Camera", {
 		["type"] = "NPC",
 	},
 	["entity_type"] = "npc",
-	["offset"] = Vector( 0, 0, 2 ),
+   ["spawn_ceiling"] = true,
 }, profile_name )
 
 npcd.CreatePreset( "npc", "G-Man", {
@@ -776,7 +776,8 @@ npcd.CreatePreset( "npc", "Barnacle", {
 		["type"] = "NPC",
 	},
 	["entity_type"] = "npc",
-	["offset"] = Vector( 0, 0, 2 ),
+	["offset"] = Vector( 0, 0, -2 ),
+   ["spawn_ceiling"] = true,
 }, profile_name )
 
 npcd.CreatePreset( "npc", "Odessa Cubbage", {
@@ -1071,7 +1072,6 @@ npcd.CreatePreset( "squadpool", "Normal", {
 			["nospawn"] = true,
 			["radius_autoadjust_max"] = true,
 			["radius_autoadjust_min"] = true,
-			["radius_entity_limit"] = 60,
 			["radius_spawn_autoadjust"] = true,
 		},
 	},
