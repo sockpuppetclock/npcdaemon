@@ -434,7 +434,7 @@ function SpawnNPC( rq )
    end
    if rq.targetspawn and !npc_t.spawn_ceiling then
       local bounds = GetOBB(npc_t, nil)
-      npc:SetPos( hitpos + bounds[1].zoff )
+      npc:SetPos( npc:GetPos() + bounds[1].zoff )
    end
 	local startpos = npc:GetPos()
 
