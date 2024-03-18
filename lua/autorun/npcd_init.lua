@@ -4,7 +4,7 @@
 module( "npcd", package.seeall )
 AddCSLuaFile()
 
-NPCD_VERSION = 47
+NPCD_VERSION = 48
 --[[
 	checkpoints:
 		1: initial release
