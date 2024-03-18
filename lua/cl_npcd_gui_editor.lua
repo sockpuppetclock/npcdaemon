@@ -4063,12 +4063,12 @@ function AddFunctionPanel( npanel, inspanel )
       // avoids forcing PendingAdd every time value box is loaded
       // MathRandom is a unique case as it uses MIN and MAX and "default" values could be incorrect
       inspanel.valuer.funcpanel.SafeInit = function()
-         local low = isnumber( npanel.pendingTbl[npanel.valueName][2] ) and npanel.pendingTbl[npanel.valueName][2] 
+         local low = npanel.pendingTbl[npanel.valueName] != nil and isnumber( npanel.pendingTbl[npanel.valueName][2] ) and npanel.pendingTbl[npanel.valueName][2] 
 				or istable( npanel.structTbl.DEFAULT ) and npanel.structTbl.DEFAULT[1] == inspanel.valuer.func and isnumber( npanel.structTbl.DEFAULT[2] ) and npanel.structTbl.DEFAULT[2] or npanel.structTbl.MIN or 0
-			local high = isnumber( npanel.pendingTbl[npanel.valueName][3] ) and npanel.pendingTbl[npanel.valueName][3] 
+			local high = npanel.pendingTbl[npanel.valueName] != nil and isnumber( npanel.pendingTbl[npanel.valueName][3] ) and npanel.pendingTbl[npanel.valueName][3] 
 				or istable( npanel.structTbl.DEFAULT ) and npanel.structTbl.DEFAULT[1] == inspanel.valuer.func and isnumber( npanel.structTbl.DEFAULT[3] ) and npanel.structTbl.DEFAULT[3] or npanel.structTbl.MAX or 1
-         if low != npanel.pendingTbl[npanel.valueName][2] and low != 0
-         or high != npanel.pendingTbl[npanel.valueName][3] and high != 1 then
+         if npanel.pendingTbl[npanel.valueName] and low != npanel.pendingTbl[npanel.valueName][2] and low != 0
+         or npanel.pendingTbl[npanel.valueName] and high != npanel.pendingTbl[npanel.valueName][3] and high != 1 then
             inspanel.valuer.funcpanel:InitPend()
          end
       end
