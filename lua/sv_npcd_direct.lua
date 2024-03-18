@@ -439,7 +439,7 @@ function Direct( numQuota, numSqQuota, pool_t, mapLimit, squadLimit, RadiusTable
 						dist_tbl[ply][npc] = dist_tbl[ply][npc] or npc_pos:DistToSqr(ply_pos)
 						local dist_sqr = dist_tbl[ply][npc]
 
-						if (dist_sqr >= r.minRadius_sqr and dist_sqr < r.maxRadius_sqr)
+						if (!r.outside and dist_sqr >= r.minRadius_sqr and dist_sqr < r.maxRadius_sqr)
                   or (r.outside and dist_sqr > r.maxRadius_sqr) then
 							count = count + ntbl["weight"]
 							table.insert(npcs_in, { ["npc"] = npc, ["dist_sqr"] = dist_sqr, ["weight"] = ntbl["weight"], } )
@@ -861,7 +861,6 @@ function DirectorSpawn( todo )
 
 	local valid
 	local pos
-	local cpos
 	local pos_tbl = {}
 
 	local hotpointdist_sqr = cvar.point_radius.v:GetFloat()
@@ -1266,7 +1265,7 @@ function DirectorSpawn( todo )
 		end
 		todo.newSquad["bounds"] = bounds
 		-- return SpawnSquad( todo.newSquad, pos + bounds[3] ), radiused
-		return SpawnSquad( todo.newSquad, pos, nil, nil, cpos ), radiused
+		return SpawnSquad( todo.newSquad, pos ), radiused
 	else
 		if debugged then 
 			print("npcd > DirectorSpawn > SpawnNPC(", todo.name, npc_t, pos + bounds[1].zoff, todo.pool," true )")
@@ -1277,7 +1276,6 @@ function DirectorSpawn( todo )
             pos =          pos + bounds[1].zoff,
             pool =         todo.pool,
             maxz =         bounds[1].maxz,
-            offz =         bounds[1].offz,
          }),
          radiused
 	end

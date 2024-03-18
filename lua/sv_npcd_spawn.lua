@@ -139,7 +139,6 @@ function GetOBB( npc_t, presetname )
    bounds[1].zoff = Vector(0,0,zmin < 0 and math.abs(zmin) or 0) // zmin should always be z=0
    bounds[1].offset = npc_t.offset or zero_vector
    bounds[1].offset = bounds[1].offset + bounds[1].zoff
-   bounds[1].offz = Vector(0,0,bounds[1].offset.z)
    bounds[1].mino = bounds[1].min + bounds[1].offset
    bounds[1].maxo = bounds[1].max + bounds[1].offset
    bounds[1].ceiling = npc_t.spawn_ceiling
@@ -250,7 +249,6 @@ function GetGroupOBB( group_t )
       bounds[n].zoff = Vector(0,0,zmin < 0 and math.abs(zmin) or 0) // zmin should always be z=0
       bounds[n].offset = npc_t.offset or Vector()
       bounds[n].offset = bounds[n].offset + bounds[n].zoff
-      bounds[n].offz = Vector(0,0,bounds[n].offset.z)
       bounds[n].mino = bounds[n].min + bounds[n].offset
       bounds[n].maxo = bounds[n].max + bounds[n].offset
       bounds[n].ceiling = npc_t.spawn_ceiling
@@ -421,7 +419,7 @@ function SpawnNPC( rq )
 
 	ResolveEntValueTable( npc, npc_t ) // do value funcs
 
-   local hitpos, postfixpos
+   local hitpos
    if npc_t.spawn_ceiling then
       local hitpos = CheckCeiling( npc:GetPos(), true )
       if rq.maxz then
@@ -434,7 +432,10 @@ function SpawnNPC( rq )
    if npc_t.offset then
       npc:SetPos( npc:GetPos() + npc_t.offset )
    end
-   
+   if rq.targetspawn and !npc_t.spawn_ceiling then
+      local bounds = GetOBB(npc_t, nil)
+      npc:SetPos( hitpos + bounds[1].zoff )
+   end
 	local startpos = npc:GetPos()
 
 	// prespawn misc
@@ -1533,18 +1534,6 @@ function SpawnSquad( newSquad, pos, announce, fadein, ceil_pos )
          nopoolovr =    true,
          maxz =         v.bounds.maxz,
       })
-		-- 	presetName, --presetName, anpc_t, pos, ang, squad_t, npcOverride, doFadeIns, pool, nocopy, nopoolovr, oldsquad
-		-- 	npc_t, --anpc_t
-		-- 	pos + (v.bounds.zoff or Vector()), --pos
-		-- 	nil,  --ang
-		-- 	newSquad, --squad_t
-		-- 	nil, --npcOverride
-		-- 	fadein, --doFadeIns
-		-- 	newSquad["originpool"], --pool
-		-- 	true, --nocopy
-		-- 	true, --nopoolovr
-		-- 	nil --oldsquad
-		-- )
 
 		if IsValid( new ) then
 			table.insert( spawned, new )
@@ -1728,10 +1717,8 @@ function SpawnSquad( newSquad, pos, announce, fadein, ceil_pos )
             spawned_squad_t[npc].bounds.max and spawned_squad_t[npc].bounds.max.x,
             spawned_squad_t[npc].bounds.max and spawned_squad_t[npc].bounds.max.y,
             0)
-         -- local offz = Vector(0,0,spawned_squad_t[npc].bounds.offset and spawned_squad_t[npc].bounds.offset.z or 0)
 			x = -gw + ( w * math.mod( i , gc ) ) + w/2
 			y = -gh + ( h * math.floor( (i-1) / gc ) ) + h/2
-			-- local npos = util.TraceHull({
 			local tr0 = util.TraceHull({
 				start = pos + maxoz,
 				endpos = pos + maxoz + Vector( x, y, 0 ),
@@ -1746,13 +1733,6 @@ function SpawnSquad( newSquad, pos, announce, fadein, ceil_pos )
             maxs = vmaxs,
 				mask = MASK_NPCSOLID,
 			} )
-			-- local tr = util.TraceLine({
-			-- 	start = npos.HitPos,
-			-- 	endpos = npos.HitPos,
-			-- 	mask = MASK_NPCSOLID,
-			-- })
-			-- if not ( tr.HitNoDraw or tr.HitNonWorld or tr.HitSky or !util.IsInWorld(tr.HitPos) )
-			-- and 
          for _, v in ipairs(spawn_base_offsets) do
             if CheckSpawnPos( tr.HitPos + (spawned_squad_t[npc].bounds.zoff or Vector()) + v, spawned_squad_t[npc].bounds, nil, newSquad.values.spawn_req_water ) then
                npc:SetPos( tr.HitPos + (spawned_squad_t[npc].bounds.zoff or Vector()) + v )
@@ -2430,6 +2410,7 @@ function TargetSpawnSquad( targ, argstr, caller )
 		local tr = targ:GetEyeTrace()
 		local bounds = GetGroupOBB( newSquad )
 		if bounds == nil then return false end
+      newSquad["bounds"] = bounds 
 		local SpawnPos = tr.HitPos + tr.HitNormal * 15 --Vector( 0, 0, 15 )
 		local fadein
 		if cvar.spawner_fadein.v:GetBool() then
@@ -2553,6 +2534,7 @@ function TargetSpawnPreset( targ, typ, argstr, caller )
                anpc_t =       npc_t,
                pos =          SpawnPos,
                doFadeIns =    false,
+               targetspawn =  true,
 				})
 				if IsValid( npc ) then
 					if IsValid( caller ) then

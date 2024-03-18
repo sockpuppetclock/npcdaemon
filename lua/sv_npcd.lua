@@ -189,6 +189,9 @@ activeCallback = activeCallback or {} // entity callbacks
 ply_preset_deaths = {} // player killed-by-preset history
 ply_preset_hist = {} // player preset history
 
+damageTakenTotals = damageTakenTotals or {} // total per entity
+damageTakenTable = damageTakenTable or {}   // all counts, per entity, keyed by CurTime()
+
 pool_times = {}
 squad_times = {}
 
@@ -684,7 +687,7 @@ function DoRoutine( name )
 	local noerred, err
    if routines[name].cr then
 		noerred, err = coroutine.resume( routines[name].cr )
-		if !noerred or err then Error("\n[NPC Daemon] [Coroutine \"" .. name .. "\"]", err,"\n\n") end
+		if !noerred or err then Error("\n[NPC Daemon] [Coroutine \"" .. name .. "\"] ", err,"\n\n") end
 	end
 	if ( !routines[name].cr or !noerred ) then
 		routines[name].cr = coroutine.create( routines[name].func )

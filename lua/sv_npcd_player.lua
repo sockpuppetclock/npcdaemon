@@ -232,8 +232,8 @@ end
 
 hook.Add("PlayerSpawn", "NPCD Player Spawn", function( ply, transition )
 	if !IsValid( ply ) then return end
-   ply.npcd_damage_taken = 0
-   ply.npcd_damage_table = {}
+   damageTakenTotals[ply] = 0
+   damageTakenTable[ply] = {}
 	if !cvar.enabled.v:GetBool() then
 		net.Start( "npcd_ply_preset" )
 			net.WriteString( "" )
