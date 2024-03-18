@@ -42,6 +42,11 @@ function RandomDecimal( min, max )
    return math.Rand( min or 0, max or 1 )
 end
 
+function CutLeftString(str, lim)
+   if !str or !lim then return str end
+   return #str > lim and string.Left(str, lim-3).."..." or str
+end
+
 function GetPlyTrPos( ply )
 	local ply = ply or SERVER and player.GetAll()[1] or CLIENT and LocalPlayer()
 	local tr = ply:GetEyeTrace()

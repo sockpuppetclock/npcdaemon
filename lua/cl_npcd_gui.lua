@@ -155,6 +155,7 @@ UI_COLORTEST_W = UI_ENTRY_H
 marg = 12.5 --ScreenScale( 5 )
 UI_SELECTOR_X, UI_SELECTOR_Y = 14, 30
 UI_TABLE_L_ADD = 1.65 --2
+UI_STR_LEFT_LIM = 20
 
 local bar_w = ScreenScale( 5 )
 local stress_bar_w = bar_w * 1.5

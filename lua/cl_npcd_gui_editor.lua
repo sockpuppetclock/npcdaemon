@@ -216,7 +216,7 @@ function DeselectValueList()
 	RightPanel.selectors = nil
 
 	ClearUnusedPending()
-
+   ValueList.container:Remove()
 	ValueList:Remove()
 end
 
@@ -630,16 +630,12 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
    adder:SetWide( math.min( cpane:GetWide() - 20, 260 ) )
    adder:SetTall( adder:GetTall() + 10 )
    adder:SetPos( math.max(0, cpane:GetWide() - adder:GetWide() + UI_BUTTON_W), 5 )
-
+   
    opts:SetText("")
    opts:SetIcon("icon16/table_gear.png")
    opts:SetSize(UI_ICONBUTTON_W, UI_BUTTON_H)
    opts:SetPos( adder:GetPos() - UI_BUTTON_W, 5 )
    opts:SetTall( adder:GetTall() )
-
-   -- deffer:SetChecked( showdefaults )
-   -- deffer:SetText("Show values with defaults")
-   -- deffer:SetTextColor( Color( 23, 23, 23 ) )
 
    cpane.AnimationThink = function( self )
 		if !IsValid( vpanel ) then
@@ -652,10 +648,8 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
       if IsValid(self.vpanel) and IsValid(self.vpanel.infopane) then
          if scroll < self.vpanel.infopane:GetTall() then
             self:SetPos( 0, self.vpanel.infopane:GetTall() )
-            -- self.deffer:SetPos(0, 0)
          else
             self:SetPos( 0, self.panel:GetVBar():GetScroll() )
-            -- self.deffer:SetPos(0, self.vpanel.infopane:GetTall()-self.panel:GetVBar():GetScroll())
          end
       end
       self.adder:SetWide( math.min( self:GetWide() - 20 - UI_BUTTON_W, 260 ) )
@@ -686,6 +680,7 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
          end
       end
    end
+
    opts.ShowAllChanged = function( self )
       local t = GetPrsTbl(valuelist_all, prof, set, prs )
       local ts = GetPrsTbl(valuelist_storage, prof, set, prs )
@@ -757,11 +752,12 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
 
             for vn in SortedPairsByValue(sorted_key[cat]) do
                local v = t[vn]
-               -- local cat = v.fpanel
                local butt = submenu:AddOption( v.displayname, function()
                   if not UnstoreValuelist(prof, set, prs, vn) then
-                     if IsValid(pan) and IsValid(v.selfpanel) then
-                        pan:ScrollToChild(v.selfpanel) // scroll for new value is done in valuelist routine
+                     if IsValid(pan) then
+                        // note: scroll for new values are done in valuelist routine instead
+                        if v.fpanel and !v.fpanel:GetExpanded() then v.fpanel:Toggle() end // open form
+                        if IsValid(v.selfpanel) then pan:ScrollToChild(v.selfpanel) end //existing
                      end
                   end
                end )
@@ -1391,7 +1387,13 @@ function CreateValueEditorList( panel, prof, set, prs, parentpanel )
 		valuelist_cat_t[cat]:SetWidth( vpanel:GetSize() )
 		valuelist_cat_t[cat]:SetName( cat )
 		valuelist_cat_t[cat]:Dock( TOP )
-		valuelist_cat_t[cat]:DockMargin( 2, 5, 2, 5 )
+		valuelist_cat_t[cat].headheight = valuelist_cat_t[cat]:GetHeaderHeight()
+      if cat == t_CAT.DESC or cat == t_CAT.REQUIRED then
+         valuelist_cat_t[cat]:DockMargin( 2, 5, 2, 5 )
+      else 
+         valuelist_cat_t[cat]:DockMargin( 0, 0, 0, 0 )
+         valuelist_cat_t[cat]:SetHeaderHeight( 0 )
+      end
 
 		if expanded_cats[catkey[cat]] != nil then
 			valuelist_cat_t[cat]:SetExpanded( expanded_cats[catkey[cat]] )
@@ -1593,41 +1595,7 @@ function FillValueListRoutine()
 						q.npanel.viewTbl = q.viewTbl
 						q.npanel:ResetPanel( true, true ) // keep view, no request focus
 						done = true
-					// b. struct values
-					-- elseif q.simple then
-					-- 	if IsValid( q.fpanel ) then
-					-- 		local newpanel = AddValuePanel(
-					-- 			q.fpanel,
-					-- 			q.structTbl,
-					-- 			q.typ,
-					-- 			q.valueName,
-					-- 			q.existingTbl,
-					-- 			q.pendingTbl,
-					-- 			q.viewTbl,
-					-- 			q.lookupclass,
-					-- 			q.hierarchy,
-					-- 			q.lastcol,
-					-- 			q.lastvaluename
-					-- 		)
-					-- 		if newpanel then
-					-- 			if q.moveparent then
-					-- 				if IsValid( q.moveparent ) then
-					-- 					newpanel:SetParent( q.moveparent )
-					-- 				else
-					-- 					newpanel:Remove()
-					-- 				end
-					-- 			end
-					-- 			newpanel:OnSizeChanged()
-					-- 			done = true
-					-- 		end
-					-- 	end
-					// c. initial value list fill
 					else
-						-- valid = true
-
-						-- if !cl_Profiles[q.prof]
-						-- or !IsValid( q.parentpanel ) or !IsValid( q.panel ) or !IsValid( q.vpanel )
-						-- or !HasPreset( PendingSettings, q.prof, q.set, q.prs ) then
 						if cl_Profiles[q.prof]
 						and IsValid( q.parentpanel ) and IsValid( q.panel ) and IsValid( q.vpanel )
 						and HasPreset( PendingSettings, q.prof, q.set, q.prs ) then
@@ -1665,8 +1633,14 @@ function FillValueListRoutine()
                         -- q.vpanel:SetTall( q.vpanel:GetTall() + 15 )
                         if q.cat and (q.cat.header == q.fpanel or q.cat.header == nil ) then
                            q.cat.header = newpanel
+                           // reveal form panel
+                           q.fpanel:DockMargin( 2, 5, 2, 5 )
+                           q.fpanel:SetHeaderHeight(q.fpanel.headheight)
                         end
                         if q.forcepan and IsValid(q.scrollpanel) then
+                           if q.fpanel and !q.fpanel:GetExpanded() then
+                              q.fpanel:Toggle()
+                           end
                            timer.Simple(engine.TickInterval()*4, function()
                               if IsValid(q.scrollpanel) and IsValid(newpanel) then
                                  q.scrollpanel:ScrollToChild(newpanel)
@@ -3032,7 +3006,7 @@ function AddStructPanel( npanel, inspanel, focus, tblk, forced )
 					lookup,
 					hierarchy,
 					npanel.col,
-					"<" .. ( npanel.structTbl.NAME or npanel.valueName ) .. ">" .. ( stbl.CATEGORY and stbl.CATEGORY != t_CAT.DEFAULT and " <" .. stbl.CATEGORY .. ">" or "" )
+					"<" .. CutLeftString(npanel.structTbl.NAME or npanel.valueName, UI_STR_LEFT_LIM) .. ">" .. ( stbl.CATEGORY and stbl.CATEGORY != t_CAT.DEFAULT and " <" .. CutLeftString(stbl.CATEGORY, UI_STR_LEFT_LIM) .. ">" or "" )
 				)
 
 				-- if newpanel and stbl.CATEGORY and inspanel.valuer.container.cats[stbl.CATEGORY] then
@@ -3584,7 +3558,7 @@ function AddTablePanel( npanel, inspanel )
 				npanel.lookup,
 				npanel.hierarchy,
 				npanel.col,
-				"<".. (npanel.structTbl.NAME or npanel.valueName) .. ">",
+				"<".. CutLeftString(npanel.structTbl.NAME or npanel.valueName, UI_STR_LEFT_LIM) .. ">",
 				true, // funcing
 				true // focus
 			)
@@ -3608,7 +3582,7 @@ function AddTablePanel( npanel, inspanel )
 				npanel.lookup,
 				npanel.hierarchy,
 				npanel.col,
-				"<".. (npanel.structTbl.NAME or npanel.valueName) .. ">",
+				"<".. CutLeftString(npanel.structTbl.NAME or npanel.valueName, UI_STR_LEFT_LIM) .. ">",
 				nil, // funcing
 				true // focus
 			)
