@@ -174,6 +174,7 @@ t_CAT = {
 	["DAMAGE"] = "Damage",
 	["MOVEMENT"] = "Movement",
 	["EQUIP"] = "Equipment",
+	["SPAWN"] = "Spawning",
 }
 
 t_DATAVALUE_TYPES = {
@@ -3529,21 +3530,21 @@ t_active_values = {
 	},
 
 	["spawn_req_navmesh"] = {
-		CATEGORY = t_CAT.NPCD,
+		CATEGORY = t_CAT.SPAWN,
 		NAME = "Spawn Requires Map Navmesh",
 		DESC = "Map must have navmeshes for this to be allowed to spawn",
 		TYPE = "boolean",
 	},
 
 	["spawn_req_nodes"] = {
-		CATEGORY = t_CAT.NPCD,
+		CATEGORY = t_CAT.SPAWN,
 		NAME = "Spawn Requires Map Nodes",
 		DESC = "Map must have nodes for this to be allowed to spawn",
 		TYPE = "boolean",
 	},
 
 	["spawn_ceiling"] = {
-		CATEGORY = t_CAT.PHYSICAL,
+		CATEGORY = t_CAT.SPAWN,
 		NAME = "Spawn on Ceiling",
 		DESC = "If true, the entity will spawn from the ceiling, instead of the ground. Auto-Spawner will avoid spawning onto the sky. Any spawn offset will be applied from the ceiling point",
 		TYPE = "boolean",
@@ -3551,7 +3552,7 @@ t_active_values = {
 
 	["spawn_req_water"] = {
       NAME = "Spawn Requires Water",
-		CATEGORY = t_CAT.NPCD,
+		CATEGORY = t_CAT.SPAWN,
       DESC = "Water level required for Auto-Spawner. Note: The entity's water requirement is ignored when spawned in a squad, change the squad's water spawn requirement instead",
 		TYPE = "enum",
 		ENUM = {
@@ -3837,7 +3838,7 @@ t_active_values = {
 	},
 
 	["beacon"] = {
-		CATEGORY = t_CAT.NPCD,
+		CATEGORY = t_CAT.SPAWN,
 		NAME = "Spawn Beacon",
 		TYPE = "boolean",
 		DESC = "Whether this entity will be considered a participant when determining spawnpoints",
@@ -6249,7 +6250,8 @@ t_squad_values = {
 		},
     },
 	["spawnfix"] = {
-		CATEGORY = t_CAT.NPCD,
+		CATEGORY = t_CAT.SPAWN,
+      NAME = "Hold Position During Spawn",
 		DESC = "Force entities spawned to stay affixed to their spawn position until squad is fully spawned.",
 		TYPE = "boolean",
 		-- DEFAULT = false,
@@ -6378,13 +6380,13 @@ t_squad_values = {
 		TYPE = "boolean",
 	},
 	["spawngrid"] = {
-		CATEGORY = t_CAT.PHYSICAL,
+		CATEGORY = t_CAT.SPAWN,
 		NAME = "Spawn In Grid",
 		DESC = "Spawned are placed in a grid. Defaults to true if a nextbot is in the squad",
 		TYPE = "boolean",
 	},
 	["spawngrid_gap"] = {
-		CATEGORY = t_CAT.PHYSICAL,
+		CATEGORY = t_CAT.SPAWN,
 		NAME = "Spawn In Grid: Gap",
 		DESC = "Offset between entities in the grid. Defaults to \"Spawn Grid Default Gap\" ConVar (see: npcd Options > Spawning)",
 		TYPE = "number",
@@ -6392,20 +6394,20 @@ t_squad_values = {
 	["fadein"] = {
 		NAME = "Fade In",
 		DESC = "Enable/disable spawns fading in",
-		CATEGORY = t_CAT.VISUAL,
+		CATEGORY = t_CAT.SPAWN,
 		TYPE = "boolean",
 		DEFAULT = true,
 	},
 	["fadein_nodelay"] = {
 		NAME = "Fade In Immediately",
 		DESC = "Starts each fade-in immediately after being spawned, not waiting until entity has \"settled\"",
-		CATEGORY = t_CAT.VISUAL,
+		CATEGORY = t_CAT.SPAWN,
 		TYPE = "boolean",
 	},
 
 	["spawn_req_water"] = {
 		NAME = "Spawn Requires Water",
-		CATEGORY = t_CAT.NPCD,
+		CATEGORY = t_CAT.SPAWN,
       DESC = "Water level required for Auto-Spawner to spawn entire squad. Note: Individual entities' water spawn requirements are ignored when spawned in a squad",
 		TYPE = "enum",
 		ENUM = {
@@ -6416,14 +6418,14 @@ t_squad_values = {
 		DEFAULT = "Disallow water",
 	},
 	["spawn_req_navmesh"] = {
-		CATEGORY = t_CAT.NPCD,
+		CATEGORY = t_CAT.SPAWN,
 		NAME = "Spawn Requires Map Navmesh",
 		DESC = "Map must have navmeshes for this to be allowed to spawn",
 		TYPE = "boolean",
 	},
 
 	["spawn_req_nodes"] = {
-		CATEGORY = t_CAT.NPCD,
+		CATEGORY = t_CAT.SPAWN,
 		NAME = "Spawn Requires Map Nodes",
 		DESC = "Map must have nodes for this to be allowed to spawn",
 		TYPE = "boolean",
