@@ -460,7 +460,7 @@ function SpawnNPC( rq )
 				end
 			end
 		end
-		if npc_t.weapon then
+		if npc_t.weapon and GetPresetName(npc_t.weapon) then
 			if isfunction( npc.Give ) then
 				wep = npc:Give( GetPresetName(npc_t.weapon) )
 			else
@@ -1536,7 +1536,7 @@ function SpawnSquad( newSquad, pos, announce, fadein, ceil_pos )
       })
 
 		if IsValid( new ) then
-			table.insert( spawned, new )
+			table.insert( spawned, new ) // becomes activeNPC[npc]["squad"]
          spawned_squad_t[new] = v
 			si = si + 1
 
@@ -1564,7 +1564,7 @@ function SpawnSquad( newSquad, pos, announce, fadein, ceil_pos )
 			new:SetCollisionGroup( COLLISION_GROUP_DEBRIS ) // is there a better collisiongroup?
 
 			// end nocollide collisiongroup, waiting until it is not penetrating something
-			timer.Simple( 1, function()
+			timer.Simple( newSquad["values"]["spawncollide_time"] or 1, function()
 				if IsValid( new ) and oldcollides[new] then
 					if activeNPC[new] and newSquad["values"]["spawncollide_fast"] then
 						new:SetCollisionGroup(oldcollides[new])
@@ -1639,7 +1639,8 @@ function SpawnSquad( newSquad, pos, announce, fadein, ceil_pos )
 	local useNBspawn = false
 	local bounds, gc, gw, gh, w, h
    -- local up
-	for i, npc in ipairs(spawned) do
+
+	for npc in pairs(spawned_squad_t) do
 		if !IsValid(npc) then
 			continue
 		end
@@ -1648,17 +1649,17 @@ function SpawnSquad( newSquad, pos, announce, fadein, ceil_pos )
 			
 			local eb = newSquad.values.spawngrid_gap or cvar.spawngrid_default.v:GetFloat()
 
-			bounds = newSquad["bounds"] or activeNPC[npc]["squad_t"] and activeNPC[npc]["squad_t"]["bounds"] or GetGroupOBB( newSquad )
-			if bounds != nil then
+			-- bounds = newSquad["bounds"] or activeNPC[npc]["squad_t"] and activeNPC[npc]["squad_t"]["bounds"] or GetGroupOBB( newSquad )
+			-- if bounds != nil then
 				gc = math.ceil( math.sqrt(#spawned) ) //square grid
             w = eb
             h = eb
             -- up = 0
-            for i, npc in ipairs(spawned) do
-               if spawned_squad_t[npc].bounds.max then
-                  w =  math.max( w, (spawned_squad_t[npc].bounds.max.x - spawned_squad_t[npc].bounds.min.x) + eb )
-                  h =  math.max( h, (spawned_squad_t[npc].bounds.max.y - spawned_squad_t[npc].bounds.min.y) + eb )
-                  -- up = math.max( up, (spawned_squad_t[npc].bounds.max.z - spawned_squad_t[npc].bounds.min.z) )
+            for _, spwn_tbl in pairs(spawned_squad_t) do
+               if spwn_tbl.bounds.max then
+                  w =  math.max( w, (spwn_tbl.bounds.max.x - spwn_tbl.bounds.min.x) + eb )
+                  h =  math.max( h, (spwn_tbl.bounds.max.y - spwn_tbl.bounds.min.y) + eb )
+                  -- up = math.max( up, (spwn_tbl.bounds.max.z - spwn_tbl.bounds.min.z) )
                end
             end
 				gw =  w * gc / 2
@@ -1668,7 +1669,7 @@ function SpawnSquad( newSquad, pos, announce, fadein, ceil_pos )
 					gh = h
 				end
 				useNBspawn = true
-			end
+			-- end
 			break
 		end
 	end
@@ -1697,25 +1698,31 @@ function SpawnSquad( newSquad, pos, announce, fadein, ceil_pos )
 			if debugged then print("npcd > SpawnSquad > Entity no longer valid mid squad spawn: ", npc ) end
 			continue
 		end
+      if !spawned_squad_t[npc] then
+         continue
+      end
 
 		if activeFade[npc] then activeFade[npc].ready = true end // set ready for fade in
 
 		activeNPC[npc]["squad"] = spawned
+      // caution: AddToSquad can and will put into spawned table in the middle of for-loop
+      // this can somehow extends the for-loop if we loop with spawned table
 
 		spawnedcount = spawnedcount + ( activeNPC[npc]["npc_t"]["quota_fakeweight"] or activeNPC[npc]["weight"] )
 
 		// grid spawn
 		if useNBspawn then
-         -- local zoff = spawned_squad_t[npc].bounds.zoff or Vector()
-         local maxoz = Vector(0,0,spawned_squad_t[npc].bounds.maxo and spawned_squad_t[npc].bounds.maxo.z or 0)
-         local maxz = Vector(0,0,spawned_squad_t[npc].bounds.max and spawned_squad_t[npc].bounds.max.z or 0)
+         local spwn_tbl = spawned_squad_t[npc]
+         -- local zoff = spwn_tbl.bounds.zoff or Vector()
+         local maxoz = Vector(0,0,spwn_tbl.bounds.maxo != nil and spwn_tbl.bounds.maxo.z or 0)
+         local maxz = Vector(0,0,spwn_tbl.bounds.max != nil and spwn_tbl.bounds.max.z or 0)
          local vmins = Vector(
-            spawned_squad_t[npc].bounds.min and spawned_squad_t[npc].bounds.min.x,
-            spawned_squad_t[npc].bounds.min and spawned_squad_t[npc].bounds.min.y,
+            spwn_tbl.bounds.min and spwn_tbl.bounds.min.x,
+            spwn_tbl.bounds.min and spwn_tbl.bounds.min.y,
             0)
          local vmaxs = Vector(
-            spawned_squad_t[npc].bounds.max and spawned_squad_t[npc].bounds.max.x,
-            spawned_squad_t[npc].bounds.max and spawned_squad_t[npc].bounds.max.y,
+            spwn_tbl.bounds.max and spwn_tbl.bounds.max.x,
+            spwn_tbl.bounds.max and spwn_tbl.bounds.max.y,
             0)
 			x = -gw + ( w * math.mod( i , gc ) ) + w/2
 			y = -gh + ( h * math.floor( (i-1) / gc ) ) + h/2
@@ -1734,8 +1741,8 @@ function SpawnSquad( newSquad, pos, announce, fadein, ceil_pos )
 				mask = MASK_NPCSOLID,
 			} )
          for _, v in ipairs(spawn_base_offsets) do
-            if CheckSpawnPos( tr.HitPos + (spawned_squad_t[npc].bounds.zoff or Vector()) + v, spawned_squad_t[npc].bounds, nil, newSquad.values.spawn_req_water ) then
-               npc:SetPos( tr.HitPos + (spawned_squad_t[npc].bounds.zoff or Vector()) + v )
+            if CheckSpawnPos( tr.HitPos + (spwn_tbl.bounds.zoff or Vector()) + v, spwn_tbl.bounds, nil, newSquad.values.spawn_req_water ) then
+               npc:SetPos( tr.HitPos + (spwn_tbl.bounds.zoff or Vector()) + v )
                break
             end
          end
