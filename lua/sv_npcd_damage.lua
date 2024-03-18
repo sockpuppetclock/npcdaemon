@@ -1401,6 +1401,7 @@ hook.Add("EntityTakeDamage", "NPCD Damage", function( ent, dmg )
 		end
 
 		// volatile/ignite
+      local ignited
 		if npc_t.volatile and atkr:GetClass() != "entityflame" then
 			if npc_t.volatile.enabled then
 				if npc_t.volatile.threshold_shot and npc_t.volatile.threshold_shot > 0 then
@@ -1410,10 +1411,13 @@ hook.Add("EntityTakeDamage", "NPCD Damage", function( ent, dmg )
 						else
 							ent:Fire("Ignite")
 						end
+                  ignited = true
 					end
 				end
-				if npc_t.volatile.threshold_total and npc_t.volatile.threshold_total > 0 then
-					if ent:GetMaxHealth() - ent:Health() > npc_t.volatile.threshold_total then
+				if !ignited and npc_t.volatile.threshold_total and npc_t.volatile.threshold_total > 0 then
+					-- if ent:GetMaxHealth() - ent:Health() > npc_t.volatile.threshold_total
+               if dmg:GetDamage() > npc_t.volatile.threshold_total
+               or damageTakenTotals[ent] and damageTakenTotals[ent] + dmg:GetDamage() > npc_t.volatile.threshold_total then
 						if npc_t.volatile.duration != nil then
 							ent:Ignite( npc_t.volatile.duration )
 						else
