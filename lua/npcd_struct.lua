@@ -2591,8 +2591,9 @@ t_value_structs["damagefilter"] = {
 	TYPE = "struct_table",
 	STRUCT = {
 		["maxpasses"] = {
-			DESC = "If given, filter can only pass this many times",
-			TYPE = "number",
+         NAME = "Disable After Pass",
+			DESC = "If given, this filter is disabled after this many passes",
+			TYPE = "int",
 		},
 		-- ["count"] = {
 		-- 	TYPE = "data",
@@ -2601,6 +2602,7 @@ t_value_structs["damagefilter"] = {
 		["condition"] = {
 			DESC = "If given, damage info must pass all conditions given for this filter to be applied",
 			TYPE = "struct",
+         SORTNAME = "AC",
 			STRUCT = {
 				["chance"] = table.Copy( t_value_structs["chance"] ),
 				["invert"] = {
@@ -2613,8 +2615,10 @@ t_value_structs["damagefilter"] = {
 					TYPE = "boolean",
 				},
 				["attacker"] = {
-					DESC = "Conditions about the attacker",
+               NAME = "Attacker Conditions",
+					-- DESC = "Conditions about the attacker",
 					TYPE = "struct",
+               SORTNAME = "AA",
 					STRUCT = {
 						["health_greater"] = {
 							DESC = "If number, specific number. If fraction, proportional to max health. Health must be greater than this",
@@ -2624,28 +2628,59 @@ t_value_structs["damagefilter"] = {
 							DESC = "If number, specific number. If fraction, proportional to max health. Health must be less than or equal to this",
 							TYPE = { "fraction", "number" },
 						},
+                  ["cumulative_damage"] = {
+                     DESC = "Count damage taken within a timeframe",
+                     TYPE = "struct",
+                     STRUCT = {
+                        ["damage"] = {
+                           TYPE = "number",
+                           DEFAULT = 0,
+                        },
+                        ["compare_cond"] = {
+                           DESC = "Comparison condition for passing",
+                           TYPE = "enum",
+                           ENUM = {
+                              ["Less"] = -2,
+                              ["Less or equal"] = -1,
+                              ["Equal"] = 0,
+                              ["Greater or equal"] = 1,
+                              ["Greater"] = 2,
+                           },
+                           REQUIRED = true,
+                        },
+                        ["timelimit"] = {
+                           DESC = "If given, damage must be within this timeframe in seconds",
+                           TYPE = "number",
+                        },
+                        ["reset_on_pass"] = {
+                           DESC = "Reset damage count whenever this subcondition passes. Note: This may or may not trigger if another filter passes before it",
+                           TYPE = "boolean",
+                           DEFAULT = true,
+                        },
+                     },
+                  },
 						["grounded"] = {
 							TYPE = "boolean",
-							DESC = "Only works correctly for NPCs and players. True to include, false to exclude",
+							DESC = "Only works correctly for NPCs and players. True to pass when grounded, false to fail when grounded",
 						},
 						["spin_greater"] = {
-							DESC = "Greater than",
+							DESC = "Angular velocity. Greater than",
 							TYPE = "number",
 						},
 						["velocity_greater"] = {
-							DESC = "Greater than",
+							DESC = "Positional velocity. Greater than",
 							TYPE = "number",
 						},
 						["spin_lesser"] = {
-							DESC = "Less than or equal to",
+							DESC = "Angular velocity. Less than or equal to",
 							TYPE = "number",
 						},
 						["velocity_lesser"] = {
-							DESC = "Less than or equal to",
+							DESC = "Positional velocity. Less than or equal to",
 							TYPE = "number",
 						},
 						["presets"] = {
-							DESC = "Include/exclude attacker based on their ncpd preset. Pass if any include match, fail if any exclude match",
+							DESC = "Include/exclude attacker based on their ncpd preset. Pass if any in \"include\" match, fail if any in \"exclude\" match",
 							TYPE = "struct",
 							STRUCT = {
 								["include"] = {
@@ -2675,7 +2710,7 @@ t_value_structs["damagefilter"] = {
 							},
 						},
 						["types"] = {
-							DESC = "Include/exclude attacker types and dispositions. Pass if any include match, fail if any exclude match. Dispositions are what the attacker thinks of the victim, and are only available for entities that have them (mostly NPCs)",
+							DESC = "Include/exclude attacker types and dispositions. Pass if any in \"include\" match, fail if any in \"exclude\" match. Dispositions are what the attacker thinks of the victim, and are only available for entities that have them (mostly NPCs)",
 							TYPE = "struct",
 							STRUCT = {
 								["exclude"] = {
@@ -2724,7 +2759,7 @@ t_value_structs["damagefilter"] = {
 							},
 						},
 						["classnames"] = {
-							DESC = "Include/exclude attacker entity class names. Pass if any include match, fail if any exclude match",
+							DESC = "Include/exclude attacker entity class names. Pass if any in \"include\" match, fail if any in \"exclude\" match",
 							TYPE = "struct",
 							STRUCT = {
 								["include"] = {
@@ -2744,7 +2779,7 @@ t_value_structs["damagefilter"] = {
 							},
 						},
 						["weapon_classes"] = {
-							DESC = "Include/exclude based on attacker's held weapon. Pass if any include match, fail if any exclude match",
+							DESC = "Include/exclude based on attacker's held weapon. Pass if any in \"include\" match, fail if any in \"exclude\" match",
 							TYPE = "struct",
 							STRUCT = {
 								["include"] = {
@@ -2764,7 +2799,7 @@ t_value_structs["damagefilter"] = {
 							},
 						},
 						["weapon_sets"] = {
-							DESC = "Include/exclude based on attacker's held weapon, testing every weapon in the given weapon set. Pass if any include match, fail if any exclude match",
+							DESC = "Include/exclude based on attacker's held weapon, testing every weapon in the given weapon set. Pass if any in \"include\" match, fail if any in \"exclude\" match",
 							TYPE = "struct",
 							STRUCT = {
 								["include"] = {
@@ -2789,8 +2824,10 @@ t_value_structs["damagefilter"] = {
 					},
 				},
 				["victim"] = {
-					DESC = "Conditions about the victim",
+               NAME = "Victim Conditions",
+					-- DESC = "Conditions about the victim",
 					TYPE = "struct",
+               SORTNAME = "AB",
 					STRUCT = {
 						["health_greater"] = {
 							DESC = "If number, specific number. If fraction, proportional to max health. Health must be greater than this",
@@ -2800,24 +2837,55 @@ t_value_structs["damagefilter"] = {
 							DESC = "If number, specific number. If fraction, proportional to max health. Health must be less than or equal to this",
 							TYPE = { "fraction", "number" },
 						},
+                  ["cumulative_damage"] = {
+                     DESC = "Count damage taken within a timeframe",
+                     TYPE = "struct",
+                     STRUCT = {
+                        ["damage"] = {
+                           TYPE = "number",
+                           DEFAULT = 0,
+                        },
+                        ["compare_cond"] = {
+                           DESC = "Comparison condition for passing",
+                           TYPE = "enum",
+                           ENUM = {
+                              ["Less"] = -2,
+                              ["Less or equal"] = -1,
+                              ["Equal"] = 0,
+                              ["Greater or equal"] = 1,
+                              ["Greater"] = 2,
+                           },
+                           REQUIRED = true,
+                        },
+                        ["timelimit"] = {
+                           DESC = "If given, damage must be within this timeframe in seconds",
+                           TYPE = "number",
+                        },
+                        ["reset_on_pass"] = {
+                           DESC = "Reset damage count whenever this subcondition passes. Note: This may or may not trigger if another filter passes before it",
+                           TYPE = "boolean",
+                           DEFAULT = true,
+                        },
+                     },
+                  },
 						["grounded"] = {
 							TYPE = "boolean",
-							DESC = "Only works correctly for NPCs and players. True to include, false to exclude",
+							DESC = "Only works correctly for NPCs and players. True to pass when grounded, false to fail when grounded",
 						},
 						["spin_greater"] = {
-							DESC = "Greater than",
+							DESC = "Angular velocity. Greater than",
 							TYPE = "number",
 						},
 						["velocity_greater"] = {
-							DESC = "Greater than",
+							DESC = "Positional velocity. Greater than",
 							TYPE = "number",
 						},
 						["spin_lesser"] = {
-							DESC = "Less than or equal to",
+							DESC = "Angular velocity. Less than or equal to",
 							TYPE = "number",
 						},
 						["velocity_lesser"] = {
-							DESC = "Less than or equal to",
+							DESC = "Positional velocity. Less than or equal to",
 							TYPE = "number",
 						},
 						["presets"] = {
@@ -2851,7 +2919,7 @@ t_value_structs["damagefilter"] = {
 							},
 						},
 						["types"] = {
-							DESC = "Include/exclude victim types and dispositions. Pass if any include match, fail if any exclude match. Dispositions are what the victim thinks of the attacker, and are only available for entities that have them (mostly NPCs)",
+							DESC = "Include/exclude victim types and dispositions. Pass if any in \"include\" match, fail if any in \"exclude\" match. Dispositions are what the victim thinks of the attacker, and are only available for entities that have them (mostly NPCs)",
 							TYPE = "struct",
 							STRUCT = {
 								["exclude"] = {
@@ -2900,7 +2968,7 @@ t_value_structs["damagefilter"] = {
 							},
 						},
 						["classnames"] = {
-							DESC = "Include/exclude victim entity class names. Pass if any include match, fail if any exclude match",
+							DESC = "Include/exclude victim entity class names. Pass if any in \"include\" match, fail if any in \"exclude\" match",
 							TYPE = "struct",
 							STRUCT = {
 								["include"] = {
@@ -2920,7 +2988,7 @@ t_value_structs["damagefilter"] = {
 							},
 						},
 						["weapon_classes"] = {
-							DESC = "Include/exclude based on victim's held weapon. Pass if any include match, fail if any exclude match",
+							DESC = "Include/exclude based on victim's held weapon. Pass if any in \"include\" match, fail if any in \"exclude\" match",
 							TYPE = "struct",
 							STRUCT = {
 								["include"] = {
@@ -2946,8 +3014,10 @@ t_value_structs["damagefilter"] = {
 					},
 				},
 				["damage"] = {
-					DESC = "Conditions about the damage",
+               NAME = "Damage Conditions",
+					DESC = "Conditions about the damage properties",
 					TYPE = "struct",
+               SORTNAME = "AC",
 					STRUCT = {
 						["explosion"] = {
 							DESC = "Tests if explosion damage. True to include, false to exclude",
@@ -3005,11 +3075,12 @@ t_value_structs["damagefilter"] = {
 			NAME = "Actions: Attacker",
 			DESC = "Effects to be done towards the attacker",
 			TYPE = "struct",
+         SORTNAME = "AA",
 			STRUCT = {
 				["drop_set"] = t_value_structs["drop_set"],
 				["damage_drop_set"] = t_value_structs["damage_drop_set_damagefilter"],
 				["explode"] = {
-					DESC = "Note: Without filter conditions this explosion may retrigger itself. For conditions, non-weaponry explosions are considered an \"environment\" type",
+					DESC = "Caution: Without filter conditions this explosion may retrigger itself. For conditions, non-weaponry explosions are considered an \"environment\" type",
 					TYPE = "struct",
 					STRUCT = t_value_structs["explode"].STRUCT,
 				},
@@ -3093,12 +3164,13 @@ t_value_structs["damagefilter"] = {
 			NAME = "Actions: Victim",
 			DESC = "Effects to be done towards the victim",
 			TYPE = "struct",
+         SORTNAME = "AB",
 			STRUCT = {
 				["drop_set"] = t_value_structs["drop_set"],
 				["damage_drop_set"] = t_value_structs["damage_drop_set_damagefilter"],
 				["effects"] = t_value_structs["effects"],
 				["explode"] = {
-					DESC = "Note: Without filter conditions this explosion may retrigger itself. For conditions, explosion entities are considered an \"environment\" type",
+					DESC = "Caution: Without filter conditions this explosion may retrigger itself. For conditions, explosion entities are considered an \"environment\" type",
 					TYPE = "struct",
 					STRUCT = t_value_structs["explode"].STRUCT,
 				},
@@ -3171,7 +3243,7 @@ t_value_structs["damagefilter"] = {
 			},
 		},
 		["continue"] = {
-			NAME = "Continue Filtering On Pass",
+			NAME = "Continue Testing After This Passes",
 			DESC = "Continue going down the list even if this filter passes",
 			TYPE = "boolean",
 			DEFAULT = false,
@@ -3330,6 +3402,7 @@ t_active_values = {
 			["attacker"] = t_value_structs["damagefilter"].STRUCT["attacker"],
 			["victim"] = t_value_structs["damagefilter"].STRUCT["victim"],
 			["continue"] = t_value_structs["damagefilter"].STRUCT["continue"],
+			["maxpasses"] = t_value_structs["damagefilter"].STRUCT["maxpasses"],
 		},
 	},
 
@@ -3343,6 +3416,7 @@ t_active_values = {
 			["attacker"] = t_value_structs["damagefilter"].STRUCT["attacker"],
 			["victim"] = t_value_structs["damagefilter"].STRUCT["victim"],
 			["continue"] = t_value_structs["damagefilter"].STRUCT["continue"],
+			["maxpasses"] = t_value_structs["damagefilter"].STRUCT["maxpasses"],
 		},
 	},
 
@@ -3465,6 +3539,13 @@ t_active_values = {
 		CATEGORY = t_CAT.NPCD,
 		NAME = "Require Map Nodes",
 		DESC = "Map must have nodes for this to be allowed to spawn",
+		TYPE = "boolean",
+	},
+
+	["spawn_ceiling"] = {
+		CATEGORY = t_CAT.PHYSICAL,
+		NAME = "Spawn on Ceiling",
+		DESC = "If true, will spawn from the ceiling, instead of the ground",
 		TYPE = "boolean",
 	},
 
@@ -3985,7 +4066,7 @@ t_basic_values = {
          },
          ["delay"] = {
             DESC = "In seconds",
-            TYPE = { "number", "int" },
+            TYPE = "number",
          },
 		},
 	},
@@ -6013,7 +6094,7 @@ t_npc_class_values = {
             },
             ["delay"] = {
                DESC = "In seconds",
-               TYPE = { "number", "int" },
+               TYPE = "number",
             },
 		   },
 	   },

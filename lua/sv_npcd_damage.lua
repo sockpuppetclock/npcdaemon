@@ -380,6 +380,14 @@ dmgf_cond_chks_gl = { // greater/lesser
 
 // *sniff* i've learned so much. update: nevermind
 
+compare_funcs = {
+   [-2] = function(a,b) return a < b  end,
+   [-1] = function(a,b) return a <= b end,
+   [-0] = function(a,b) return a == b end,
+   [1]  = function(a,b) return a >= b end,
+   [2]  = function(a,b) return a > b  end,
+}
+
 // true if valid
 dmgf_cond_chks = {
 	["attacker"] = {
@@ -391,6 +399,31 @@ dmgf_cond_chks = {
 		["health_lesser"] = function( val, atkr, victim, dmg ) return dmgf_cond_chks_gl["health_lesser"]( val, atkr ) end,
 		["onfire"] = function( val, atkr, victim, dmg ) return atkr:IsOnFire() == val end,
 		["grounded"] = function( val, atkr, victim, dmg ) return atkr:IsOnGround() == val end,
+      ["cumulative_damage"] = function( val, atkr, victim, dmg )
+         if val.compare_cond == nil then return false end
+         
+         local taken = 0
+         if val.timelimit then
+            local backtime = CurTime() - val.timelimit
+            if atkr.npcd_damage_table then
+               for t, d in pairs(atkr.npcd_damage_table) do
+                  if t >= backtime then
+                     taken = taken + d
+                  end
+               end
+            end
+         else
+            taken = atkr.npcd_damage_taken or 0
+         end
+
+         local pass = compare_funcs[val.compare_cond] and compare_funcs[val.compare_cond](
+            taken, val.damage
+         )
+         if pass and val.reset_on_pass then
+            atkr.npcd_damage_taken = 0
+         end
+         return pass
+      end,
 		["presets"] = function( val, atkr, victim, dmg )
 			return dmgf_cond_struct_chk["valuechk"]( 
 				t_value_structs["damagefilter"].STRUCT["condition"].STRUCT["attacker"].STRUCT["presets"].STRUCT,
@@ -443,6 +476,31 @@ dmgf_cond_chks = {
 		["health_lesser"] = function( val, atkr, victim, dmg ) return dmgf_cond_chks_gl["health_lesser"]( val, victim ) end,
 		["onfire"] = function( val, atkr, victim, dmg ) return victim:IsOnFire() == val end,
 		["grounded"] = function( val, atkr, victim, dmg ) return victim:IsOnGround() == val end,
+      ["cumulative_damage"] = function( val, atkr, victim, dmg )
+         if val.compare_cond == nil then return false end
+         
+         local taken = 0
+         if val.timelimit then
+            local backtime = CurTime() - val.timelimit
+            if victim.npcd_damage_table then
+               for t, d in pairs(victim.npcd_damage_table) do
+                  if t >= backtime then
+                     taken = taken + d
+                  end
+               end
+            end
+         else
+            taken = victim.npcd_damage_taken or 0
+         end
+
+         local pass = compare_funcs[val.compare_cond] and compare_funcs[val.compare_cond](
+            taken, val.damage
+         )
+         if pass and val.reset_on_pass then
+            victim.npcd_damage_taken = 0
+         end
+         return pass
+      end,
 		["presets"] = function( val, atkr, victim, dmg )
 			return dmgf_cond_struct_chk["valuechk"](
 				t_value_structs["damagefilter"].STRUCT["condition"].STRUCT["victim"].STRUCT["presets"].STRUCT,
@@ -692,14 +750,14 @@ function DamageFilter( dmg, afilter, atkr, victim, apply, took )
 	end
 
 	local filter = table.Copy( afilter )
-	filter.condition = afilter.condition
+	filter.condition = afilter.condition // condition should stay consistent
 
 	local lup_t = t_value_structs["damagefilter"]
 	ApplyValueTable( filter, lup_t.STRUCT )
 
 	local valid = true
 
-	if filter["maxpasses"] and ( filter["count"] and filter["count"] > filter["maxpasses"] or filter["maxpasses"] <= 0 ) then
+	if filter["maxpasses"] and ( filter["count"] and filter["count"] >= filter["maxpasses"] or filter["maxpasses"] <= 0 ) then
 		-- if debugged then print( "npcd > DamageFilter > filter between ", atkr, "and", victim," past maxpasses limit")
 		return false
 	end
@@ -1508,6 +1566,15 @@ hook.Add("PostEntityTakeDamage", "NPCD Post-Damage", function( ent, dmgInfo, too
 	-- local dmg = dmg
 	local dmg = CopyDamageInfo(dmgInfo)
 	local took = took
+
+   if took then
+      ent.npcd_damage_taken = (ent.npcd_damage_taken or 0) + dmg:GetDamage()
+
+      // yippee
+      ent.npcd_damage_table = ent.npcd_damage_table or {}
+      local time = math.Round(CurTime(),1)
+      ent.npcd_damage_table[time] = (ent.npcd_damage_table[time] or 0) + dmg:GetDamage()
+   end
 
 	timer.Simple( engine.TickInterval(), function()
 		if IsValid( atkr ) and ( activeNPC[atkr] or activePly[atkr] ) then
