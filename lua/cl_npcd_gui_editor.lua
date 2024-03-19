@@ -608,6 +608,11 @@ local adder_icon = {
 	[t_CAT.SPAWN] = "icon16/wand.png",
 }
 
+local UI_STR = {
+   classstruct_get = "Show Class-Specific Values",
+   classstruct_in = "Class Values Included",
+}
+
 function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
 	local cpane = vgui.Create( "Panel", panel )
 	cpane:Dock( TOP )
@@ -4475,12 +4480,14 @@ function AddPresetPanel( npanel, inspanel )
 	inspanel.valuer.ClearClassStruct = function()
 		if inspanel.valuer.b_classstruct then
 
-			inspanel.valuer.b_classstruct:SetText( "Get Entity Class Struct" )
+			inspanel.valuer.b_classstruct:SetText( UI_STR.classstruct_get )
 			if istable( npanel.pendingTbl[npanel.valueName] ) and npanel.pendingTbl[npanel.valueName]["name"]
 			and t_lookup["class"][npanel.lookup] and t_lookup["class"][npanel.lookup][npanel.pendingTbl[npanel.valueName]["name"]] then
 				inspanel.valuer.b_classstruct:SetEnabled( true )
+            inspanel.valuer.b_classstruct:SetVisible( true )
 			else
 				inspanel.valuer.b_classstruct:SetEnabled( false )
+				inspanel.valuer.b_classstruct:SetVisible( false )
 			end
 
 			if inspanel.valuer.classstructed then
@@ -4510,18 +4517,19 @@ function AddPresetPanel( npanel, inspanel )
 
 	// classname struct stuff
 	if npanel.structTbl.CANCLASS == true then
-		local btxt = "Get Entity Class Struct"
 		inspanel.valuer.classstructed = nil
 		inspanel.valuer.b_classstruct = vgui.Create( "DButton", inspanel.valuer )
-		inspanel.valuer.b_classstruct:SetText( btxt )
+		inspanel.valuer.b_classstruct:SetText( UI_STR.classstruct_get )
 		inspanel.valuer.b_classstruct:SetTooltip( "Checks if npcd has class-specific properties for this entity class in this specific entity type. This doesn't check if the classname is valid or not." )
 		inspanel.valuer.b_classstruct:Dock( TOP )
 
 		if istable( npanel.pendingTbl[npanel.valueName] ) and npanel.pendingTbl[npanel.valueName]["name"]
 		and t_lookup["class"][npanel.lookup] and t_lookup["class"][npanel.lookup][npanel.pendingTbl[npanel.valueName]["name"]] then
 			inspanel.valuer.b_classstruct:SetEnabled( true )
+			inspanel.valuer.b_classstruct:SetVisible( true )
 		else
 			inspanel.valuer.b_classstruct:SetEnabled( false )
+			inspanel.valuer.b_classstruct:SetVisible( false )
 		end
 
 		inspanel.valuer.b_classstruct.OnReleased = function()
@@ -4604,7 +4612,7 @@ function AddPresetPanel( npanel, inspanel )
 				end
 
 				if inspanel.valuer.classstructed then
-					inspanel.valuer.b_classstruct:SetText( "Class Struct Included" )
+					inspanel.valuer.b_classstruct:SetText( UI_STR.classstruct_in )
 					inspanel.valuer.b_classstruct:SetEnabled( false )
 				end
 			end
@@ -5266,7 +5274,7 @@ function AddStringPanel( npanel, inspanel, focus )
 	inspanel.valuer.ClearClassStruct = function()
 		if inspanel.valuer.b_classstruct then
 		
-			inspanel.valuer.b_classstruct:SetText( "Get Entity Class Struct" )
+			inspanel.valuer.b_classstruct:SetText( UI_STR.classstruct_get )
 			if t_lookup["class"][npanel.lookup] and t_lookup["class"][npanel.lookup][npanel.pendingTbl[npanel.valueName]] then
 				inspanel.valuer.b_classstruct:SetEnabled( true )
 			else
@@ -5331,10 +5339,9 @@ function AddStringPanel( npanel, inspanel, focus )
 	if npanel.structTbl.CANCLASS == true then
 		inspanel.valuer.textbox:Dock( TOP )
 		inspanel.valuer.textbox:SetZPos( 1 )
-		local btxt = "Get Entity Class Struct"
 		inspanel.valuer.classstructed = nil
 		inspanel.valuer.b_classstruct = vgui.Create( "DButton", inspanel.valuer )
-		inspanel.valuer.b_classstruct:SetText( btxt )
+		inspanel.valuer.b_classstruct:SetText( UI_STR.classstruct_get )
 		inspanel.valuer.b_classstruct:SetTooltip( "Checks if npcd has class-specific properties for this entity class in this specific entity type. This doesn't check if the classname is valid or not." )
 		inspanel.valuer.b_classstruct:Dock( TOP )
 		inspanel.valuer.b_classstruct:SetZPos( 2 )
@@ -5342,8 +5349,10 @@ function AddStringPanel( npanel, inspanel, focus )
 
 		if npanel.pendingTbl[npanel.valueName] and t_lookup["class"][npanel.lookup] and t_lookup["class"][npanel.lookup][npanel.pendingTbl[npanel.valueName]] then
 			inspanel.valuer.b_classstruct:SetEnabled( true )
+			inspanel.valuer.b_classstruct:SetVisible( true )
 		else
 			inspanel.valuer.b_classstruct:SetEnabled( false )
+			inspanel.valuer.b_classstruct:SetVisible( false )
 		end
 
 		local oldthink = inspanel.valuer.textbox.OnChange
@@ -5351,8 +5360,10 @@ function AddStringPanel( npanel, inspanel, focus )
 			oldthink( ... )
 			if npanel.pendingTbl[npanel.valueName] and t_lookup["class"][npanel.lookup] and t_lookup["class"][npanel.lookup][npanel.pendingTbl[npanel.valueName]] then
 				inspanel.valuer.b_classstruct:SetEnabled( true )
+				inspanel.valuer.b_classstruct:SetVisible( true )
 			else
 				inspanel.valuer.b_classstruct:SetEnabled( false )
+				inspanel.valuer.b_classstruct:SetVisible( false )
 			end
 		end
 
@@ -5459,7 +5470,7 @@ function AddStringPanel( npanel, inspanel, focus )
 				-- end
 
 				if inspanel.valuer.classstructed then
-					inspanel.valuer.b_classstruct:SetText( "Class Struct Included" )
+					inspanel.valuer.b_classstruct:SetText( UI_STR.classstruct_in )
 					inspanel.valuer.b_classstruct:SetEnabled( false )
 				end
 			end
