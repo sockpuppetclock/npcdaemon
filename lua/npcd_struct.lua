@@ -5100,7 +5100,7 @@ t_npc_base_values = {
 	["aware_range"] = {
 		CATEGORY = t_CAT.COMBAT,
 		NAME = "Look Distance",
-		DESC = "The maximum distance the NPC can see. The same value affected by \"Long Visiblity/Shoot\"",
+		DESC = "The maximum distance the NPC can see. The same value affected by \"Long Visibility/Shoot\"",
 		FUNCTION = { "Fire", "SetMaxLookDistance", "__VALUE" },
 		TYPE = "number",
 	},
@@ -5150,8 +5150,8 @@ t_npc_base_values = {
 
 	["long_range"] = {
 		CATEGORY = t_CAT.COMBAT,
-		NAME = "Long Visiblity/Shoot",
-		DESC = "Overrides \"Long Visiblity/Shoot\" spawnflag",
+		NAME = "Long Visibility/Shoot",
+		DESC = "Overrides \"Long Visibility/Shoot\" spawnflag",
 		TYPE = "boolean",
 		-- FUNCTION = {}, --[[ SpawnNPC() ]]
 	},
@@ -5375,17 +5375,17 @@ t_npc_base_values = {
 		TBLSTRUCT = {
 			TYPE = { "enum", "int" },
 			ENUM = {
+            ["Wait Till Seen"] = 1,
+            ["Gag (No IDLE sounds until angry)"] = 2,
+            ["Fall to ground (unchecked means *teleport* to ground)"] = 4,
+            ["Drop Healthkit"] = 8,
+            ["Efficient - Don't acquire enemies or avoid obstacles"] = 16,
+            ["Long Visibility/Shoot"] = 256,
+            ["Fade Corpse"] = 512,
+            ["Think outside PVS"] = 1024,
 				["Do Alternate collision for this NPC (player avoidance)"] = 4096,
-				["Think outside PVS"] = 1024,
-				["Drop Healthkit"] = 8,
-				["Fade Corpse"] = 512,
-				["Fall to ground (unchecked means *teleport* to ground)"] = 4,
-				["Gag (No IDLE sounds until angry)"] = 2,
-				["Long Visibility/Shoot"] = 256,
-				["Ignore player push"] = 16384,
 				["Don't drop weapons"] = 8192,
-				["Efficient - Don't acquire enemies or avoid obstacles"] = 16,
-				["Wait Till Seen"] = 1,
+				["Ignore player push"] = 16384,
 			},
 		},
 	},
@@ -5819,6 +5819,45 @@ t_nextbot_base_values = {}
 t_nextbot_class_values = {}
 
 t_npc_class_values = {
+   ["npc_turret_ceiling"] = {
+      ["spawnflags"] = {
+			DESC = spawnflags_desc,
+			FUNCTION = { "AddSpawnFlag", "__VALUE" },
+			TYPE = { "table", "int" },
+			TBLSTRUCT = {
+				TYPE = { "enum", "int" },
+				ENUM = {
+               ["Autostart"] = 32,
+               ["Start Inactive"] = 64,
+               ["Fast Retire"] = 128,
+               ["Out of Ammo"] = 256,
+				},
+			},
+		},
+      ["turret_ceiling_autostart"] = {
+         NAME = "Turret Autostart",
+         DESC = "Activates turret on spawn. Sets \"Autostart\" spawnflag",
+			FUNCTION = { "AddSpawnFlag", 32 },
+			TYPE = "boolean",
+         DEFAULT = true,
+         FUNCTION_REQ = true,
+      },
+   },
+   ["npc_combine_camera"] = {
+      ["spawnflags"] = {
+			DESC = spawnflags_desc,
+			FUNCTION = { "AddSpawnFlag", "__VALUE" },
+			TYPE = { "table", "int" },
+			TBLSTRUCT = {
+				TYPE = { "enum", "int" },
+				ENUM = {
+               ["Always Become Angry On New Enemy"] = 32,
+               ["Ignore Enemies (Scripted Targets Only)"] = 64,
+               ["Start Inactive"] = 128,
+				},
+			},
+		},
+   },
 	["npc_combine_s"] = {
 		["tacticalvariant"] = { 
 			FUNCTION = { "SetKeyValue", "tacticalvariant", "__VALUETOSTRING" },
@@ -6057,6 +6096,16 @@ t_npc_class_values = {
 				},
 			},
 		},
+      ["fix_prespawn"] = { //PreEntitySpawn()
+         NAME = "Entity-Specific Fixes",
+         TYPE = "boolean",
+         DESC = "npc_barnacle: Adjust position down by 2 units (same fix used in Gmod spawnmenu)",
+         DEFAULT = true,
+         FUNCTION = { function( self )
+            self:SetPos( self:GetPos() + Vector( 0, 0, -2 ) )
+         end, "__SELF" },
+         FUNCTION_REQ = -1, // Don't actually call the function when resolving value list
+      },
 	},
 	["npc_cscanner"] = {
 		["spawnflags"] = {

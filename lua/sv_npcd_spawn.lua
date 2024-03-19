@@ -436,10 +436,11 @@ function SpawnNPC( rq )
       local bounds = GetOBB(npc_t, nil)
       npc:SetPos( npc:GetPos() + bounds[1].zoff )
    end
-	local startpos = npc:GetPos()
 
 	// prespawn misc
 	PreEntitySpawn( npc, npc_t )
+   
+	local startpos = npc:GetPos()
 
 	// squadname
 	if squad_t["squadID"] then
@@ -712,8 +713,6 @@ end
 function PreEntitySpawn( ent, ent_t )
 	if !IsValid( ent ) or !ent_t then return end
 
-	-- local class = GetPresetName( ent_t.classname )
-
 	-- // moved to struct.lua
 	-- if ent_t.engineflags then
 	-- 	for k in pairs( ent_t.engineflags ) do
@@ -727,6 +726,14 @@ function PreEntitySpawn( ent, ent_t )
 	-- 		ent:AddFlags( ent_t.entityflags[k] )
 	-- 	end
 	-- end
+
+   if ent_t.fix_prespawn then
+      local class = GetPresetName( ent_t.classname )
+      local l_up = GetLookup( "fix_prespawn", ent_t.entity_type, nil, class )
+      if class and l_up.FUNCTION and isfunction(l_up.FUNCTION[1]) then
+         l_up.FUNCTION[1](ent)
+      end
+   end
 
 	if ent:IsNPC() then
 		if !ent:HasSpawnFlags( SF_NPC_FALL_TO_GROUND ) then ent:AddSpawnFlag( SF_NPC_FALL_TO_GROUND ) end //bugfix
@@ -1715,7 +1722,7 @@ function SpawnSquad( newSquad, pos, announce, fadein, ceil_pos )
          local spwn_tbl = spawned_squad_t[npc]
          -- local zoff = spwn_tbl.bounds.zoff or Vector()
          local maxoz = Vector(0,0,spwn_tbl.bounds.maxo != nil and spwn_tbl.bounds.maxo.z or 0)
-         local maxz = Vector(0,0,spwn_tbl.bounds.max != nil and spwn_tbl.bounds.max.z or 0)
+         local maxz = spwn_tbl.bounds.maxz or zero_vector
          local vmins = Vector(
             spwn_tbl.bounds.min and spwn_tbl.bounds.min.x,
             spwn_tbl.bounds.min and spwn_tbl.bounds.min.y,
@@ -2454,14 +2461,30 @@ function TargetSpawnPreset( targ, typ, argstr, caller )
 			elseif typ == "drop_set" then
 				AddDropQueue( targ, targ:GetPos() + ( targ:OBBCenter() * 0.33 ), targ:GetAngles(), Settings[typ][argstr], activeNPC[targ] or activePly[targ] or nil )
 			elseif typ == "npc" or typ == "entity" or typ == "nextbot" then
+            local npc_t = table.Copy(Settings[typ][argstr])
+            
             local tr = targ:GetEyeTrace()
-            local SpawnPos = tr.HitPos + tr.HitNormal * 15
+            local SpawnPos = tr.HitPos // + tr.HitNormal * 15
+            
+            local bounds = GetOBB(npc_t, argstr)
+            if !bounds then return nil end
+            
+            if tr.HitNormal and Vector( 0, 0, -1 ):Dot( tr.HitNormal ) < 0.95 then // not ceiling
+               SpawnPos = SpawnPos + tr.HitNormal * bounds[1].max.x
+            else // ceiling
+               local height = bounds[1].max - bounds[1].min
+               height.x = 0
+               height.y = 0
+               SpawnPos = SpawnPos - height
+            end
+
 				local npc = SpawnNPC({
 					presetName =   argstr,
-               anpc_t =       Settings[typ][argstr],
+               anpc_t =       npc_t,
                pos =          SpawnPos,
                doFadeIns =    false, //fadeIns
                targetspawn =  true,
+               nocopy =       true,
 				})
 				if IsValid( npc ) then
 					if IsValid( caller ) then
