@@ -120,6 +120,9 @@ PendingSettings = PendingSettings or {}
 PendingRemove = PendingRemove or {}
 PendingAdd = PendingAdd or {}
 
+MatCache = {}
+MatCacheNames = {}
+
 local npcd_nodes = {}
 
 local sqpools = {}
@@ -1974,6 +1977,10 @@ spawnmenu.AddContentType( "npcd_preset", function( container, obj_t )
 	else
 		icon:SetMaterial( obj_t.material )
 	end
+   if obj_t.material then
+      MatCache[obj_t.material] = icon.Image:GetMaterial()
+   end
+
 	icon:SetColor( Color( 205, 92, 92, 255 ) )
 	if obj_t.desc then icon:SetToolTip( obj_t.name .. "\n" .. tostring( obj_t.desc ) ) end
 
@@ -2125,11 +2132,14 @@ hook.Add( "PopulateNPCD", "NPCD Spawnmenu Content", function( pnlContent, tree, 
 
 							local cname = f_cnameget[setn] and f_cnameget[setn]( prstbl ) or GetPresetName( prstbl.classname ) or nil
 							local mat = isstring( prstbl.icon ) and prstbl.icon or cname and file.Exists( "materials/entities/" .. cname .. ".png", "GAME" ) and "entities/" .. cname .. ".png" or UI_ICONS_SETS[self.set]
+                     MatCacheNames[cl_currentProfile] = MatCacheNames[cl_currentProfile] or {}
+                     MatCacheNames[cl_currentProfile][self.set] = MatCacheNames[cl_currentProfile][self.set] or {}
+                     MatCacheNames[cl_currentProfile][self.set][name] = mat
 							-- local icon = isstring( prstbl.icon ) and prstbl.icon
 
 							if spawnmenu.CreateContentIcon( "npcd_preset", self.PropPanel, {
 								name		= name,
-								set			= setn,
+								set      = setn,
 								material	= mat,
 								desc		= prstbl.description,
 								-- icon		= icon

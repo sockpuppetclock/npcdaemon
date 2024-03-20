@@ -105,8 +105,8 @@ function SetEntValues( ent, ent_t, valueName, valueTbl, forced, nodefault, hist 
 	// replace function with value. functions are received as strings like __RANDOM, __RAND, __TBLRANDOM, etc and replaced with actual function addr
 	if istable( ent_t[valueName] ) and t_FUNCS[ ent_t[valueName][1] ] then
 		if valueTbl.NOFUNC then
-			ErrorNoHalt( "\nnpcd > SetEntValues > Function given for a NOFUNC value. ent: ",  tostring(ent), "; ent_type: ", ent_t and tostring(ent_t.entity_type), "; valueName: ",
-					tostring(valueName), "; valueTbl: ", tostring(valueTbl) , "\n" )
+			ErrorNoHalt( "\nnpcd > SetEntValues > Function given for a NOFUNC value. ent: ",  tostring(ent), "\n\tent_type: ", ent_t and tostring(ent_t.entity_type), "\n\tvalueName: ",
+					tostring(valueName), "\n\tvalueTbl: ", tostring(valueTbl) , "\n" )
 			PrintTable( ent_t[valueName] )
 			return
 		end
@@ -139,8 +139,8 @@ function SetEntValues( ent, ent_t, valueName, valueTbl, forced, nodefault, hist 
 			// replace function
 			if istable(given) and t_FUNCS[ given[1] ] then
 				if valueTbl.NOFUNC then
-					ErrorNoHalt( "\nnpcd > SetEntValues > Function given for a NOFUNC value. ent: ",  tostring(ent), "; ent_type: ", ent_t and tostring(ent_t.entity_type), "; valueName: ",
-							tostring(valueName), "; valueTbl: ", tostring(valueTbl) , "\n" )
+					ErrorNoHalt( "\nnpcd > SetEntValues > Function given for a NOFUNC value. ent: ",  tostring(ent), "\n\tent_type: ", ent_t and tostring(ent_t.entity_type), "\n\tvalueName: ",
+							tostring(valueName), "\n\tvalueTbl: ", tostring(valueTbl) , "\n" )
 					PrintTable( ent_t[valueName] )
 					return
 				end
@@ -173,10 +173,10 @@ function SetEntValues( ent, ent_t, valueName, valueTbl, forced, nodefault, hist 
 			if given != nil then
 				local chktyp = GetType( given, valueTbl.TBLSTRUCT )
 				if !chktyp then
-					ErrorNoHalt( "\nnpcd > SetEntValues > given data with wrong type. ent: ",  tostring(ent), "; ent_type: ", ent_t and tostring(ent_t.entity_type), "; valueName: ",
-						tostring(valueName), "; valueTbl: ", tostring(valueTbl),
-						"; allowed types: ", tostring( istable( valueTbl.TYPE ) and table.concat(valueTbl.TYPE, ", ") or valueTbl.TYPE ),
-						"; given type: ", type( given ) , "; given: ", tostring( given ), "; chktyp: ", tostring( chktyp ),"\n\n" )
+					ErrorNoHalt( "\nnpcd > SetEntValues > Given data with wrong type!\n\tent: ",  tostring(ent), "\n\tent_type: ", ent_t and tostring(ent_t.entity_type), "\n\tvalueName: ",
+						tostring(valueName), "\n\tvalueTbl: ", tostring(valueTbl),
+						"\n\tallowed types: ", tostring( istable( valueTbl.TYPE ) and table.concat(valueTbl.TYPE, ", ") or valueTbl.TYPE ),
+						"\n\tgiven type: ", type( given ) , "\n\tgiven: ", tostring( given ), "\n\tchktyp: ", tostring( chktyp ),"\n\n" )
 					-- debug.Trace()
 					valid = false
 					given = nil
@@ -208,8 +208,8 @@ function SetEntValues( ent, ent_t, valueName, valueTbl, forced, nodefault, hist 
 		// example use case: a table.random of material enums that are all table.randoms. just make sure none of those enums have enums inside them
 		if istable( given ) and t_FUNCS[ given[1] ] then
 			if valueTbl.NOFUNC then
-				ErrorNoHalt( "\nnpcd > SetEntValues > Function given for a NOFUNC value. ent: ",  tostring(ent), "; ent_type: ", ent_t and tostring(ent_t.entity_type), "; valueName: ",
-						tostring(valueName), "; valueTbl: ", tostring(valueTbl) , "\n" )
+				ErrorNoHalt( "\nnpcd > SetEntValues > Function given for a NOFUNC value. ent: ",  tostring(ent), "\n\tent_type: ", ent_t and tostring(ent_t.entity_type), "\n\tvalueName: ",
+						tostring(valueName), "\n\tvalueTbl: ", tostring(valueTbl) , "\n" )
 				PrintTable( ent_t[valueName] )
 				return
 			end
@@ -253,10 +253,10 @@ function SetEntValues( ent, ent_t, valueName, valueTbl, forced, nodefault, hist 
 		if given != nil then
 			local chktyp = GetType( given, valueTbl )
 			if !chktyp then
-				ErrorNoHalt( "\nnpcd > SetEntValues > given data with wrong type. ent: ",  tostring(ent), "; ent_type: ", ent_t and tostring(ent_t.entity_type), "; valueName: ",
-					tostring(valueName), "; valueTbl: ", tostring(valueTbl),
-					"; allowed types: ", tostring( istable( valueTbl.TYPE ) and table.concat(valueTbl.TYPE, ", ") or valueTbl.TYPE ),
-					"; given type: ", type( given ) , "; given: ", tostring( given ), "; chktyp: ", tostring( chktyp ),"\n\n" )
+				ErrorNoHalt( "\nnpcd > SetEntValues > Given data with wrong type!\n\tent: ",  tostring(ent), "\n\tent_type: ", ent_t and tostring(ent_t.entity_type), "\n\tvalueName: ",
+					tostring(valueName), "\n\tvalueTbl: ", tostring(valueTbl),
+					"\n\tallowed types: ", tostring( istable( valueTbl.TYPE ) and table.concat(valueTbl.TYPE, ", ") or valueTbl.TYPE ),
+					"\n\tgiven type: ", type( given ) , "\n\tgiven: ", tostring( given ), "\n\tchktyp: ", tostring( chktyp ),"\n\n" )
 				-- debug.Trace()
 				-- PrintTable( ent_t )
 				valid = false
@@ -284,8 +284,8 @@ function SetEntValues( ent, ent_t, valueName, valueTbl, forced, nodefault, hist 
 
 		if istable( given ) and t_FUNCS[ given[1] ] then
 			if valueTbl.NOFUNC then
-				ErrorNoHalt( "\nnpcd > SetEntValues > Function given for a NOFUNC value. ent: ",  tostring(ent), "; ent_type: ", ent_t and tostring(ent_t.entity_type), "; valueName: ",
-						tostring(valueName), "; valueTbl: ", tostring(valueTbl) , "\n" )
+				ErrorNoHalt( "\nnpcd > SetEntValues > Function given for a NOFUNC value. ent: ",  tostring(ent), "\n\tent_type: ", ent_t and tostring(ent_t.entity_type), "\n\tvalueName: ",
+						tostring(valueName), "\n\tvalueTbl: ", tostring(valueTbl) , "\n" )
 				PrintTable( ent_t[valueName] )
 				return
 			end
@@ -296,10 +296,10 @@ function SetEntValues( ent, ent_t, valueName, valueTbl, forced, nodefault, hist 
 		if given != nil then
 			local chktyp = GetType( given, valueTbl )
 			if !chktyp then
-				ErrorNoHalt( "\nnpcd > SetEntValues > given data with wrong type. ent: ",  tostring(ent), "; ent_type: ", ent_t and tostring(ent_t.entity_type), "; valueName: ",
-					tostring(valueName), "; valueTbl: ", tostring(valueTbl),
-					"; allowed types: ", tostring( istable( valueTbl.TYPE ) and table.concat(valueTbl.TYPE, ", ") or valueTbl.TYPE ),
-					"; given type: ", type( given ) , "; given: ", tostring( given ), "; chktyp: ", tostring( chktyp ),"\n\n" )
+				ErrorNoHalt( "\nnpcd > SetEntValues > Given data with wrong type!\n\tent: ",  tostring(ent), "\n\tent_type: ", ent_t and tostring(ent_t.entity_type), "\n\tvalueName: ",
+					tostring(valueName), "\n\tvalueTbl: ", tostring(valueTbl),
+					"\n\tallowed types: ", tostring( istable( valueTbl.TYPE ) and table.concat(valueTbl.TYPE, ", ") or valueTbl.TYPE ),
+					"\n\tgiven type: ", type( given ) , "\n\tgiven: ", tostring( given ), "\n\tchktyp: ", tostring( chktyp ),"\n\n" )
 				-- debug.Trace()
 				valid = false
 				given = nil
