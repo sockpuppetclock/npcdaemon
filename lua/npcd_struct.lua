@@ -2660,6 +2660,37 @@ t_value_structs["damagefilter"] = {
                         },
                      },
                   },
+                  -- ["cumulative_kills"] = {
+                  --    DESC = "Count kills by this entity within a timeframe",
+                  --    TYPE = "struct",
+                  --    STRUCT = {
+                  --       ["kills"] = {
+                  --          TYPE = "number",
+                  --          DEFAULT = 0,
+                  --       },
+                  --       ["compare_cond"] = {
+                  --          DESC = "Comparison condition for passing",
+                  --          TYPE = "enum",
+                  --          ENUM = {
+                  --             ["Less"] = -2,
+                  --             ["Less or equal"] = -1,
+                  --             ["Equal"] = 0,
+                  --             ["Greater or equal"] = 1,
+                  --             ["Greater"] = 2,
+                  --          },
+                  --          REQUIRED = true,
+                  --       },
+                  --       ["timelimit"] = {
+                  --          DESC = "If given, must be within this timeframe in seconds",
+                  --          TYPE = "number",
+                  --       },
+                  --       ["reset_on_pass"] = {
+                  --          DESC = "Reset kill count whenever this subcondition passes. Note: This may or may not trigger if another filter passes before it",
+                  --          TYPE = "boolean",
+                  --          DEFAULT = true,
+                  --       },
+                  --    },
+                  -- },
 						["grounded"] = {
 							TYPE = "boolean",
 							DESC = "Only works correctly for NPCs and players. True to pass when grounded, false to fail when grounded",
@@ -2869,6 +2900,37 @@ t_value_structs["damagefilter"] = {
                         },
                      },
                   },
+                  -- ["cumulative_kills"] = {
+                  --    DESC = "Count kills by this entity within a timeframe",
+                  --    TYPE = "struct",
+                  --    STRUCT = {
+                  --       ["kills"] = {
+                  --          TYPE = "number",
+                  --          DEFAULT = 0,
+                  --       },
+                  --       ["compare_cond"] = {
+                  --          DESC = "Comparison condition for passing",
+                  --          TYPE = "enum",
+                  --          ENUM = {
+                  --             ["Less"] = -2,
+                  --             ["Less or equal"] = -1,
+                  --             ["Equal"] = 0,
+                  --             ["Greater or equal"] = 1,
+                  --             ["Greater"] = 2,
+                  --          },
+                  --          REQUIRED = true,
+                  --       },
+                  --       ["timelimit"] = {
+                  --          DESC = "If given, must be within this timeframe in seconds",
+                  --          TYPE = "number",
+                  --       },
+                  --       ["reset_on_pass"] = {
+                  --          DESC = "Reset kill count whenever this subcondition passes. Note: This may or may not trigger if another filter passes before it",
+                  --          TYPE = "boolean",
+                  --          DEFAULT = true,
+                  --       },
+                  --    },
+                  -- },
 						["grounded"] = {
 							TYPE = "boolean",
 							DESC = "Only works correctly for NPCs and players. True to pass when grounded, false to fail when grounded",
@@ -3646,7 +3708,7 @@ t_active_values = {
 	["relationships_inward"] = {
 		CATEGORY = t_CAT.BEHAVIOR,
 		NAME = "Relationships: Inward (Other's Feelings)",
-		DESC = "(Only for NPC feelings) Changes how others feel about this entity",
+		DESC = "(Only for other NPCs) Changes how others feel about this entity",
 		TYPE = "struct",
 		STRUCT = {
 			["by_class"] = {
@@ -3841,7 +3903,7 @@ t_active_values = {
 		CATEGORY = t_CAT.SPAWN,
 		NAME = "Spawn Beacon",
 		TYPE = "boolean",
-		DESC = "Whether this entity will be considered a participant when determining spawnpoints",
+		DESC = "Sets if the radius around this entity will be considered when determining spawnpoints. When false, players will only be ignored if \"Only Use Spawn Beacons\" is enabled in the squadpool",
 	},
 }
 
@@ -6795,16 +6857,18 @@ t_squadpool_values = {
 	},
 	["mindelay"] = {
 		CATEGORY = t_CAT.NPCD,
+      NAME = "Minimum Delay",
 		DESC = "Minimum delay between spawn automations. If function, rerolls every time it is called",
 		DEFAULT = 0,
 	},
 	["initdelay"] = {
 		CATEGORY = t_CAT.NPCD,
-		DESC = "Minimum intial delay after mapload until spawning for this pool can begin",
+      NAME = "Initial Delay",
+		DESC = "Minimum intial delay after map loads until spawning for this pool can begin",
 		DEFAULT = 0,
 	},
 	["onlybeacons"] = {
-		CATEGORY = t_CAT.NPCD,
+		CATEGORY = t_CAT.SPAWN,
 		NAME = "Only Use Spawn Beacons",
 		TYPE = "boolean",
 		DESC = "Spawner will only choose entities with \"Spawn Beacon\" enabled to determine spawnpoints. \"Spawn Distance Hard Minimum\" in Radiuses will still check all players",	},
@@ -6893,25 +6957,27 @@ t_squadpool_values = {
 	["quota_entity_min"] = {
 		CATEGORY = t_CAT.NPCD,
 		NAME = "Quota: Entity Hard Min",
-		DESC = "Overrides ConVar \"Quota Hard Min: Entity\" from npcd Options > Auto-Spawner",
+		DESC = "Minimum entity quota. Overrides ConVar \"Quota Hard Min: Entity\" from npcd Options > Auto-Spawner",
 		TYPE = "number",
 		SORTNAME = "z1",
 	},
 	["quota_entity_max"] = {
 		CATEGORY = t_CAT.NPCD,
 		NAME = "Quota: Entity Hard Max",
+      DESC = "Maximum entity quota",
 		TYPE = "number",
 		SORTNAME = "z2",
 	},
 	["quota_squad_min"] = {
 		CATEGORY = t_CAT.NPCD,
 		NAME = "Quota: Squad Hard Min",
-		DESC = "Overrides ConVar \"Quota Hard Min: Squad\" from npcd Options > Auto-Spawner",
+		DESC = "Minimum squad quota. Overrides ConVar \"Quota Hard Min: Squad\" from npcd Options > Auto-Spawner",
 		TYPE = "number",
 		SORTNAME = "z3",
 	},
 	["quota_squad_max"] = {
 		NAME = "Quota: Squad Hard Max",
+      DESC = "Maximum squad quota",
 		CATEGORY = t_CAT.NPCD,
 		TYPE = "number",
 		SORTNAME = "z4",

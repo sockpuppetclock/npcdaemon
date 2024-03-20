@@ -1010,21 +1010,27 @@ function ShowHelpWindow()
 		.. "\n\nThe spawnmenu can be used to manually spawn presets. The right click menu has options for using the toolgun or spawning for other players."
 		.. "\n\nThe automatic spawner goes through all active squadpools, picking squads to fulfill each pool's quotas. Only the active profile is used."
 		.. "\n\nPresets must be assigned to the squadpool to be automatically spawned. That means you need a squadpool and a squad/npc/entity/nextbot preset to start automatically spawning entities."
-		.. "\n\nThe frequency of spawns is affected by \"pressure,\" and pressure is affected by \"stress.\" Stress increases based on things happening to all players and their interactions with enemies.",
+		-- .. "\n\nThe frequency of spawns is affected by \"pressure,\" and pressure is affected by \"stress.\""
+		.. "\n\nTo help with the gameplay flow, the frequency of spawns is affected by a global \"Pressure\" value, and Pressure is affected by a player \"Stress\" value."
+      .. "\n - Pressure directly determines how frequently the autospawner spawns. Pressure increases or decreases over time based on the average player Stress."
+      .. "\n - Stress increases for each player when things happen in combat, such as taking/receiving damage and kills.",
 
 		[4] = "\n\n--- NPC Scheduling ---"
-		.. "\n\nNPCs have various options to their behavior that can be manipulated, primarily through the use of the game's NPC schedules. By default, an idle NPC will be sent to seek out a nearby enemy. You can also customize an NPC to constantly chase someone.",
+		.. "\n\nNPCs have various options to their behavior that can be manipulated, primarily through the use of the game's NPC schedules. By default, an idle NPC will be sent to seek out a nearby enemy. You can also customize an NPC to constantly chase someone."
+      .. "\n\nThe NPC must be using the Source engine's scheduling system for this to work on them. Most Lua-based NPCs don't use this, unfortunately.",
 
 		[5] = "\n\n--- Configuration ---"
-		.. "\n\nOptions are avaiable in the options tab of the spawnmenu sidebar."
+		.. "\n\nNPCD Options are avaiable in the options tab of the spawnmenu sidebar."
+		.. "\n\nThe profile editor lets you create profiles, presets, and edit preset values."
 		.. "\n\nProfiles allow switching between entire collections of presets. Profiles are placed in the 'garrysmod/data/npcd' folder, consider sharing your profiles!"
 		.. "\n\nProfiles actions (add/copy/remove/rename) are done in file immediately. Removed profiles are actually moved to the 'garrysmod/data/ncpd/trash' folder. Profiles are automatically saved when any pending changes are committed."
-		.. "\n\nYou must submit changes for preset changes to take effect. Presets can be copied, renamed, and moved between profiles."
+      .. "\n\nIn the profile editor, selecting a preset in the presets list opens the preset editor."
 		.. "\n\nMost values allow for different data types. The dropdown box in the bottom left of each value box allows changing between available data types."
-		.. "This includes enums (preselected values) and functions to allow randomness. Enums can be converted to their real value by changing to the real value's data type with the enum selected.",
+		.. "This includes enums (preselected values) and functions to allow randomness. Enums can be converted to their real value by changing to the real value's data type with the enum selected."
+      .. "\n\nYou must submit changes for preset changes to take effect. Presets can be copied, renamed, and moved between profiles.",
 
 		[6] = "\nValues can be restored to the original value or cleared to the nil/default value. Buttons, descriptions, and icons can be hovered over for more info."
-		.. "\n\nMake sure NPCs, Nextbots, and (other) Entities are placed in their correct preset types, otherwise errors may occur."
+		.. "\n\nMake sure NPCs, Nextbots, and (other) Entities are placed in their correct preset types, otherwise errors could occur."
 		.. "\n\n\n--- Preset Types ---"
 		.. "\n\nSquadpool: The main source of spawns during autospawning. Any presets assigned to the pool will be spawned within the given radius limits around players and spawn beacons."
 		.. "Includes spawn limits and when & where things can be spawned. All squadpools are iterated through during a run of automatic spawns.",
