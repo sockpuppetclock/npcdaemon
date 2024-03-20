@@ -1400,6 +1400,7 @@ function CreateValueEditorList( panel, prof, set, prs, parentpanel )
          valuelist_cat_t[cat]:DockMargin( 0, 0, 0, 0 )
          valuelist_cat_t[cat]:SetHeaderHeight( 0 )
       end
+      valuelist_cat_t[cat].list = valuelist_cat_t
 
 		if expanded_cats[catkey[cat]] != nil then
 			valuelist_cat_t[cat]:SetExpanded( expanded_cats[catkey[cat]] )
@@ -4434,7 +4435,7 @@ function AddPresetPanel( npanel, inspanel )
 
 		if clear or class != nil and inspanel.valuer.classstructed != class then
 			inspanel.valuer.ClearClassStruct()
-			-- inspanel.valuer.GetClassStruct()
+			inspanel.valuer.GetClassStruct() // get class values immediately
 		end
 	end
 
@@ -4485,15 +4486,23 @@ function AddPresetPanel( npanel, inspanel )
 			and t_lookup["class"][npanel.lookup] and t_lookup["class"][npanel.lookup][npanel.pendingTbl[npanel.valueName]["name"]] then
 				inspanel.valuer.b_classstruct:SetEnabled( true )
             inspanel.valuer.b_classstruct:SetVisible( true )
+            inspanel.valuer:SetHeight( UI_TEXT_H * 2 )
 			else
 				inspanel.valuer.b_classstruct:SetEnabled( false )
 				inspanel.valuer.b_classstruct:SetVisible( false )
+            inspanel.valuer:SetHeight( UI_TEXT_H * 1 )
 			end
+               
+         inspanel:InvalidateLayout( true )
+         inspanel:SizeToChildren( false, true )
+         npanel:InvalidateLayout( true )
+         npanel:SizeToChildren( false, true )
 
 			if inspanel.valuer.classstructed then
 				if inspanel.valuer.classstructs then
+               // clears class-specific values
+               // if i want to track this change any better i should just give unique valuenames
 					for i, p in pairs( inspanel.valuer.classstructs ) do
-						// if i want to track this change any better i should just give unique valuenames
 						if p.updated or !IsValid(npanel.parent.values[p.valueName]) or inspanel.valuer.preclassed then
 							p.pendingTbl[p.valueName] = nil
 							if IsValid(npanel.parent.values[p.valueName]) then
@@ -4520,17 +4529,8 @@ function AddPresetPanel( npanel, inspanel )
 		inspanel.valuer.classstructed = nil
 		inspanel.valuer.b_classstruct = vgui.Create( "DButton", inspanel.valuer )
 		inspanel.valuer.b_classstruct:SetText( UI_STR.classstruct_get )
-		inspanel.valuer.b_classstruct:SetTooltip( "Checks if npcd has class-specific properties for this entity class in this specific entity type. This doesn't check if the classname is valid or not." )
+		-- inspanel.valuer.b_classstruct:SetTooltip( "Checks if npcd has class-specific properties for this entity class in this specific entity type. This doesn't check if the classname is valid or not." )
 		inspanel.valuer.b_classstruct:Dock( TOP )
-
-		if istable( npanel.pendingTbl[npanel.valueName] ) and npanel.pendingTbl[npanel.valueName]["name"]
-		and t_lookup["class"][npanel.lookup] and t_lookup["class"][npanel.lookup][npanel.pendingTbl[npanel.valueName]["name"]] then
-			inspanel.valuer.b_classstruct:SetEnabled( true )
-			inspanel.valuer.b_classstruct:SetVisible( true )
-		else
-			inspanel.valuer.b_classstruct:SetEnabled( false )
-			inspanel.valuer.b_classstruct:SetVisible( false )
-		end
 
 		inspanel.valuer.b_classstruct.OnReleased = function()
 			inspanel.valuer.GetClassStruct()
@@ -4577,6 +4577,7 @@ function AddPresetPanel( npanel, inspanel )
 					end
 				end
 				
+            local vcount = 0
 				for _, structlist in ipairs( { newstruct_req, newstruct_other } ) do
 					for valueName in SortedPairsByValue( structlist ) do
 						local vn = valueName
@@ -4593,7 +4594,7 @@ function AddPresetPanel( npanel, inspanel )
 						-- table.insert( inspanel.valuer.classstructs,
 						inspanel.valuer.classstructs[valueName] =
 							AddValuePanel(
-								npanel.parent, //npanel.valuer.editor
+								npanel.parent, // assuming top level preset panel, so parent is category dform // todo: npanel.parent.list[t_CAT.CLASS]
 								valueTbl, 
 								nil,
 								valueName, //npanel.valueName
@@ -4606,22 +4607,36 @@ function AddPresetPanel( npanel, inspanel )
 								"<"..class..">"
 							)
 						-- )
+                  vcount = vcount + 1
 						
 						inspanel.valuer.classstructed = class
 					end
 				end
 
 				if inspanel.valuer.classstructed then
-					inspanel.valuer.b_classstruct:SetText( UI_STR.classstruct_in )
+					inspanel.valuer.b_classstruct:SetText( class..": "..tostring(vcount).." "..UI_STR.classstruct_in )
 					inspanel.valuer.b_classstruct:SetEnabled( false )
 				end
 			end
 		end
 
-		inspanel.valuer.GetClassStruct()
-
 		inspanel.valuer.b_classstruct:SetHeight( UI_TEXT_H )
 		inspanel.valuer:SetHeight( UI_TEXT_H * 2 )
+      
+		if istable( npanel.pendingTbl[npanel.valueName] ) and npanel.pendingTbl[npanel.valueName]["name"]
+		and t_lookup["class"][npanel.lookup] and t_lookup["class"][npanel.lookup][npanel.pendingTbl[npanel.valueName]["name"]] then
+			inspanel.valuer.b_classstruct:SetEnabled( true )
+			inspanel.valuer.b_classstruct:SetVisible( true )
+         inspanel.valuer:SetHeight( UI_TEXT_H * 2 )
+		else
+			inspanel.valuer.b_classstruct:SetEnabled( false )
+			inspanel.valuer.b_classstruct:SetVisible( false )
+         inspanel.valuer:SetHeight( UI_TEXT_H * 1 )
+		end
+
+		inspanel.valuer.GetClassStruct()
+
+		
 	end
 
 	inspanel:InvalidateLayout( true )
@@ -5342,7 +5357,7 @@ function AddStringPanel( npanel, inspanel, focus )
 		inspanel.valuer.classstructed = nil
 		inspanel.valuer.b_classstruct = vgui.Create( "DButton", inspanel.valuer )
 		inspanel.valuer.b_classstruct:SetText( UI_STR.classstruct_get )
-		inspanel.valuer.b_classstruct:SetTooltip( "Checks if npcd has class-specific properties for this entity class in this specific entity type. This doesn't check if the classname is valid or not." )
+		-- inspanel.valuer.b_classstruct:SetTooltip( "Checks if npcd has class-specific properties for this entity class in this specific entity type. This doesn't check if the classname is valid or not." )
 		inspanel.valuer.b_classstruct:Dock( TOP )
 		inspanel.valuer.b_classstruct:SetZPos( 2 )
 		inspanel.valuer.b_classstruct:SetTall( UI_TEXT_H )
@@ -5352,7 +5367,7 @@ function AddStringPanel( npanel, inspanel, focus )
 			inspanel.valuer.b_classstruct:SetVisible( true )
 		else
 			inspanel.valuer.b_classstruct:SetEnabled( false )
-			inspanel.valuer.b_classstruct:SetVisible( false )
+			-- inspanel.valuer.b_classstruct:SetVisible( false )
 		end
 
 		local oldthink = inspanel.valuer.textbox.OnChange
@@ -5363,7 +5378,7 @@ function AddStringPanel( npanel, inspanel, focus )
 				inspanel.valuer.b_classstruct:SetVisible( true )
 			else
 				inspanel.valuer.b_classstruct:SetEnabled( false )
-				inspanel.valuer.b_classstruct:SetVisible( false )
+				-- inspanel.valuer.b_classstruct:SetVisible( false )
 			end
 		end
 
@@ -5407,6 +5422,7 @@ function AddStringPanel( npanel, inspanel, focus )
 					end
 				end
 
+            local vcount = 0
 				// insert value panels into parent panel
 				for _, structlist in ipairs( { newstruct_req, newstruct_other } ) do
 					for valueName in SortedPairsByValue( structlist ) do
@@ -5442,35 +5458,8 @@ function AddStringPanel( npanel, inspanel, focus )
 					end
 				end
 
-				-- for valueName, valueTbl in pairs( t_lookup["class"][npanel.lookup][class] ) do
-				-- 	local vn = valueName
-				-- 	timer.Simple( 2, function()
-				-- 		if inspanel.valuer and inspanel.valuer.classstructs and inspanel.valuer.classstructs[vn]
-				-- 		and IsValid(npanel) and IsValid(npanel.parent) and IsValid(npanel.parent.values[vn]) then
-				-- 			npanel.parent.values[vn]:SetDisabled( true )
-				-- 		end
-				-- 	end )
-				-- 	-- table.insert( inspanel.valuer.classstructs,
-				-- 	inspanel.valuer.classstructs[valueName] =
-				-- 		AddValuePanel(
-				-- 			npanel.parent, //npanel.valuer.editor
-				-- 			valueTbl, //structTbl
-				-- 			nil, // typ
-				-- 			valueName, //npanel.valueName
-				-- 			npanel.existingTbl, //existingTbl
-				-- 			npanel.pendingTbl, //pendingTbl
-				-- 			npanel.viewTbl["__CLASS"],
-				-- 			npanel.lookup,
-				-- 			npanel.hierarchy,
-				-- 			npanel.col,
-				-- 			"<"..class..">"
-				-- 		)
-				-- 	-- )
-				-- 	inspanel.valuer.classstructed = class
-				-- end
-
 				if inspanel.valuer.classstructed then
-					inspanel.valuer.b_classstruct:SetText( UI_STR.classstruct_in )
+					inspanel.valuer.b_classstruct:SetText( class..": "..tostring(vcount).." "..UI_STR.classstruct_in )
 					inspanel.valuer.b_classstruct:SetEnabled( false )
 				end
 			end
