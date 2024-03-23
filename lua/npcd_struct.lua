@@ -6052,7 +6052,7 @@ t_npc_class_values = {
 		["selfdestruct"] = {
 			DESC = "Turret self destructs when deactivated",
 			TYPE = "boolean",
-			FUNCTION = { "AddOutput" , "OnRetire !self:SelfDestruct::0:1" },
+			FUNCTION = { "Fire", "AddOutput" , "OnTipped !self:SelfDestruct::0:-1" },
 			FUNCTION_REQ = true,
 		},
 	},
