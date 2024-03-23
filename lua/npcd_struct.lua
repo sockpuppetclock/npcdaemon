@@ -4095,6 +4095,7 @@ t_basic_values = {
 	},
 
 	["inputs"] = {
+      NAME = "Inputs",
 		CATEGORY = t_CAT.MISC,
 		DESC = "Entity I/O, using Entity:Fire()",
 		-- FUNCTION = {}, --[[ SpawnNPC() ]]
@@ -4126,7 +4127,7 @@ t_basic_values = {
          },
          ["value"] = {
             DESC = "The value to send with the command",
-            TYPE = { "string", "int", "number", "boolean"},
+            TYPE = { "string", "int", "number", "boolean" },
          },
          ["delay"] = {
             DESC = "In seconds",
@@ -6185,6 +6186,7 @@ t_npc_class_values = {
 	},
 	["npc_vortigaunt"] = {
 		["inputs"] = { -- [[ PostEntitySpawn() ]]
+         NAME = "Inputs",
          CATEGORY = t_CAT.MISC,
          DESC = "Entity I/O, using Entity:Fire()",
          TYPE = "struct_table",
@@ -6203,7 +6205,7 @@ t_npc_class_values = {
 			   },
             ["value"] = {
                DESC = "The value to send with the command",
-               TYPE = { "string", "int", "number", "boolean"},
+               TYPE = { "string", "int", "number", "boolean" },
             },
             ["delay"] = {
                DESC = "In seconds",

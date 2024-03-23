@@ -318,6 +318,55 @@ function PatchSaver()
    end
 end
 
+local f_patches_inputs47_validfunc1 = {
+   ["__TBLRANDOM"] = true,
+}
+local f_patches_inputs47_validfunc2 = {
+   ["__RANDOM"] = true,
+   ["__RAND"] = true,
+   ["__TBLRANDOM"] = true,
+}
+
+local f_patches_funcs = {
+   // fixes input to match struct
+   ["inputs47"] = function(tbl)
+      local p = false
+      for _, t in pairs(tbl) do
+         if t[1] != nil or t[2] != nil or t[3] != nil then
+            p = true
+            t["command"] = t["command"] or t[1]
+            t[1] = nil
+            t["value"] = t["value"] or t[2]
+            t[2] = nil
+            t["delay"] = t["delay"] or t[3]
+            t[3] = nil
+         end
+
+         if t["command"] != nil
+         and ( istable(t["command"]) and !f_patches_inputs47_validfunc1[t["command"][1]] 
+         or !istable(t["command"]) and !isstring(t["command"]) ) then
+            p = true
+            t["command"] = tostring( istable( t["command"] ) and table.ToString( t["command"] ) or t["command"] )
+         end
+
+         if t["value"] != nil
+         and ( istable(t["value"]) and !f_patches_inputs47_validfunc2[t["value"][1]]
+         or !istable(t["value"]) and !isstring(t["value"]) and !isnumber(t["value"]) and !isbool(t["value"]) ) then
+            p = true
+            t["value"] = tostring(istable(t["value"]) and table.ToString(t["value"]) or t["value"])
+         end
+
+         if t["delay"] != nil
+         and ( istable(t["delay"]) and !f_patches_inputs47_validfunc2[t["delay"][1]]
+         or !istable(t["delay"]) and !isnumber(t["delay"]) ) then
+            p = true
+            t["delay"] = tonumber(istable(t["delay"]) and table.ToString(t["delay"]) or t["delay"])
+         end
+      end
+      return p
+   end,
+}
+
 local f_patches = {
 	// 20: squadpools removed from squads preset -> squadpools list their own spawns
 	[20] = function( typ, preset_name, insTable, profilename, onlyReturn, insert, displayprofname )
@@ -355,26 +404,27 @@ local f_patches = {
 	end,
    // "inputs" table to struct
    [47] = function(typ, preset_name, insTable, profilename, onlyReturn, insert, displayprofname)
-      local f = function(tbl)
-         local p = false
-         for _, t in pairs(tbl) do
-            if !p and (t[1] or t[2] or t[3]) then p = true end
-            t["command"] = t["command"] or t[1]
-            t[1] = nil
-            t["value"] = t["value"] or t[2]
-            t[2] = nil
-            t["delay"] = t["delay"] or isnumber(t[3]) and t[3] or nil
-            t[3] = nil
-         end
-         return p
-      end
-
       local patched = false
       local profile = insert or profilename and Profiles[profilename] or nil
 		if !profile then return nil end
-      patched = RecursiveValueSearch(insTable, "inputs", f)
+      patched = RecursiveValueSearch(insTable, "inputs", f_patches_funcs["inputs47"])
       if patched then
          local msg = "NPCD preset ["..tostring(displayprofname or profilename).." > "..tostring(preset_name).."] has been patched: Restructured \"Inputs\" value"
+         AddPatchInform( msg )
+         if table.IsEmpty(patch_save_queue) then
+            timer.Simple( 2, PatchSaver )
+         end
+         patch_save_queue[displayprofname or profilename] = RealTime() + 2
+      end
+   end,
+   [49] = function(typ, preset_name, insTable, profilename, onlyReturn, insert, displayprofname)
+      local patched = false
+      local profile = insert or profilename and Profiles[profilename] or nil
+		if !profile then return nil end
+      patched = RecursiveValueSearch(insTable, "inputs", f_patches_funcs["inputs47"])
+      if patched then
+         local msg = "NPCD preset ["..tostring(displayprofname or profilename).." > "..tostring(preset_name).."] has been patched: "
+         .."Converted invalid subvalues in \"Inputs\" to strings or numbers"
          AddPatchInform( msg )
          if table.IsEmpty(patch_save_queue) then
             timer.Simple( 2, PatchSaver )
