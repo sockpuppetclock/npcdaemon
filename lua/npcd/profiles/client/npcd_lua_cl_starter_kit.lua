@@ -781,7 +781,6 @@ npcd.QueuePostQuery( profile_name, 30, function()
 			["type"] = "NPC",
 		},
 		["entity_type"] = "npc",
-		["offset"] = Vector( 0, 0, -2 ),
       ["spawn_ceiling"] = true,
 	} )
 

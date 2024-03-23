@@ -776,7 +776,6 @@ npcd.CreatePreset( "npc", "Barnacle", {
 		["type"] = "NPC",
 	},
 	["entity_type"] = "npc",
-	["offset"] = Vector( 0, 0, -2 ),
    ["spawn_ceiling"] = true,
 }, profile_name )
 

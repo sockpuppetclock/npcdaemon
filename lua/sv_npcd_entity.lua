@@ -177,6 +177,12 @@ function SetEntValues( ent, ent_t, valueName, valueTbl, forced, nodefault, hist 
 						tostring(valueName), "\n\tvalueTbl: ", tostring(valueTbl),
 						"\n\tallowed types: ", tostring( istable( valueTbl.TYPE ) and table.concat(valueTbl.TYPE, ", ") or valueTbl.TYPE ),
 						"\n\tgiven type: ", type( given ) , "\n\tgiven: ", tostring( given ), "\n\tchktyp: ", tostring( chktyp ),"\n\n" )
+                  if istable(given) then
+                     print("given table:")
+                     for k in pairs(given) do
+                        MsgN(tostring(k)," = ",tostring(given[k]))
+                     end
+                  end
 					-- debug.Trace()
 					valid = false
 					given = nil
@@ -257,6 +263,12 @@ function SetEntValues( ent, ent_t, valueName, valueTbl, forced, nodefault, hist 
 					tostring(valueName), "\n\tvalueTbl: ", tostring(valueTbl),
 					"\n\tallowed types: ", tostring( istable( valueTbl.TYPE ) and table.concat(valueTbl.TYPE, ", ") or valueTbl.TYPE ),
 					"\n\tgiven type: ", type( given ) , "\n\tgiven: ", tostring( given ), "\n\tchktyp: ", tostring( chktyp ),"\n\n" )
+               if istable(given) then
+                  print("given table:")
+                  for k in pairs(given) do
+                     MsgN(tostring(k)," = ",tostring(given[k]))
+                  end
+               end
 				-- debug.Trace()
 				-- PrintTable( ent_t )
 				valid = false
@@ -300,6 +312,12 @@ function SetEntValues( ent, ent_t, valueName, valueTbl, forced, nodefault, hist 
 					tostring(valueName), "\n\tvalueTbl: ", tostring(valueTbl),
 					"\n\tallowed types: ", tostring( istable( valueTbl.TYPE ) and table.concat(valueTbl.TYPE, ", ") or valueTbl.TYPE ),
 					"\n\tgiven type: ", type( given ) , "\n\tgiven: ", tostring( given ), "\n\tchktyp: ", tostring( chktyp ),"\n\n" )
+               if istable(given) then
+                  print("given table:")
+                  for k in pairs(given) do
+                     MsgN(tostring(k)," = ",tostring(given[k]))
+                  end
+               end
 				-- debug.Trace()
 				valid = false
 				given = nil
