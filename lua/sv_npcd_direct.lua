@@ -454,7 +454,7 @@ function Direct( numQuota, numSqQuota, pool_t, mapLimit, squadLimit, RadiusTable
 				end
 
 				local sqcount = #sqcount_t
-            local ecount = count + (r.toDespawn_addquota and entityquota or 0)
+            local ecount = count - spawnedcount + (r.toDespawn_addquota and entityquota or 0)
             // this only works correctly for certain if despawn radius fills entire map
 
 				// if invalid/valid player
@@ -496,11 +496,13 @@ function Direct( numQuota, numSqQuota, pool_t, mapLimit, squadLimit, RadiusTable
 
 								// despawn
 								if debugged then print( "npcd > Direct > ".. tostring( dnpc ) ..  " REMOVED, over limit of radius " .. k .. ", dist_sqr " .. npcs_in[i].dist_sqr ) end
+
                         despawnedcount = despawnedcount + npcs_in[i]["weight"]
                         ecount = ecount - npcs_in[i]["weight"]
                         count = count - npcs_in[i]["weight"]
                         mapCount = mapCount - npcs_in[i]["weight"]
                         overnpcrad = r.radiusNPCLimit and ecount >= r.radiusNPCLimit
+								
 								dnpc:Remove()
 							end
                      -- print(i,j,ecount,overnpcrad)
@@ -948,12 +950,12 @@ function DirectorSpawn( todo )
 				for k, npos in RandomPairs( todo.valid_nodes[rk] ) do
 					-- CoIterate(0.5)
 					// check all entity offsets
-               local hitpos = CheckCeiling(npos)
+               local hitpos, hpos_fail, hpos_sky = CheckCeiling(npos)
 					for o, offset in ipairs( spawn_base_offsets ) do
                   -- for b_k in pairs( todo.newSquad["spawns"] ) do
                   for b_k in pairs( bounds ) do
                      if bounds[b_k].ceiling then
-                        if hitpos then
+                        if !hpos_fail or bounds[b_k].sky and hpos_sky then
                            pos_valid = CheckSpawnPos( hitpos, bounds[b_k], spawn_ceil_offsets[o] - bounds[b_k].maxz + bounds[b_k].offset, water )
                         else
                            pos_valid = false
@@ -1093,12 +1095,12 @@ function DirectorSpawn( todo )
 						if !pos_valid then continue end
                   
 						// check all entity offsets
-                  local hitpos = CheckCeiling(pos)
+                  local hitpos, hpos_fail, hpos_sky = CheckCeiling(pos)
 						for o, offset in ipairs( spawn_base_offsets ) do
 							-- for b_k in pairs( todo.newSquad["spawns"] ) do
                      for b_k in pairs( bounds ) do
                         if bounds[b_k].ceiling then
-                           if hitpos then
+                           if !hpos_fail or bounds[b_k].sky and hpos_sky then
                               pos_valid = CheckSpawnPos( hitpos, bounds[b_k], spawn_ceil_offsets[o] - bounds[b_k].maxz + bounds[b_k].offset, water )
                            else
                               pos_valid = false
@@ -1202,13 +1204,13 @@ function DirectorSpawn( todo )
 							end
 							if !pos_valid then continue end
 
-                     local hitpos = CheckCeiling(pos)
 							// check all entity offsets
+							local hitpos, hpos_fail, hpos_sky = CheckCeiling(pos)
 							for o, offset in ipairs( spawn_base_offsets ) do
 								-- for b_k in pairs( todo.newSquad["spawns"] ) do
 								for b_k in pairs( bounds ) do
                            if bounds[b_k].ceiling then
-                              if hitpos then
+                              if !hpos_fail or bounds[b_k].sky and hpos_sky then
                                  pos_valid = CheckSpawnPos( hitpos, bounds[b_k], spawn_ceil_offsets[o] - bounds[b_k].maxz + bounds[b_k].offset, water )
                               else
                                  pos_valid = false
@@ -1412,17 +1414,18 @@ function GetAnywhere( start_pos, minRadius, maxRadius )
 	return pos
 end
 
-function CheckCeiling(pos, force)
+// returns pos, fail_check, sky
+function CheckCeiling(pos)
    local tr = util.TraceLine({
       start = pos,
       endpos = pos + vector_up,
       mask = MASK_NPCSOLID,
    })
-   if !force and (tr.HitNoDraw or tr.HitNonWorld or tr.HitSky or !util.IsInWorld(tr.HitPos)) then
-      return nil
-   else
-      return tr.HitPos
-   end
+   -- if !force and (tr.HitNoDraw or tr.HitNonWorld or !sky and tr.HitSky or !util.IsInWorld(tr.HitPos)) then
+   --    return nil
+   -- else
+	return tr.HitPos, (tr.HitNoDraw or tr.HitNonWorld or tr.HitSky or !util.IsInWorld(tr.HitPos)), tr.HitSky
+   -- end
 end
 
 local vectors_pickany = { Vector(), Vector(0,0,10), Vector(0,0,30) }

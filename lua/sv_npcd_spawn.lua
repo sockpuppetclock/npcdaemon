@@ -116,6 +116,9 @@ function GetOBB( npc_t, presetname )
    if npc_t.spawn_ceiling then
       SetEntValues( nil, npc_t, "spawn_ceiling", GetLookup( "spawn_ceiling", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
    end
+   if npc_t.spawn_sky then
+      SetEntValues( nil, npc_t, "spawn_sky", GetLookup( "spawn_sky", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
+   end
 
    local xmin = lc.x
 	local xmax = hc.x
@@ -142,6 +145,7 @@ function GetOBB( npc_t, presetname )
    bounds[1].mino = bounds[1].min + bounds[1].offset
    bounds[1].maxo = bounds[1].max + bounds[1].offset
    bounds[1].ceiling = npc_t.spawn_ceiling
+   bounds[1].sky = npc_t.spawn_sky
 
 	if debugged then
       print("npcd > GetOBB")
@@ -216,16 +220,19 @@ function GetGroupOBB( group_t )
       if npc_t.offset then // set model
          SetEntValues( nil, npc_t, "offset", GetLookup( "offset", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
       end
-      if npc_t.spawn_ceiling then
-         SetEntValues( nil, npc_t, "spawn_ceiling", GetLookup( "spawn_ceiling", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
-      end
-      
       if npc_t.scale then // set scale
          SetEntValues( nil, npc_t, "scale", GetLookup( "scale", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
          -- npc:SetModelScale( npc_t.scale ) // set immediately
          lc = lc * npc_t.scale
          hc = hc * npc_t.scale
       end
+
+		if npc_t.spawn_ceiling then
+         SetEntValues( nil, npc_t, "spawn_ceiling", GetLookup( "spawn_ceiling", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
+      end
+		if npc_t.spawn_sky then
+			SetEntValues( nil, npc_t, "spawn_sky", GetLookup( "spawn_sky", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
+		end
       
 		local xmin = lc.x
       local xmax = hc.x
@@ -252,6 +259,7 @@ function GetGroupOBB( group_t )
       bounds[n].mino = bounds[n].min + bounds[n].offset
       bounds[n].maxo = bounds[n].max + bounds[n].offset
       bounds[n].ceiling = npc_t.spawn_ceiling
+		bounds[n].sky = npc_t.spawn_sky
 
       nsTbl["bounds"] = bounds[n]
 
@@ -420,8 +428,8 @@ function SpawnNPC( rq )
 	ResolveEntValueTable( npc, npc_t ) // do value funcs
 
    local hitpos
-   if npc_t.spawn_ceiling then
-      local hitpos = CheckCeiling( npc:GetPos(), true )
+   if npc_t.spawn_ceiling or npc_t.spawn_sky then
+      local hitpos = CheckCeiling( npc:GetPos() )
       if rq.maxz then
          npc:SetPos( hitpos - rq.maxz )
       else
@@ -432,7 +440,7 @@ function SpawnNPC( rq )
    if npc_t.offset then
       npc:SetPos( npc:GetPos() + npc_t.offset )
    end
-   if rq.targetspawn and !npc_t.spawn_ceiling then
+   if rq.targetspawn and !hitpos then
       local bounds = GetOBB(npc_t, nil)
       npc:SetPos( npc:GetPos() + bounds[1].zoff )
    end

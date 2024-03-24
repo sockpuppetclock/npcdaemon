@@ -3608,7 +3608,13 @@ t_active_values = {
 	["spawn_ceiling"] = {
 		CATEGORY = t_CAT.SPAWN,
 		NAME = "Spawn on Ceiling",
-		DESC = "If true, the entity will spawn from the ceiling, instead of the ground. Auto-Spawner will avoid spawning onto the sky. Any spawn offset will be applied from the ceiling point",
+		DESC = "If true, the entity will spawn from the ceiling point, instead of the ground. Auto-Spawner will avoid spawning onto the sky. Any spawn offset will be applied from the ceiling point",
+		TYPE = "boolean",
+	},
+	["spawn_sky"] = {
+		CATEGORY = t_CAT.SPAWN,
+		NAME = "Spawn on Sky",
+		DESC = "If true, the entity will spawn from the sky ceiling point. The Auto-Spawner will try to place it under the skybox ceiling, and the auto-spawn will fail if no spot under the sky is found. Any spawn offset will be applied from the ceiling point",
 		TYPE = "boolean",
 	},
 
