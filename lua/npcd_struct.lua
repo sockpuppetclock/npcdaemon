@@ -5177,7 +5177,7 @@ t_npc_base_values = {
 	["force_approach"] = {
 		CATEGORY = t_CAT.CHASE,
 		NAME = "Always Seekout",
-		DESC = "NPC will constantly seek out for others",
+		DESC = "NPC will be forced to constantly seek out others. Cannot be interrupted",
 		-- FUNCTION = {}, -- [[ ManageSchedules() ]]
 		TYPE = "boolean",
 	},
