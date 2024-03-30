@@ -928,9 +928,9 @@ function DirectorSpawn( todo )
 	local radiused
 
 	local water = todo.newSquad and todo.newSquad.values.spawn_req_water or npc_t and npc_t.spawn_req_water or 0
-    if !isnumber(water) then //sigh
-        water = t_npc_base_values.spawn_req_water.ENUM[water]
-    end
+	if !isnumber(water) then //sigh
+		water = t_npc_base_values.spawn_req_water.ENUM[water]
+	end
 
 	// iterate through allowed pick methods
 	// 1. nodes
@@ -973,6 +973,38 @@ function DirectorSpawn( todo )
                   --          break
                   --       end
                   --    end
+                  if pos_valid then
+                     // check for too close to any player
+							for _, aply in ipairs( player.GetAll() ) do
+								if !IsValid( aply ) then continue end
+								pos_tbl[aply] = pos_tbl[aply] or aply:GetPos()
+
+								if pos:DistToSqr( pos_tbl[aply] ) < r_t[rk].chkrad_sqr then
+									pos_valid = false
+									break
+								end
+							end
+							if !pos_valid then
+								continue
+							end
+							
+							// check for in radius of invalid players
+							// across all radiuses
+							for rrk in pairs( todo.invalid_players ) do
+								for _, iply in pairs( todo.invalid_players[rrk] ) do
+									CoIterate(0.1)
+									if !IsValid(iply) then continue end
+									pos_tbl[iply] = pos_tbl[iply] or iply:GetPos()
+
+									local invdist = pos:DistToSqr( iply:GetPos() )
+									if ( invdist > r_t[rrk].minRadius_sqr and invdist <= r_t[rrk].maxRadius_sqr ) then
+										pos_valid = false
+										break
+									end
+								end
+								if !pos_valid then break end
+							end
+                  end
                   if pos_valid then
                      pos = npos + offset
                      n = k
@@ -1058,7 +1090,6 @@ function DirectorSpawn( todo )
 
 							if pos:DistToSqr( pos_tbl[aply] ) < r_t[rk].chkrad_sqr then
 								pos_valid = false
-								-- print( "aply" )
 								break
 							end
 						end
@@ -1067,7 +1098,6 @@ function DirectorSpawn( todo )
 						// check for in radius of invalid players
 						// across all radiuses
 						for rrk in pairs( todo.invalid_players ) do
-							-- if !table.IsEmpty( todo.invalid_players[rrk] ) then
 								for _, iply in pairs( todo.invalid_players[rrk] ) do
 									CoIterate(0.1)
 									if !IsValid(iply) then continue end
@@ -1076,11 +1106,9 @@ function DirectorSpawn( todo )
 									local invdist = pos:DistToSqr( iply:GetPos() )
 									if ( invdist > r_t[rrk].minRadius_sqr and invdist <= r_t[rrk].maxRadius_sqr ) then
 										pos_valid = false
-										-- print( "invply" )
 										break
 									end
 								end
-							-- end
 							if !pos_valid then break end
 						end
 						if !pos_valid then continue end
