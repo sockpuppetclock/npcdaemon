@@ -4435,7 +4435,9 @@ function AddPresetPanel( npanel, inspanel )
 
 		if clear or class != nil and inspanel.valuer.classstructed != class then
 			inspanel.valuer.ClearClassStruct()
-			inspanel.valuer.GetClassStruct() // get class values immediately
+			if isfunction( inspanel.valuer.GetClassStruct ) then
+				inspanel.valuer.GetClassStruct()
+			end // get class values immediately
 		end
 	end
 
@@ -7820,7 +7822,7 @@ function CreateSettingsPanel()
 	end
 
 	PresetsList.DoDoubleClick = function( self, id, line )
-		PresetsButtons.tab:OnReleased()
+		PresetsButtons.window:OnReleased()
 	end
 
 	PresetsButtons.Menu = function( self )
