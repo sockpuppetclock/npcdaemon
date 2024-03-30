@@ -974,6 +974,7 @@ function DirectorSpawn( todo )
                   --       end
                   --    end
                   if pos_valid then
+							pos = npos + offset
                      // check for too close to any player
 							for _, aply in ipairs( player.GetAll() ) do
 								if !IsValid( aply ) then continue end
