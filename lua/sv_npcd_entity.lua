@@ -480,11 +480,16 @@ function OverrideEntity( ent, p_ntbl, squad_t, preset_type, preset_name, extra_o
 	end
 
 	local e = ent
+	local vel
 	if replace then
 		e = ents.Create( GetPresetName(npc_t.classname) or ent:GetClass() )
 		e:SetPos( ent:GetPos() )
 		e:SetAngles( ent:GetAngles() )
+		if npc_t.model then // set model
+         SetEntValues(e, npc_t, "model", GetLookup( "model", npc_t.entity_type, nil, GetPresetName( npc_t.classname ) ) )
+      end
 		e:Spawn()
+		vel = ent:GetVelocity()
 		ent:Remove()
 	end
 
@@ -521,6 +526,16 @@ function OverrideEntity( ent, p_ntbl, squad_t, preset_type, preset_name, extra_o
 	local postbound = npc:OBBMins()
 	local posadd = postbound.z < prebound.z and prebound.z - postbound.z or postbound.z - prebound.z
 	npc:SetPos( Vector( postpos.x, postpos.y, postpos.z + posadd ) )
+	if vel then
+		if IsCharacter(npc) then
+			npc:SetVelocity(vel)
+		else
+			local phys = npc:GetPhysicsObject()
+			if ( IsValid( phys ) ) then
+				phys:SetVelocity(vel)
+			end
+		end
+	end
 
 	if activeNPC[npc] then activeNPC[npc]["spawned"] = true end		
 
@@ -558,6 +573,10 @@ local override_ents = {
 		parent = "npc_metropolice",
 		ovr_s = { ["activate"] = false }, // bugfix: manhack light is active even when model changes
 	},
+	["npc_grenade_frag"] = {
+		parent = "npc_combine_s",
+		search = 30,
+	},
 	["npc_headcrab_poison"] = {
 		search = 10,
 		parent = "npc_poisonzombie",
@@ -570,7 +589,8 @@ local override_ents = {
 
 hook.Add("OnEntityCreated", "NPCD Entity Created", function(ent)
 	if !IsValid(ent) then return end
-	if ent:IsNPC() then // only can use this cause none of override_ents are non-npc yet
+	-- print(ent,ent:GetParent())
+	if ent:GetClass() and override_ents[ent:GetClass()] != nil then // only can use this cause none of override_ents are non-npc yet
 		// override child entities
 		local entovr = override_ents[ent:GetClass()] or nil
 		if entovr and !activeNPC[ent] then

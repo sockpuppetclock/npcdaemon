@@ -5970,6 +5970,22 @@ t_npc_class_values = {
 				["Prison"] = { "SetModel", "models/combine_soldier_prisonguard.mdl" },
 			},
 		},
+		["childpreset"] = {
+			NAME = "Grenade Preset",
+			DESC = "Override Combine Soldier's thrown grenade with a preset (WIP, will override all grenades (including yours) thrown near the entity)",
+			TYPE = { "preset" },
+			PRESETS = {
+				"npc",
+				"entity",
+			},
+			SORTNAME = "zzzza",
+		},
+		["childpreset_replace"] = {
+			NAME = "Replace Grenade Entity",
+			DESC = "If true, completely replace the thrown grenade with a new entity instead of overriding it",
+			TYPE = "boolean",
+			SORTNAME = "zzzzb",
+		},
 	},
 	["npc_metropolice"] = {
 		["manhacks"] = {

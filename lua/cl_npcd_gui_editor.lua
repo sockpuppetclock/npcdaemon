@@ -2400,7 +2400,7 @@ function AddValuePanel( fpanel, structTbl, typ, valueName, existingTbl, pendingT
 		npanel.descpanel.tooltip = npanel.descpanel.tooltip .. "\n" .. tostring( structTbl.DESC )
 	end
 	for k, v in SortedPairs( structTbl ) do
-		if k == "DESC" or k == "NAME" then
+		if k == "DESC" or k == "NAME" or k == "SORTNAME" then
 			continue
 		end
 		local str
