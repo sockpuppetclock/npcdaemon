@@ -4112,6 +4112,7 @@ t_basic_values = {
             TYPE = "string",
             REQUIRED = true,
             ENUM = {
+					["AddOutput"] = "AddOutput",
                ["Ignite"] =  "Ignite",
                ["IgniteLifetime"] =  "IgniteLifetime",
                ["Break"] =  "Break" ,
@@ -4134,6 +4135,11 @@ t_basic_values = {
          ["value"] = {
             DESC = "The value to send with the command",
             TYPE = { "string", "int", "number", "boolean" },
+				ENUM = {
+					["Self"] = "!self",
+					["Nearest Visible Player or First Player"] = "!pvsplayer",
+					["First Player"] = "!player",
+				},
          },
          ["delay"] = {
             DESC = "In seconds",
