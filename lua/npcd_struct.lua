@@ -5956,6 +5956,7 @@ t_npc_class_values = {
 		},
 		["numgrenades"] = {
 			TYPE = "int",
+			FUNCTION = { "SetKeyValue", "numgrenades", "__VALUETOSTRING" },
 		},
 		["soldiertype"] = {
 			TYPE = "enum",
