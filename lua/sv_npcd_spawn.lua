@@ -21,6 +21,8 @@ end
 function OverrideTable( tbl, ovr_t, typ, lup_typ, isEnt, copy, lup )
 	if !ovr_t or not ( ovr_t["override_soft"] or ovr_t["override_hard"] ) then return nil end
 
+	local lup_os = lup and lup["override_soft"] or t_lookup[lup_typ]["override_soft"]
+	local lup_oh = lup and lup["override_hard"] or t_lookup[lup_typ]["override_hard"]
 	local o_t
 	if copy then
 		o_t = {}
@@ -31,26 +33,26 @@ function OverrideTable( tbl, ovr_t, typ, lup_typ, isEnt, copy, lup )
 	end
 
 	if o_t["override_soft"] then
-		SetEntValues( nil, o_t, "override_soft", t_lookup[lup_typ]["override_soft"] )
+		SetEntValues( nil, o_t, "override_soft", lup_os )
 
 		if isEnt and o_t["override_soft"]["all"] then
-			SetEntValues( nil, o_t["override_soft"], "all", lup and lup["override_soft"].STRUCT["all"] or t_lookup[lup_typ]["override_soft"].STRUCT["all"] )
+			SetEntValues( nil, o_t["override_soft"], "all", lup_os.STRUCT["all"] )
 			OverrideValues( tbl, o_t["override_soft"]["all"], true )
 		end
 		if typ and o_t["override_soft"][typ] or o_t["override_soft"] then
-			SetEntValues( nil, o_t["override_soft"], typ, lup and lup["override_soft"].STRUCT[typ] or t_lookup[lup_typ]["override_soft"].STRUCT[typ] )
+			SetEntValues( nil, o_t["override_soft"], typ, lup_os.STRUCT[typ] )
 			OverrideValues( tbl, typ and o_t["override_soft"][typ] or o_t["override_soft"], true )
 		end
 	end
 	if o_t["override_hard"] then
-		SetEntValues( nil, o_t, "override_hard", t_lookup[lup_typ]["override_hard"] )
+		SetEntValues( nil, o_t, "override_hard", lup_oh )
 
 		if isEnt and o_t["override_hard"]["all"] then
-			SetEntValues( nil, o_t["override_hard"], "all", lup and lup["override_hard"].STRUCT["all"] or t_lookup[lup_typ]["override_hard"].STRUCT["all"] )
+			SetEntValues( nil, o_t["override_hard"], "all", lup_oh.STRUCT["all"] )
 			OverrideValues( tbl, o_t["override_hard"]["all"], nil )
 		end
 		if typ and o_t["override_hard"][typ] or o_t["override_hard"] then
-			SetEntValues( nil, o_t["override_hard"], typ, lup and lup["override_hard"].STRUCT[typ] or t_lookup[lup_typ]["override_hard"].STRUCT[typ] )
+			SetEntValues( nil, o_t["override_hard"], typ, lup_oh.STRUCT[typ] )
 			OverrideValues( tbl, typ and o_t["override_hard"][typ] or o_t["override_hard"], nil )
 		end
 	end
