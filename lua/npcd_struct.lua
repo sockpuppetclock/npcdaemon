@@ -100,12 +100,12 @@ PROFILE_SETS = {
 	["npc"] = "NPCs",
 	["player"] = "Player Presets",
 	["squad"] = "Squads",
-	["squadpool"] = "Squadpools",
+	["spawnpool"] = "Spawnpools",
 	["weapon_set"] = "Weapon Sets",
 }
 
 PROFILE_SETS_SORTED = {
-	[1] = "squadpool",
+	[1] = "spawnpool",
 	[2] = "squad",
 	[3] = "npc",
 	[4] = "entity",
@@ -121,7 +121,7 @@ PROFILE_SETS_SORTED_ABC = {
 	[4] = "npc",
 	[5] = "player",
 	[7] = "squad",
-	[6] = "squadpool",
+	[6] = "spawnpool",
 	[8] = "weapon_set",
 }
 
@@ -3604,7 +3604,12 @@ t_active_values = {
 		DESC = "Map must have nodes for this to be allowed to spawn",
 		TYPE = "boolean",
 	},
-
+	["spawn_low"] = {
+		CATEGORY = t_CAT.SPAWN,
+		NAME = "Spawn Directly on Ground",
+		DESC = "If true, the entity will spawn at the lowest possible point onto the ground. Normally, entities spawn a few units above the ground.",
+		TYPE = "boolean",
+	},
 	["spawn_ceiling"] = {
 		CATEGORY = t_CAT.SPAWN,
 		NAME = "Spawn on Ceiling",
@@ -3909,7 +3914,7 @@ t_active_values = {
 		CATEGORY = t_CAT.SPAWN,
 		NAME = "Spawn Beacon",
 		TYPE = "boolean",
-		DESC = "Sets if the radius around this entity will be considered when determining spawnpoints. When false, players will only be ignored if \"Only Use Spawn Beacons\" is enabled in the squadpool",
+		DESC = "Sets if the radius around this entity will be considered when determining spawnpoints. When false, players will only be ignored if \"Only Use Spawn Beacons\" is enabled in the spawnpool",
 	},
 }
 
@@ -6400,6 +6405,7 @@ t_squad_values = {
 	},
 	["spawnforce"] = { 
 		CATEGORY = t_CAT.PHYSICAL,
+		NAME = "Spawn Velocity",
         -- -- FUNCTION = {}, --[[ GenerateSquad() ]]
 		DESC = "Random horizontal spawn velocity",
         TYPE = "struct",
@@ -6680,7 +6686,7 @@ t_squad_values = {
 	},
 }
 
-t_squadpool_values = {
+t_spawnpool_values = {
 	["spawns"] = {
 		NAME = "Spawns",
 		DESC = "All presets that can be spawned by this pool",
@@ -6689,7 +6695,7 @@ t_squadpool_values = {
 		CATEGORY = t_CAT.REQUIRED,
 		-- -- FUNCTION = {}, --[[ Direct() ]]
 		NOFUNC = true,
-		-- DESC = "A squad can only be automatically spawned if it has a squadpool. Can be empty if used elsewhere (e.g. drop sets)",
+		-- DESC = "A squad can only be automatically spawned if it has a spawnpool. Can be empty if used elsewhere (e.g. drop sets)",
 		-- TYPE = "struct_table",
 		STRUCT = {
 			["preset"] = {
@@ -6862,13 +6868,13 @@ t_squadpool_values = {
 	},
 	["pool_spawnlimit"] = {
 		CATEGORY = t_CAT.NPCD,
-		NAME = "Squadpool Entity Limit",
+		NAME = "Spawnpool Entity Limit",
 		DESC = "Based on the sum of the pool's entities' quota weight across the entire map",
 		SORTNAME = "c",
 	},
 	["pool_squadlimit"] = {
 		CATEGORY = t_CAT.NPCD,
-		NAME = "Squadpool Squad Limit",
+		NAME = "Spawnpool Squad Limit",
 		SORTNAME = "d",
 	},
 	["minpressure"] = {
@@ -6904,7 +6910,7 @@ t_squadpool_values = {
 		TYPE = "boolean",
 		DESC = "Spawner will only choose entities with \"Spawn Beacon\" enabled to determine spawnpoints. \"Spawn Distance Hard Minimum\" in Radiuses will still check all players",	},
 	["override_hard"] = {
-		DESC = "Overwrites included values on any spawned presets from this squadpool. Entity override priority (applied last to first): Drop > Drop Set > Squadpool > Squad > Entity/NPC/Nextbot > All",
+		DESC = "Overwrites included values on any spawned presets from this spawnpool. Entity override priority (applied last to first): Drop > Drop Set > Spawnpool > Squad > Entity/NPC/Nextbot > All",
 		CATEGORY = t_CAT.OVERRIDE,
 		TYPE = "struct",
 		STRUCT = {
@@ -6939,7 +6945,7 @@ t_squadpool_values = {
 		},
 	},
 	["override_soft"] = {
-		DESC = "Only adds included values if they don't already exist on the spawned preset. Entity override priority (applied last to first): Drop > Drop Set > Squadpool > Squad > Entity/NPC/Nextbot > All",
+		DESC = "Only adds included values if they don't already exist on the spawned preset. Entity override priority (applied last to first): Drop > Drop Set > Spawnpool > Squad > Entity/NPC/Nextbot > All",
 		CATEGORY = t_CAT.OVERRIDE,
 		TYPE = "struct",
 		STRUCT = {
@@ -7405,7 +7411,7 @@ t_active_values["relationships_inward"].STRUCT["self_squad"].STRUCT["exclude"] =
 
 t_lookup = {
 	["squad"] = t_squad_values,
-	["squadpool"] = t_squadpool_values,
+	["spawnpool"] = t_spawnpool_values,
 	["npc"] = t_npc_base_values,
 	["nextbot"] = t_nextbot_base_values,
 	["entity"] = t_entity_base_values,
@@ -7460,11 +7466,11 @@ t_player_values["stress_mult"] = nil
 
 // post-inherit adjustments
 
-//squadpool
-t_squadpool_values["spawns"].STRUCT["expected"].COMPARECHANCE_MAINKEY = { "expected", "f" }
-t_squadpool_values["spawns"].STRUCT["expected"].COMPARECHANCE_TABLE = true
-t_squadpool_values["spawns"].STRUCT["expected"].COMPARECHANCE_TABLE_KEY = "preset"
-t_squadpool_values["spawns"].STRUCT["expected"].DEFAULT_SAVE = true
+//spawnpool
+t_spawnpool_values["spawns"].STRUCT["expected"].COMPARECHANCE_MAINKEY = { "expected", "f" }
+t_spawnpool_values["spawns"].STRUCT["expected"].COMPARECHANCE_TABLE = true
+t_spawnpool_values["spawns"].STRUCT["expected"].COMPARECHANCE_TABLE_KEY = "preset"
+t_spawnpool_values["spawns"].STRUCT["expected"].DEFAULT_SAVE = true
 
 // value structs
 t_value_structs["damagefilter"].STRUCT["attacker"].STRUCT["apply_values"] = {

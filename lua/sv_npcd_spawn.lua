@@ -388,8 +388,8 @@ function SpawnNPC( rq )
 	if !npc_t.entity_type then return nil end
 
 	// pool override
-	if !nopoolovr and pool != nil and Settings.squadpool[pool] then
-		OverrideTable( npc_t, Settings.squadpool[pool], npc_t.entity_type, "squadpool", true, true )
+	if !nopoolovr and pool != nil and Settings.spawnpool[pool] then
+		OverrideTable( npc_t, Settings.spawnpool[pool], npc_t.entity_type, "spawnpool", true, true )
 	end
 
 	// spawn requirements
@@ -1400,13 +1400,13 @@ function GenerateSquad( s, override2_t, pool, squadIDOvr, override3_t )
 	squadID = squadID..g_squadcount
 	squad_t["squadID"] = squadIDOvr or squadID
 
-	// squad override 1: squadpool
+	// squad override 1: spawnpool
 	// ok i've thought about and if you are going through the trouble of overriding the squad override's override
 	//  then you're probably trying to do something different so it doesn't need to be
 	//  merged so thoroughly
 	local ovr_p
-	if pool != nil and Settings.squadpool[pool] then 
-		ovr_p = OverrideTable( squad_t["values"], Settings.squadpool[pool], "squad", "squadpool", nil, true )
+	if pool != nil and Settings.spawnpool[pool] then 
+		ovr_p = OverrideTable( squad_t["values"], Settings.spawnpool[pool], "squad", "spawnpool", nil, true )
 		// returns copy of override tables
 	end
 
@@ -1477,9 +1477,9 @@ function GenerateSquad( s, override2_t, pool, squadIDOvr, override3_t )
 		// npc override 1: squad
 		OverrideTable( npcTable, squad_t["values"], npcTable.entity_type, "squad", true )
 
-		// npc override 2: squadpool
+		// npc override 2: spawnpool
 		if ovr_p then
-			OverrideTable( npcTable, ovr_p, npcTable.entity_type, "squadpool", true )
+			OverrideTable( npcTable, ovr_p, npcTable.entity_type, "spawnpool", true )
 		end
 
 		// npc override 3: drop set
@@ -1930,8 +1930,8 @@ function SpawnWeapon( a_wset, windex, pos, ang, wielder, npc_t, squad_t, pool )
 	end
 
 	// weapon set override: pool
-	if pool != nil and Settings.squadpool[pool] then --and Settings.squadpool[pool]["override"] then
-		OverrideTable( wset, Settings.squadpool[pool], "weapon_set", "squadpool", nil, true )
+	if pool != nil and Settings.spawnpool[pool] then --and Settings.spawnpool[pool]["override"] then
+		OverrideTable( wset, Settings.spawnpool[pool], "weapon_set", "spawnpool", nil, true )
 	end
 
 	if !wset["weapons"] then
@@ -1977,8 +1977,8 @@ function SpawnWeapon( a_wset, windex, pos, ang, wielder, npc_t, squad_t, pool )
 	end
 
 	// weapon override: pool
-	if pool != nil and Settings.squadpool[pool] then  --and Settings.squadpool[pool]["override"] and Settings.squadpool[pool]["override"]["weapon"] then
-		OverrideTable( wep_t, Settings.squadpool[pool], "weapon", "squadpool", nil, true )
+	if pool != nil and Settings.spawnpool[pool] then  --and Settings.spawnpool[pool]["override"] and Settings.spawnpool[pool]["override"]["weapon"] then
+		OverrideTable( wep_t, Settings.spawnpool[pool], "weapon", "spawnpool", nil, true )
 	end
 
 	wep_t.entity_type = wep_t.entity_type or "weapon"

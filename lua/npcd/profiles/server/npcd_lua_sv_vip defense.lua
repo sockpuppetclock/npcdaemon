@@ -1420,7 +1420,7 @@ npcd.CreatePreset( "squad", "Bombing Run", {
 	},
 }, profile_name )
 
-npcd.CreatePreset( "squadpool", "Enemies", {
+npcd.CreatePreset( "spawnpool", "Enemies", {
 	["VERSION"] = 20,
 	["npcd_enabled"] = true,
 	["onlybeacons"] = true,
@@ -1491,7 +1491,7 @@ npcd.CreatePreset( "squadpool", "Enemies", {
 	},
 }, profile_name )
 
-npcd.CreatePreset( "squadpool", "Bosses", {
+npcd.CreatePreset( "spawnpool", "Bosses", {
 	["VERSION"] = 20,
 	["initdelay"] = {
 		[1] = "__RAND",
@@ -1571,7 +1571,7 @@ npcd.CreatePreset( "squadpool", "Bosses", {
 	},
 }, profile_name )
 
-npcd.CreatePreset( "squadpool", "VIPs", {
+npcd.CreatePreset( "spawnpool", "VIPs", {
 	["VERSION"] = 20,
 	["pool_squadlimit"] = 1,
 	["quota_squad_min"] = 128,
@@ -1602,7 +1602,7 @@ npcd.CreatePreset( "squadpool", "VIPs", {
 	},
 }, profile_name )
 
-npcd.CreatePreset( "squadpool", "Markers", {
+npcd.CreatePreset( "spawnpool", "Markers", {
 	["VERSION"] = 20,
 	["pool_squadlimit"] = 1,
 	["quota_squad_min"] = 1,

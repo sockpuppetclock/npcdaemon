@@ -5211,7 +5211,7 @@ npcd.CreatePreset( "squad", "Elitists", {
 	},
 }, profile_name )
 
-npcd.CreatePreset( "squadpool", "Bosses", {
+npcd.CreatePreset( "spawnpool", "Bosses", {
 	["VERSION"] = 20,
 	["initdelay"] = {
 		[1] = "__RAND",
@@ -5358,7 +5358,7 @@ npcd.CreatePreset( "squadpool", "Bosses", {
 	},
 }, profile_name )
 
-npcd.CreatePreset( "squadpool", "Default", {
+npcd.CreatePreset( "spawnpool", "Default", {
 	["VERSION"] = 20,
 	["initdelay"] = 0,
 	["mindelay"] = 0,
@@ -5484,7 +5484,7 @@ npcd.CreatePreset( "squadpool", "Default", {
 	},
 }, profile_name )
 
-npcd.CreatePreset( "squadpool", "Props", {
+npcd.CreatePreset( "spawnpool", "Props", {
 	["VERSION"] = 20,
 	["initdelay"] = 0,
 	["mindelay"] = {

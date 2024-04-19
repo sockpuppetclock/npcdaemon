@@ -22,7 +22,7 @@ function PrintDirects()
 	end
 end
 
-// each squadpool is directed
+// each spawnpool is directed
 function DoDirects( quotaOverride, sqQuotaOverride, spawnLimitOverride, radiusOverride, squadLimitOverride )
 	local i = 0
 	local quotaOverride = quotaOverride or nil
@@ -37,7 +37,7 @@ function DoDirects( quotaOverride, sqQuotaOverride, spawnLimitOverride, radiusOv
 		if quotaOverride == -1 then quotad = true end
 	end
 
-	for p, sptbl in pairs( Settings.squadpool ) do
+	for p, sptbl in pairs( Settings.spawnpool ) do
 		if sptbl["npcd_enabled"] == false then
 			continue
 		end
@@ -49,7 +49,7 @@ function DoDirects( quotaOverride, sqQuotaOverride, spawnLimitOverride, radiusOv
 		
 		// value table
 		local ptbl = table.Copy(sptbl)
-		ApplyValueTable( ptbl, t_lookup["squadpool"] )
+		ApplyValueTable( ptbl, t_lookup["spawnpool"] )
 
 		if !quotad then
 			if ptbl["minpressure"] and pressure < ptbl["minpressure"] or ptbl["maxpressure"] and pressure > ptbl["maxpressure"] then
@@ -82,7 +82,7 @@ function DoDirects( quotaOverride, sqQuotaOverride, spawnLimitOverride, radiusOv
 		end
 		if debugged and (spQ or sqQ) then print("npcd > pool: ".. p .. " > fills: " .. tostring(spQ) .. ", ".. tostring(sqQ) ) end
 
-		if debugged then print("npcd > DoDirects > Squadpool "..p, ptbl["pool_spawnlimit"], ptbl["radiuslimits"] ) end
+		if debugged then print("npcd > DoDirects > Spawnpool "..p, ptbl["pool_spawnlimit"], ptbl["radiuslimits"] ) end
 
 		// direct
 		Direct(
@@ -114,11 +114,11 @@ function Direct( numQuota, numSqQuota, pool_t, mapLimit, squadLimit, RadiusTable
 
 	local mapLimit = mapLimit and ( mapLimit * ( pool_t["spawn_autoadjust"] != false and SpawnMapScale or 1 ) ) or nil // spawnlimit
 	local squadLimit = squadLimit and ( squadLimit * ( pool_t["spawn_autoadjust"] != false and SpawnMapScale or 1 ) ) or nil // squadlimit
-	local SquadPool = pool_t["spawns"] --Settings.squadpool[0]["squads"]
+	local SpawnPool = pool_t["spawns"] --Settings.spawnpool[0]["squads"]
 	local RadiusTable = RadiusTable or radiuslimits
 	local PoolFilter = PoolFilter
 
-	if table.IsEmpty( SquadPool ) then
+	if table.IsEmpty( SpawnPool ) then
 		print("npcd > Direct > NO SQUADS IN POOL")
 		return
 	end
@@ -133,12 +133,12 @@ function Direct( numQuota, numSqQuota, pool_t, mapLimit, squadLimit, RadiusTable
 	local todo_mins = {}
 
 	if pool_t.override and pool_t.override.squad then
-		SetEntValues( nil, pool_t.override, "squad", t_lookup["squadpool"]["override"].STRUCT["squad"] )
+		SetEntValues( nil, pool_t.override, "squad", t_lookup["spawnpool"]["override"].STRUCT["squad"] )
 	end
 
 	local ovr_p
 	local sq_tbls = {}
-	for k, spwn in pairs( SquadPool ) do
+	for k, spwn in pairs( SpawnPool ) do
 		if spwn.preset == nil then continue end
 		local sname = spwn.preset.name
 		local styp = spwn.preset.type
@@ -146,7 +146,7 @@ function Direct( numQuota, numSqQuota, pool_t, mapLimit, squadLimit, RadiusTable
 		if !expect or !styp or !sname or !Settings[styp] or !Settings[styp][sname] then
 			-- print(!expect, !styp, !sname, !Settings[styp], !Settings[styp] and !Settings[styp][sname] )
 			if debugged then
-				print("npcd > Direct > Squadpool spawn preset had missing values:",
+				print("npcd > Direct > Spawnpool spawn preset had missing values:",
 				expect,styp,sname,styp and Settings[styp] and Settings[styp][sname])
 			end
 			continue
@@ -171,9 +171,9 @@ function Direct( numQuota, numSqQuota, pool_t, mapLimit, squadLimit, RadiusTable
 			-- 	end
 			-- end
 			if ovr_p then
-				OverrideTable( stbl, ovr_p, "squad", "squadpool" )
+				OverrideTable( stbl, ovr_p, "squad", "spawnpool" )
 			else
-				ovr_p = OverrideTable( stbl, pool_t, "squad", "squadpool", nil, true )
+				ovr_p = OverrideTable( stbl, pool_t, "squad", "spawnpool", nil, true )
 			end
 			
 			SetEntValues( nil, stbl, "mapmax", t_lookup["squad"]["mapmax"] )
@@ -289,7 +289,7 @@ function Direct( numQuota, numSqQuota, pool_t, mapLimit, squadLimit, RadiusTable
 	local function RadTable()
 		radiuses = {}
 		for k, radtbl in pairs( table.Copy( RadiusTable ) ) do
-			ApplyValueTable( radtbl, t_lookup["squadpool"]["radiuslimits"].STRUCT )
+			ApplyValueTable( radtbl, t_lookup["spawnpool"]["radiuslimits"].STRUCT )
 
          local r_npc_lim, r_sq_lim
          // prevent double applying map scale
@@ -707,7 +707,7 @@ function Direct( numQuota, numSqQuota, pool_t, mapLimit, squadLimit, RadiusTable
 				print("npcd > Direct > DIRECTED IN: "..math.Round( CurTime()-dstime, 3 ).."s\t END: " .. reason .."\t TIME SINCE LAST/INIT: "..math.Round( last_time, 3 ) .. " / " .. cur .."\t POOL: "..(PoolFilter or "Default").."\t ITER:"..iter)
 				print("\tSPAWNED/QUOTA/LIMIT: "..spawnedcount.." / "..(entityquota or "nil").." / "..(mapLimit or "nil").."\t SQSPAWNED/SQUOTA/SQLIMIT: "..squadcount.." / "..(squadquota or "nil").." / "..(squadLimit or "nil") .. "\t DESPAWNED: "..despawnedcount ) --.."\t ONMAP/LIMIT: ".. mapCount.."("..table.Count(activeNPC)..") / "..(mapLimit or "nil").."\t SQONMAP/SQLIMIT: ".. totalsquads .." / "..(squadLimit or "nil"))
 				print("\tNODES/COOL/HOT: ".. table.Count(Nodes).. " / ".. table.Count(cold_nodes) .. " / " .. table.Count(hot_nodes) .. " | RADIUS/SPAWNSCALE: " .. math.Round( MapScale, 3 ) .. " / " .. math.Round( SpawnMapScale, 3 ) )
-				print("\tPOOL/ALL: ".. psum .." / " .. asum .. " (".. pcount .. "/" .. acount ..") | SQPOOL/SQALL: ".. totalsquads .. " / ".. mapsquadtot )
+				print("\tPOOL/ALL: ".. psum .." / " .. asum .. " (".. pcount .. "/" .. acount ..") | SQUADS/ALL: ".. totalsquads .. " / ".. mapsquadtot )
 				if !table.IsEmpty( radius_counts ) then
 					print("\tRADIUS USE COUNTS:")
 					PrintTable( radius_counts, 2 )
@@ -1379,7 +1379,7 @@ function CountSquads( sq, pool )
 	if pool then // pool count
 		return t_counts, total
 	elseif sq then
-		if istable(sq) then // table of squads, i.e. squadpool squads
+		if istable(sq) then // table of squads, i.e. spawnpool squads
 			for q in pairs(sq) do
 				if t_counts[q] then
 					q_counts[q] = t_counts[q] 

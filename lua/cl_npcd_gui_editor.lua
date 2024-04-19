@@ -943,19 +943,19 @@ function InfoPan( panel, vpanel, prof, set, prs, parentpanel )
 		infopane.name:SetContentAlignment( left > 0 and 4 or 5 )
 		top=top+infopane.name:GetTall()
 	end
-	// Edit Assigned Squadpools...
+	// Edit Assigned Spawnpools...
 
 	if POOL_SETS[set] then
-		infopane.b_sqpool = vgui.Create( "DButton", infopane )
-		infopane.b_sqpool:SetPos( left+10, top )
-		infopane.b_sqpool:SetWide( 126 )
+		infopane.b_spawnpool = vgui.Create( "DButton", infopane )
+		infopane.b_spawnpool:SetPos( left+10, top )
+		infopane.b_spawnpool:SetWide( 126 )
 
-		top = top + infopane.b_sqpool:GetTall()
+		top = top + infopane.b_spawnpool:GetTall()
 
-		infopane.b_sqpool.pools = {}
+		infopane.b_spawnpool.pools = {}
 
 		infopane.CheckPools = function( self )
-			local pools = GetSetsPresets( prof, "squadpool" )
+			local pools = GetSetsPresets( prof, "spawnpool" )
 			local squads = GetSetsPresets( prof, "squad" )
 			infopane.pools = {}
 			infopane.poolcount = 0
@@ -997,19 +997,19 @@ function InfoPan( panel, vpanel, prof, set, prs, parentpanel )
 					infopane.poolcount = infopane.poolcount + 1
 				end
 			end
-			infopane.b_sqpool:SetText( infopane.poolcount > 0 and "View Pools (".. infopane.poolcount ..")" or "View Pools" )
-			infopane.b_sqpool:SizeToContentsX( 25 )
+			infopane.b_spawnpool:SetText( infopane.poolcount > 0 and "View Pools (".. infopane.poolcount ..")" or "View Pools" )
+			infopane.b_spawnpool:SizeToContentsX( 25 )
 			infopane:Resize()
-			-- infopane.b_sqpool:SetWide( math.max( bwide, infopane.b_sqpool:GetWide(), infopane.b_sqd and infopane.b_sqd:GetWide() or 0 ) )
+			-- infopane.b_spawnpool:SetWide( math.max( bwide, infopane.b_spawnpool:GetWide(), infopane.b_sqd and infopane.b_sqd:GetWide() or 0 ) )
 			-- if infopane.b_sqd then
-			-- 	infopane.b_sqd:SetWide( math.max( bwide, infopane.b_sqpool:GetWide(), infopane.b_sqd:GetWide() ) )
+			-- 	infopane.b_sqd:SetWide( math.max( bwide, infopane.b_spawnpool:GetWide(), infopane.b_sqd:GetWide() ) )
 			-- end
 			-- if infopane.b_icon then
-			-- 	infopane.b_icon:SetWide( math.max( 126, infopane.b_sqpool:GetWide(), infopane.b_sqd and infopane.b_sqd:GetWide() or 0 ) )
+			-- 	infopane.b_icon:SetWide( math.max( 126, infopane.b_spawnpool:GetWide(), infopane.b_sqd and infopane.b_sqd:GetWide() or 0 ) )
 			-- end
 		end
 		
-		infopane.b_sqpool.OnReleased = function( self )
+		infopane.b_spawnpool.OnReleased = function( self )
 			local frame = vgui.Create( "DFrame", self )
 			frame:SetSize( winwide, 100+UI_BUTTON_H )
 			local x, y = self:LocalToScreen()
@@ -1024,14 +1024,14 @@ function InfoPan( panel, vpanel, prof, set, prs, parentpanel )
 			-- frame:ShowCloseButton( false )
 
 			local goedit = vgui.Create( "DButton", frame )
-			goedit:SetText( "Edit squadpools" )
+			goedit:SetText( "Edit spawnpools" )
 			goedit:SizeToContentsX( 25 )
 			goedit:SetPos( frame:GetWide() - goedit:GetWide(), frame:GetTall() - goedit:GetTall() )
 			goedit:SetZPos( 999 )
 			goedit:Dock( BOTTOM )
 			function goedit:OnReleased()
 				for i, line in pairs( SetsList:GetLines() ) do
-					if SetsList.data[line:GetColumnText( 1 )] == "squadpool" then
+					if SetsList.data[line:GetColumnText( 1 )] == "spawnpool" then
 						SetsList:ClearSelection()
 						SetsList:SelectItem( line )
 					end
@@ -1047,7 +1047,7 @@ function InfoPan( panel, vpanel, prof, set, prs, parentpanel )
 			local col_frac = pan:AddColumn( "Expected" ):SetWidth( frame:GetWide() * 0.3 )
 			for p_prs, p in SortedPairs( infopane.pools ) do
 				if p.included then
-					local chance_t = CompareExpected( prof, "squadpool", p_prs, "spawns" )
+					local chance_t = CompareExpected( prof, "spawnpool", p_prs, "spawns" )
 					local str
 					for k, chance in pairs( p.included ) do
 						-- PrintTable( chance_t[k] )
@@ -1063,11 +1063,11 @@ function InfoPan( panel, vpanel, prof, set, prs, parentpanel )
 
 			pan:SortByColumns( 1, true, 2 )
 			function pan:DoDoubleClick( id, line )
-				GetOrCreateValueEditor( prof, "squadpool", line:GetColumnText(1), true )
+				GetOrCreateValueEditor( prof, "spawnpool", line:GetColumnText(1), true )
 			end
 
 			if infopane.poolcount == 0 then
-				local str = Label( "This preset is currently not in any squadpool presets, and won't be automatically spawned", frame )
+				local str = Label( "This preset is currently not in any spawnpool presets, and won't be automatically spawned", frame )
 				str:DockMargin( marg, 5, marg, 5 )
 				str:Dock( BOTTOM )
 				str:SetZPos( 1 )
@@ -1082,8 +1082,8 @@ function InfoPan( panel, vpanel, prof, set, prs, parentpanel )
 			infopane.b_sqd = vgui.Create( "DButton", infopane )
 			infopane.b_sqd:SetPos( left+10, top )--140+21 )
 			infopane.b_sqd:SetText( "View Squads" )
-			infopane.b_sqd:SetWide( math.max( 126, infopane.b_sqpool:GetWide() ) )
-			infopane.b_sqpool:SetWide( math.max( infopane.b_sqpool:GetWide(), infopane.b_sqd:GetWide() ) )
+			infopane.b_sqd:SetWide( math.max( 126, infopane.b_spawnpool:GetWide() ) )
+			infopane.b_spawnpool:SetWide( math.max( infopane.b_spawnpool:GetWide(), infopane.b_sqd:GetWide() ) )
 			top = top + infopane.b_sqd:GetTall()
 
 			infopane.CheckSquads = function( self )
@@ -1123,10 +1123,10 @@ function InfoPan( panel, vpanel, prof, set, prs, parentpanel )
 				infopane.b_sqd:SetText( infopane.poolcount > 0 and "View Squads (".. infopane.squadcount ..")" or "View Squads" )
 				infopane.b_sqd:SizeToContentsX( 25 )
 				infopane:Resize()
-				-- infopane.b_sqd:SetWide( math.max( bwide, infopane.b_sqpool:GetWide(), infopane.b_sqd:GetWide() ) )
-				-- infopane.b_sqpool:SetWide( math.max( bwide, infopane.b_sqpool:GetWide(), infopane.b_sqd:GetWide() ) )
+				-- infopane.b_sqd:SetWide( math.max( bwide, infopane.b_spawnpool:GetWide(), infopane.b_sqd:GetWide() ) )
+				-- infopane.b_spawnpool:SetWide( math.max( bwide, infopane.b_spawnpool:GetWide(), infopane.b_sqd:GetWide() ) )
 				-- if infopane.b_icon then
-				-- 	infopane.b_icon:SetWide( math.max( 126, infopane.b_sqpool:GetWide(), infopane.b_sqd and infopane.b_sqd:GetWide() or 0 ) )
+				-- 	infopane.b_icon:SetWide( math.max( 126, infopane.b_spawnpool:GetWide(), infopane.b_sqd and infopane.b_sqd:GetWide() or 0 ) )
 				-- end
 			end
 
@@ -1199,12 +1199,12 @@ function InfoPan( panel, vpanel, prof, set, prs, parentpanel )
 	end
 
 	infopane.Resize = function( self )
-		local butwide = math.max( bwide, infopane.b_sqd and infopane.b_sqd:GetWide() or 0, infopane.b_sqpool and infopane.b_sqpool:GetWide() or 0 )
+		local butwide = math.max( bwide, infopane.b_sqd and infopane.b_sqd:GetWide() or 0, infopane.b_spawnpool and infopane.b_spawnpool:GetWide() or 0 )
 		if infopane.b_sqd then
 			infopane.b_sqd:SetWide( butwide )
 		end
-		if infopane.b_sqpool then
-			infopane.b_sqpool:SetWide( butwide )
+		if infopane.b_spawnpool then
+			infopane.b_spawnpool:SetWide( butwide )
 		end
 		if infopane.b_icon_edit then
 			infopane.b_icon_edit:SetWide( math.floor(butwide * 0.6) )
@@ -2111,10 +2111,10 @@ function UpdateWarning()
 		if !table.IsEmpty( GetSetsPresets( active_prof, "squad" ) ) then
 			hasnpc = true
 		end
-		local sqpools = GetSetsPresets( active_prof, "squadpool" )
-		if !table.IsEmpty( sqpools ) then
+		local spawnpools = GetSetsPresets( active_prof, "spawnpool" )
+		if !table.IsEmpty( spawnpools ) then
 			haspool = true
-			for pool, pool_t in pairs( sqpools ) do
+			for pool, pool_t in pairs( spawnpools ) do
 				if pool_t.spawns and !table.IsEmpty( pool_t.spawns ) then
 					hasspawns = true
 					break
@@ -2133,8 +2133,8 @@ function UpdateWarning()
 		local lines = 1
 		if !hasnpc then txt = txt.. "\n- Squad, NPC, Entity, or Nextbot needed" lines = lines + 1 end
 		-- if !hassquad then txt = txt.. "\n-  needed" lines = lines + 1 end
-		if !haspool then txt = txt.. "\n- Squadpool needed" lines = lines + 1 end
-		if haspool and !hasspawns then txt = txt.."\n- Squadpool spawnlists are empty" lines = lines + 1 end
+		if !haspool then txt = txt.. "\n- Spawnpool needed" lines = lines + 1 end
+		if haspool and !hasspawns then txt = txt.."\n- Spawnpool spawnlists are empty" lines = lines + 1 end
 		WarningBox.text:SetText( txt )
 		WarningBox:SetTall( 15 * lines + marg )
 	else

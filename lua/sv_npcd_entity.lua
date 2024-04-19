@@ -461,9 +461,9 @@ function OverrideEntity( ent, p_ntbl, squad_t, preset_type, preset_name, extra_o
 	if squad_t then
 		OverrideTable( npc_t, squad_t["values"], npc_t.entity_type, "squad" )
 	end
-	// npc override 2: squadpool
-	if pool != nil and Settings.squadpool[pool] then
-		OverrideTable( npc_t, Settings.squadpool[pool], npc_t.entity_type, "squadpool", true, true ) // copies override tables
+	// npc override 2: spawnpool
+	if pool != nil and Settings.spawnpool[pool] then
+		OverrideTable( npc_t, Settings.spawnpool[pool], npc_t.entity_type, "spawnpool", true, true ) // copies override tables
 	end
 
 	if istable( extra_override_hard ) then

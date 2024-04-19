@@ -122,7 +122,7 @@ function CreatePreset( typ, preset_name, args_t, profilename, onlyReturn, insert
 		if ( !pname or pname == currentProfile ) then
 			squad_times[preset_name] = nil
 		end
-	elseif typ == "squadpool" then
+	elseif typ == "spawnpool" then
 		if ( !pname or pname == currentProfile ) then
 			pool_times[preset_name] = nil
 		end
@@ -130,7 +130,7 @@ function CreatePreset( typ, preset_name, args_t, profilename, onlyReturn, insert
 			for i, tbl in pairs(insTable["spawns"]) do
 				local insvalues2 = {}
 				// defaults, invalids
-				for k, baseValTbl in pairs( t_lookup.squadpool["spawns"].STRUCT ) do
+				for k, baseValTbl in pairs( t_lookup.spawnpool["spawns"].STRUCT ) do
 					if baseValTbl.CLEAR then
 						tbl[k] = nil
 					end
@@ -230,8 +230,8 @@ function CreatePreset( typ, preset_name, args_t, profilename, onlyReturn, insert
 		updated_profiles[pname] = CurTime() //last updated time
 		profile_updated = true
 
-		-- if pname == currentProfile and ( typ == "squad" or typ == "squadpool" ) then
-		-- 	RebuildSquadpool()
+		-- if pname == currentProfile and ( typ == "squad" or typ == "spawnpool" ) then
+		-- 	RebuildSpawnpool()
 		-- end
 
 		// reset last known model bounds
@@ -262,29 +262,6 @@ function GetCharacterPresetTable( prsname )
 	end
 	return nil, nil
 end
-
--- // place squads into squadpool squad tables
--- function RebuildSquadpool( profile )
--- 	if !profile.squadpool or !profile.squad then return end
--- 	for _, ptbl in pairs( profile.squadpool ) do
--- 		ptbl["squads"] = {}
--- 	end
--- 	for prsname, prstbl in pairs( profile.squad ) do
--- 		SetEntValues( nil, prstbl, "squadpools", t_lookup["squad"]["squadpools"] )
--- 		if prstbl["squadpools"] then
--- 			for _, pt in pairs( prstbl["squadpools"] ) do
--- 				 // set default expected if missing
--- 				SetEntValues( nil, pt, "expected", t_lookup["squad"]["squadpools"].STRUCT["expected"] )
-
--- 				local p = pt["preset"] and ( istable(pt["preset"]) and pt["preset"]["name"] or isstring(pt["preset"]) and pt["preset"] )
--- 				if profile.squadpool[p] then
--- 					profile.squadpool[p]["squads"][prsname] = pt["expected"]
--- 				end
--- 			end
--- 		end
--- 	end
--- 	countupdated = true
--- end
 
 function RecursiveValueSearch(tbl, find, onfind, depth, truth)
    local d = depth or 0

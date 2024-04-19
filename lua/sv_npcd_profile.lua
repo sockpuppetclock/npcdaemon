@@ -107,7 +107,7 @@ end
 function EmptySettings()
 	return {
 		["squad"] = {},
-		["squadpool"] = {},
+		["spawnpool"] = {},
 		["npc"] = {},
 		["entity"] = {},
 		["nextbot"] = {},
@@ -120,7 +120,7 @@ end
 function DefaultSettings()
 	local newSettings = EmptySettings()
 
-	CreatePreset("squadpool", "Default", { ["pool_spawnlimit"] = 50, }, nil, nil, newSettings)
+	CreatePreset("spawnpool", "Default", { ["pool_spawnlimit"] = 50, }, nil, nil, newSettings)
 
 	return newSettings
 end

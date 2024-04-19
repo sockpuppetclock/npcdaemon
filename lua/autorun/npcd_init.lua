@@ -725,13 +725,13 @@ cvar = {
 		sort = "Quota Factor b",
 	},
 	spawn_quotaf_rawmin_spawn = {
-		v = CreateConVar("npcd_spawn_quota_raw_min_entity", 1, cf, "If squadpool has entity limit, spawn quota cannot be less than this number" ),
+		v = CreateConVar("npcd_spawn_quota_raw_min_entity", 1, cf, "If spawnpool has entity limit, spawn quota cannot be less than this number" ),
 		t = "number",
 		n = "Quota Hard Min: Entity",
 		c = "Auto-Spawner",
 	},
 	spawn_quotaf_rawmin_squad = {
-		v = CreateConVar("npcd_spawn_quota_raw_min_squad", 1, cf, "If squadpool has squad limit, squad quota cannot be less than this number" ),
+		v = CreateConVar("npcd_spawn_quota_raw_min_squad", 1, cf, "If spawnpool has squad limit, squad quota cannot be less than this number" ),
 		t = "number",
 		n = "Quota Hard Min: Squad",
 		c = "Auto-Spawner",

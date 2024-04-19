@@ -74,7 +74,7 @@ Profiles = Profiles or {} // all loaded profiles
 
 Settings = Settings or { // changes with the currently active profile
 	["squad"] = {},
-	["squadpool"] = {},
+	["spawnpool"] = {},
 	["npc"] = {},
 	["entity"] = {},
 	["nextbot"] = {},
@@ -872,9 +872,9 @@ function InformClientRoutine()
 		if CurTime() > nextinform then
 			// send spawn counts
 			if countupdated then
-				for p, ptbl in pairs( Settings.squadpool ) do
+				for p, ptbl in pairs( Settings.spawnpool ) do
 					if ptbl["npcd_enabled"] == false then continue end
-					local sqc = Settings.squadpool[p]["squads"] and select( 2, CountSquads( nil, p ) ) or 0
+					local sqc = Settings.spawnpool[p]["squads"] and select( 2, CountSquads( nil, p ) ) or 0
 					local psum, pcount = NPCMapCount( p )
 					net.Start("npcd_spawn_count")
 						net.WriteString( p )
@@ -985,7 +985,7 @@ function SendSettingsQuery( ply, updateall )
 			["entity"] = table.Count(v.entity),
 			["nextbot"] = table.Count(v.nextbot),
 			["squad"] = table.Count(v.squad),
-			["squadpool"] = table.Count(v.squadpool),
+			["spawnpool"] = table.Count(v.spawnpool),
 			["weapon_set"] = table.Count(v.weapon_set),
 		}
 
@@ -998,7 +998,7 @@ function SendSettingsQuery( ply, updateall )
 		-- 		net.WriteFloat( prof_manifest[s].entity )
 		-- 		net.WriteFloat( prof_manifest[s].nextbot )
 		-- 		net.WriteFloat( prof_manifest[s].squad )
-		-- 		net.WriteFloat( prof_manifest[s].squadpool )
+		-- 		net.WriteFloat( prof_manifest[s].spawnpool )
 		-- 		net.WriteFloat( prof_manifest[s].weapon_set )
 		-- 	net.Send(ply)
 		-- end )
@@ -1016,7 +1016,7 @@ function SendSettingsQuery( ply, updateall )
 			entity = prof_manifest[s].entity,
 			nextbot = prof_manifest[s].nextbot,
 			squad = prof_manifest[s].squad,
-			squadpool = prof_manifest[s].squadpool,
+			spawnpool = prof_manifest[s].spawnpool,
 			weapon_set = prof_manifest[s].weapon_set
 		} )
 
@@ -1047,7 +1047,7 @@ function SendSettingsQuery( ply, updateall )
 					net.WriteFloat( m.entity )
 					net.WriteFloat( m.nextbot )
 					net.WriteFloat( m.squad )
-					net.WriteFloat( m.squadpool )
+					net.WriteFloat( m.spawnpool )
 					net.WriteFloat( m.weapon_set )
 				net.Send(ply)
 			end

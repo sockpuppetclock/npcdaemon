@@ -5216,7 +5216,7 @@ npcd.QueuePostQuery( profile_name, 30, function()
 		},
 	} )
 
-	npcd.InsertPending( profile_name, "squadpool", "Bosses", {
+	npcd.InsertPending( profile_name, "spawnpool", "Bosses", {
 		["VERSION"] = 20,
 		["initdelay"] = {
 			[1] = "__RAND",
@@ -5363,7 +5363,7 @@ npcd.QueuePostQuery( profile_name, 30, function()
 		},
 	} )
 
-	npcd.InsertPending( profile_name, "squadpool", "Default", {
+	npcd.InsertPending( profile_name, "spawnpool", "Default", {
 		["VERSION"] = 20,
 		["initdelay"] = 0,
 		["mindelay"] = 0,
@@ -5489,7 +5489,7 @@ npcd.QueuePostQuery( profile_name, 30, function()
 		},
 	} )
 
-	npcd.InsertPending( profile_name, "squadpool", "Props", {
+	npcd.InsertPending( profile_name, "spawnpool", "Props", {
 		["VERSION"] = 20,
 		["initdelay"] = 0,
 		["mindelay"] = {

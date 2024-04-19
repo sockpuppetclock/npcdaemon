@@ -1029,7 +1029,7 @@ npcd.QueuePostQuery( profile_name, 30, function()
 		},
 	} )
 
-	npcd.InsertPending( profile_name, "squadpool", "Normal", {
+	npcd.InsertPending( profile_name, "spawnpool", "Normal", {
 		["VERSION"] = 20,
 		["description"] = "This pool\'s radius limits are designed to control the entity population near the player while still allowing larger counts across the entire map. Drop sets and max squad limits are applied to all squads through pool overrides.",
 		["npcd_enabled"] = true,

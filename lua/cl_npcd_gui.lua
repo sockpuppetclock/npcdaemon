@@ -125,8 +125,8 @@ MatCacheNames = {}
 
 local npcd_nodes = {}
 
-local sqpools = {}
-local tmp_sqpools = {}
+local spawnpools = {}
+local tmp_spawnpools = {}
 
 local chase_status = false
 local cl_stress
@@ -543,7 +543,7 @@ net.Receive( "npcd_settings_manifest", function()
     local c_entity = net.ReadFloat()
     local c_nextbot = net.ReadFloat()
     local c_squad = net.ReadFloat()
-    local c_squadpool = net.ReadFloat()
+    local c_spawnpool = net.ReadFloat()
     local c_weapon_set = net.ReadFloat()
 
     cl_profiles_manifest[pname] = {
@@ -553,7 +553,7 @@ net.Receive( "npcd_settings_manifest", function()
         ["entity"] = c_entity,
         ["nextbot"] = c_nextbot,
         ["squad"] = c_squad,
-        ["squadpool"] = c_squadpool,
+        ["spawnpool"] = c_spawnpool,
         ["weapon_set"] = c_weapon_set,
     }
 end)
@@ -817,7 +817,7 @@ net.Receive( "npcd_spawn_count", function()
         squadlimit = spawnlimit
     end
 
-    tmp_sqpools[pool] = {
+    tmp_spawnpools[pool] = {
         ["wcount"] = wcount,
         ["count"] = count,
         ["sqcount"] = sqcount,
@@ -829,15 +829,15 @@ net.Receive( "npcd_spawn_count", function()
 end )
 
 net.Receive( "npcd_spawn_count_end", function()
-    sqpools = tmp_sqpools
-    tmp_sqpools = {}
+    spawnpools = tmp_spawnpools
+    tmp_spawnpools = {}
 end)
 
 function ShowSquadLimits()
     local i = 0
-    -- print(table.Count(sqpools))
-    for p, ptbl in SortedPairs(sqpools) do
-        local bar_h = ScrH() * 0.1 -- * 0.75 / table.Count(sqpools)
+    -- print(table.Count(spawnpools))
+    for p, ptbl in SortedPairs(spawnpools) do
+        local bar_h = ScrH() * 0.1 -- * 0.75 / table.Count(spawnpools)
         local bar_x = ScreenScale( 10 ) + ( bar_w * i ) + ( ScreenScale(2) * i )
 		if cl_cvar.show_stress.v:GetBool() then bar_x = bar_x + stress_bar_w + ScreenScale(2) end
 
@@ -897,7 +897,7 @@ end
 function ShowStress()
 	if !cl_stress or !cl_pressure then return end
 
-	local bar_h = ScrH() * 0.1 -- * 0.75 / table.Count(sqpools)
+	local bar_h = ScrH() * 0.1 -- * 0.75 / table.Count(spawnpools)
 	local bar_x = ScreenScale( 10 )
 	local font_h = draw.GetFontHeight("DermaDefault")
 	local bar_gap = font_h / 2 + 1
@@ -1003,13 +1003,13 @@ function ShowHelpWindow()
 		[2] = "\n\n--- Quick Start For Adding New Automatic Spawns ---"
 		.. "\n\n 0. Open \"Configure Profiles\""
 		.. "\n 1. Create a squad/npc/entity/nextbot preset"
-		.. "\n 2. Edit or create a squadpool preset"
-		.. "\n 3. Add the preset you want to have spawn to the squadpool's list of spawns",
+		.. "\n 2. Edit or create a spawnpool preset"
+		.. "\n 3. Add the preset you want to have spawn to the spawnpool's list of spawns",
 
 		[3] = "\n\n--- Spawning ---"
 		.. "\n\nThe spawnmenu can be used to manually spawn presets. The right click menu has options for using the toolgun or spawning for other players."
-		.. "\n\nThe automatic spawner goes through all active squadpools, picking squads to fulfill each pool's quotas. Only the active profile is used."
-		.. "\n\nPresets must be assigned to the squadpool to be automatically spawned. That means you need a squadpool and a squad/npc/entity/nextbot preset to start automatically spawning entities."
+		.. "\n\nThe automatic spawner goes through all active spawnpools, picking presets to fulfill each pool's quotas. Only the active profile is used."
+		.. "\n\nPresets must be assigned to the spawnpool to be automatically spawned. That means you need a spawnpool and a squad/npc/entity/nextbot preset to start automatically spawning entities."
 		-- .. "\n\nThe frequency of spawns is affected by \"pressure,\" and pressure is affected by \"stress.\""
 		.. "\n\nTo help with the gameplay flow, the frequency of spawns is affected by a global \"Pressure\" value, and Pressure is affected by a player \"Stress\" value."
       .. "\n - Pressure directly determines how frequently the autospawner spawns. Pressure increases or decreases over time based on the average player Stress."
@@ -1032,8 +1032,8 @@ function ShowHelpWindow()
 		[6] = "\nValues can be restored to the original value or cleared to the nil/default value. Buttons, descriptions, and icons can be hovered over for more info."
 		.. "\n\nMake sure NPCs, Nextbots, and (other) Entities are placed in their correct preset types, otherwise errors could occur."
 		.. "\n\n\n--- Preset Types ---"
-		.. "\n\nSquadpool: The main source of spawns during autospawning. Any presets assigned to the pool will be spawned within the given radius limits around players and spawn beacons."
-		.. "Includes spawn limits and when & where things can be spawned. All squadpools are iterated through during a run of automatic spawns.",
+		.. "\n\nSpawnpool: The main source of spawns during autospawning. Any presets assigned to the pool will be spawned within the given radius limits around players and spawn beacons."
+		.. "Includes spawn limits and when & where things can be spawned. All spawnpools are iterated through during a run of automatic spawns.",
 		
 		[7] = "\nSquad: Contains any number of npc/nextbot/entity presets."
 		.. "\n\nNPC: Intended for NPC entities only. Also contains some NPC-class-specific properties."
@@ -1755,14 +1755,14 @@ function PopulateNPCDToolMenu( panel )
 			}
 			butt = true
 		elseif cat == "Auto-Spawner" then // "Spawn Routine"
-			cform:ControlHelp( "The auto-spawner spawns entities automatically around the map. When it runs, it makes a spawn quota for every squadpool and attempts to fulfill each quota using the pool's spawns list and radiuses" ):DockMargin( 0, 5, 0, 0 )
+			cform:ControlHelp( "The auto-spawner spawns entities automatically around the map. When it runs, it makes a spawn quota for every spawnpool and attempts to fulfill each quota using the pool's spawns list and radiuses" ):DockMargin( 0, 5, 0, 0 )
 			
 			all_cvar_p_t["npcd_direct"] = {
 				panel = cform:Button( "Force Spawn Routine", "npcd_direct" ),
 				permvar = "perm_spawn",
 			}
 			all_cvar_p_t["npcd_fill"] = {
-				panel = cform:Button( "Fill All Squadpools", "npcd_fill" ),
+				panel = cform:Button( "Fill All Spawnpools", "npcd_fill" ),
 				permvar = "perm_spawn",
 			}
 			butt = true

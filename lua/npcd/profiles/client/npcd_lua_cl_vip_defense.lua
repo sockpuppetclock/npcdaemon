@@ -1425,7 +1425,7 @@ npcd.QueuePostQuery( profile_name, 30, function()
 		},
 	} )
 
-	npcd.InsertPending( profile_name, "squadpool", "Enemies", {
+	npcd.InsertPending( profile_name, "spawnpool", "Enemies", {
 		["VERSION"] = 20,
 		["npcd_enabled"] = true,
 		["onlybeacons"] = true,
@@ -1496,7 +1496,7 @@ npcd.QueuePostQuery( profile_name, 30, function()
 		},
 	} )
 
-	npcd.InsertPending( profile_name, "squadpool", "Bosses", {
+	npcd.InsertPending( profile_name, "spawnpool", "Bosses", {
 		["VERSION"] = 20,
 		["initdelay"] = {
 			[1] = "__RAND",
@@ -1576,7 +1576,7 @@ npcd.QueuePostQuery( profile_name, 30, function()
 		},
 	} )
 
-	npcd.InsertPending( profile_name, "squadpool", "VIPs", {
+	npcd.InsertPending( profile_name, "spawnpool", "VIPs", {
 		["VERSION"] = 20,
 		["pool_squadlimit"] = 1,
 		["quota_squad_min"] = 128,
@@ -1607,7 +1607,7 @@ npcd.QueuePostQuery( profile_name, 30, function()
 		},
 	} )
 
-	npcd.InsertPending( profile_name, "squadpool", "Markers", {
+	npcd.InsertPending( profile_name, "spawnpool", "Markers", {
 		["VERSION"] = 20,
 		["pool_squadlimit"] = 1,
 		["quota_squad_min"] = 1,
