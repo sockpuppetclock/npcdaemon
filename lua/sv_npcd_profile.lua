@@ -312,6 +312,16 @@ function LoadProfile( f, raw, profname )
 	// fixup
 	RecursiveFixUserdata( profile )
 
+	local patched
+	// profile prepatch
+	if profile.squadpool then
+		profile.spawnpool = profile.squadpool
+		profile.squadpool = nil
+		local msg = "NPCD Profile \""..tostring(profname).."\" has been patched: Squadpools are now called \"Spawnpools\""
+		AddPatchInform( msg )
+		patched = true
+	end
+
 	if debugged then print( "npcd > LoadProfile > ", f ) end
 
 	// rebuild the hole damn thing
@@ -331,7 +341,7 @@ function LoadProfile( f, raw, profname )
 	
 	if debugged then print("npcd > Loaded profile: " .. NPCD_PROFILE_DIR .. f) end
 
-	return new_profile, ProfilePatches( new_profile, profname )
+	return new_profile, ProfilePatches( new_profile, profname ) or patched
 end
 
 function SwitchProfile( p )

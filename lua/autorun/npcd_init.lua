@@ -4,13 +4,14 @@
 module( "npcd", package.seeall )
 AddCSLuaFile()
 
-NPCD_VERSION = 50
+NPCD_VERSION = 51
 --[[
 	checkpoints:
 		1: initial release
 		15: added version numbers
 		20: squadpools->spawns profile patch
 		26: moved profiles to profiles folder
+		51: squadpool->spawnpool
 ]]
 function RandomColor( huemin, huemax, satmin, satmax, valmin, valmax )
 	local hmin = huemin or 0
