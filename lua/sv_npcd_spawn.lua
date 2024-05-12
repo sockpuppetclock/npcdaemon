@@ -430,12 +430,13 @@ function SpawnNPC( rq )
 	ResolveEntValueTable( npc, npc_t ) // do value funcs
 
    local hitpos
+	local bounds
    if npc_t.spawn_ceiling or npc_t.spawn_sky then
       local hitpos = CheckCeiling( npc:GetPos() )
       if rq.maxz then
          npc:SetPos( hitpos - rq.maxz )
       else
-         local bounds = GetOBB(npc_t, nil)
+         bounds = bounds or GetOBB(npc_t, nil)
          npc:SetPos( hitpos - bounds[1].maxz )
       end
    end
@@ -443,9 +444,22 @@ function SpawnNPC( rq )
       npc:SetPos( npc:GetPos() + npc_t.offset )
    end
    if rq.targetspawn and !hitpos then
-      local bounds = GetOBB(npc_t, nil)
+      bounds = bounds or GetOBB(npc_t, nil)
       npc:SetPos( npc:GetPos() + bounds[1].zoff )
    end
+	if npc_t.spawn_low then
+		bounds = bounds or GetOBB(npc_t, nil)
+		local htr = util.TraceHull(
+			{
+				start = npc:GetPos(),
+				endpos = npc:GetPos() - vector_up,
+				mins = bounds.mino,
+				maxs = bounds.maxo,
+				mask = MASK_NPCSOLID_BRUSHONLY,
+			}
+		)
+		npc:SetPos(htr.HitPos + bounds[1].zoff)
+	end
 
 	// prespawn misc
 	PreEntitySpawn( npc, npc_t )

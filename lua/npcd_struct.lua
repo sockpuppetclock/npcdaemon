@@ -275,6 +275,28 @@ t_empty = {
 	STRUCT = {},
 }
 
+str_entnofunc = "Entity missing function: "
+
+f_test_chase = {
+	"GetEnemy",
+	"SetEnemy",
+	"GetTarget",
+	"SetTarget",
+	"IsCurrentSchedule",
+	"SetSchedule",
+	"SetLastPosition",
+	"Disposition"
+}
+
+f_test_npcspawnflag = function(ent)
+	local pass = ent:IsNPC()
+	if (pass) then
+		return true
+	else
+		return false, "Entity is not considered an NPC, spawnflags may differ from NPC default"
+	end
+end
+
 // if keyvalue is missing data
 t_basevalue_format = {
 	-- ["npc"] = {
@@ -3606,8 +3628,8 @@ t_active_values = {
 	},
 	["spawn_low"] = {
 		CATEGORY = t_CAT.SPAWN,
-		NAME = "Spawn Directly on Ground",
-		DESC = "If true, the entity will spawn at the lowest possible point onto the ground. Normally, entities spawn a few units above the ground.",
+		NAME = "Spawn to Lowest Point",
+		DESC = "If true, the entity will spawn at the lowest possible point onto the ground. Normally, entities spawn a few units above the ground",
 		TYPE = "boolean",
 	},
 	["spawn_ceiling"] = {
@@ -4797,11 +4819,12 @@ t_basic_values = {
 	["spawnflags"] = {
 		CATEGORY = t_CAT.MISC,
 		TYPE = { "table", "int" },
+		DESC = "Sets exclusive features of an entity. Spawnflags differ depending on entity class",
 		FUNCTION = { "AddSpawnFlag", "__VALUE" },
 		TBLSTRUCT = {
 			TYPE = "int",
 		},
-		FUNCTION = { "AddSpawnFlag", "__VALUE" },
+		-- FUNCTION = { "AddSpawnFlag", "__VALUE" },
 		-- ENUM = {
 		-- 	["Do Alternate collision for this NPC (player avoidance)"] = 4096,
 		-- 	["Think outside PVS"] = 1024,
@@ -4893,7 +4916,7 @@ t_basic_values = {
 	}
 }
 
-local spawnflags_desc = "Class-specific spawnflag enums. Note for all class values that overlap with a non-class value (e.g. spawnflags): If the class-specific version is edited or the preset is saved with the class struct, the value will still be cleared when the class struct is changed or removed, even if the class-specific version wasn't used."
+local spawnflags_desc = "Sets exclusive features of an entity. Class-specific enums included. Note for all class-specific values: If a value has a class-specific version (e.g. spawnflags), that value will be cleared when the class struct is changed or removed if the class-specific version was ever touched."
 
 t_entity_base_values = {
 	["entity_type"] = {
@@ -5057,7 +5080,8 @@ t_npc_base_values = {
 		CATEGORY = t_CAT.CHASE,
 		NAME = "Chase Players",
 		DESC = "Pick a random player to chase until either dies",
-		TYPE = "boolean",         
+		TYPE = "boolean",
+		TESTFUNCTION = f_test_chase,
 	},
 
 	["chase_setenemy"] = {
@@ -5066,12 +5090,14 @@ t_npc_base_values = {
 		DESC = "The entity chosen on chase will be marked as an enemy. Some schedules need this",
 		TYPE = "boolean",  
 		DEFAULT = true,      
+		TESTFUNCTION = f_test_chase,
 	},
 	["seekout_setenemy"] = {
 		CATEGORY = t_CAT.CHASE,
 		NAME = "Set NPC Enemy On Seekout",
 		DESC = "The entity chosen on seekout will be marked as an enemy. Some schedules need this",
 		TYPE = "boolean",         
+		TESTFUNCTION = f_test_chase,
 	},
 
 	["chase_settarget"] = {
@@ -5080,12 +5106,14 @@ t_npc_base_values = {
 		DESC = "The entity chosen on chase will be marked as a target. Some schedules need this",
 		TYPE = "boolean",
 		DEFAULT = true,
+		TESTFUNCTION = f_test_chase,
 	},
 	["seekout_settarget"] = {
 		CATEGORY = t_CAT.CHASE,
 		NAME = "Set NPC Target On Seekout",
 		DESC = "The entity chosen on seekout will be marked as a target. Some schedules need this",
 		TYPE = "boolean",
+		TESTFUNCTION = f_test_chase,
 	},
 
 	["seekout_clear"] = {
@@ -5094,6 +5122,7 @@ t_npc_base_values = {
 		DESC = "Clears the seekout schedule when the NPC has a enemy or target after being sent on seekout. Conflicts with \"Set NPC Enemy/Target On Seekout\"",
 		TYPE = "boolean",
 		DEFAULT = true,
+		TESTFUNCTION = f_test_chase,
 	},
 	["seekout_clear_dmg"] = {
 		CATEGORY = t_CAT.CHASE,
@@ -5101,21 +5130,25 @@ t_npc_base_values = {
 		DESC = "Clears the seekout schedule when the NPC takes damage after being sent on seekout",
 		TYPE = "boolean",
 		DEFAULT = true,
+		TESTFUNCTION = f_test_chase,
 	},
 	["dmg_setenemy"] = {
 		CATEGORY = t_CAT.CHASE,
 		NAME = "Change Enemy On Damage",
 		TYPE = "boolean",
+		TESTFUNCTION = "SetEnemy",
 	},
 	["dmg_settarget"] = {
 		CATEGORY = t_CAT.CHASE,
 		NAME = "Change Target On Damage",
 		TYPE = "boolean",
+		TESTFUNCTION = "SetTarget",
 	},
 	["dmg_setchase"] = {
 		CATEGORY = t_CAT.CHASE,
 		NAME = "Chase Last Attacker",
 		TYPE = "boolean",
+		TESTFUNCTION = f_test_chase,
 	},
 
 	["chase_anything"] = {
@@ -5123,6 +5156,7 @@ t_npc_base_values = {
 		TYPE = "boolean",
 		NAME = "Chase Non-Players",
 		DESC = "Picks a random non-player target to chase until either dies",
+		TESTFUNCTION = f_test_chase,
 	},
 
 	["chase_preset"] = {
@@ -5139,6 +5173,7 @@ t_npc_base_values = {
 				"player",
 			},
 		},
+		TESTFUNCTION = f_test_chase,
 	},
 
 	["chase_schedule"] = {
@@ -5154,6 +5189,7 @@ t_npc_base_values = {
 			MAX = LAST_SHARED_SCHEDULE,
 			ENUM = t_enums["schedule"],
 		},
+		TESTFUNCTION = f_test_chase,
 	},
 
 	["seekout_schedule"] = {
@@ -5169,6 +5205,7 @@ t_npc_base_values = {
 			MAX = LAST_SHARED_SCHEDULE,
 			ENUM = t_enums["schedule"],
 		},
+		TESTFUNCTION = f_test_chase,
 	},
 
 	["entity_type"] = {
@@ -5191,6 +5228,7 @@ t_npc_base_values = {
 		DESC = "NPC will be forced to constantly seek out others. Cannot be interrupted",
 		-- FUNCTION = {}, -- [[ ManageSchedules() ]]
 		TYPE = "boolean",
+		TESTFUNCTION = f_test_chase,
 	},
 
 	-- ["force_sched_go"] = {
@@ -5206,6 +5244,7 @@ t_npc_base_values = {
 		NAME = "Idle Timeout",
 		DESC = "Overrides \"Idle Timeout\" ConVar (npcd Options > Scheduling). Duration before NPC is considered idle. Set to a negative to disable",
 		TYPE = "number",
+		TESTFUNCTION = f_test_chase,
 	},
 
 	["noidle"] = {
@@ -5213,6 +5252,7 @@ t_npc_base_values = {
 		NAME = "Disable Idle Seekout",
 		DESC = "If true, disables manipulating the NPC when it idles out",
 		TYPE = "boolean",
+		TESTFUNCTION = f_test_chase,
 	},
 
 	["ignoreunseenenemies"] = {
@@ -5233,6 +5273,7 @@ t_npc_base_values = {
 		NAME = "Long Visibility/Shoot",
 		DESC = "Overrides \"Long Visibility/Shoot\" spawnflag",
 		TYPE = "boolean",
+		TESTFUNCTION = f_test_npcspawnflag,
 		-- FUNCTION = {}, --[[ SpawnNPC() ]]
 	},
 
@@ -5241,6 +5282,7 @@ t_npc_base_values = {
 		NAME = "Drop Weapon On Death",
 		DESC = "Overrides \"Don't drop weapons\" spawnflag",
 		TYPE = "boolean",
+		TESTFUNCTION = f_test_npcspawnflag,
 		-- FUNCTION = {}, --[[ SpawnNPC() ]]
 	},
 
@@ -5253,6 +5295,7 @@ t_npc_base_values = {
 		MIN = 0,
 		MAX = LAST_SHARED_ACTIVITY,
 		ENUM = t_enums["activity"],
+		TESTFUNCTION = { "GetMovementActivity", "SetMovementActivity" },
 	},
 
 	["activity"] = {
@@ -5266,6 +5309,7 @@ t_npc_base_values = {
 		MAX = LAST_SHARED_ACTIVITY,
 		TYPE = { "enum", "int" },
 		ENUM = t_enums["activity"],
+		TESTFUNCTION = { "GetActivity", "SetActivity" },
 	},
 
 	["actdelay"] = {
@@ -5273,6 +5317,7 @@ t_npc_base_values = {
 		CATEGORY = t_CAT.BEHAVIOR,
 		DESC = "Delay between Force Act calls",
 		LOOKUP_REROLL = true,
+		TESTFUNCTION = { "GetActivity", "SetActivity" },
 	},
 	
 
@@ -5289,6 +5334,7 @@ t_npc_base_values = {
 		NAME = "Relationships: Outward (Self's Feelings)",
 		DESC = "Changes how this entity feels about others",
 		TYPE = "struct",
+		TESTFUNCTION = "AddEntityRelationship",
 		STRUCT = {
 			["by_class"] = {
 				TYPE = "struct_table",
@@ -5436,13 +5482,26 @@ t_npc_base_values = {
 		DESC = "Send NPC towards nearest player on spawn",
 		TYPE = "boolean",         
 		-- DEFAULT = false,
+		TESTFUNCTION = function(ent)
+			local pass = false
+			for _,f in ipairs( {"SetEnemy","SetTarget","SetLastPosition","SetSchedule"} ) do
+				if isfunction( ent[f] ) then
+					pass = true 
+				end
+			end
+			if (pass) then
+				return true
+			else
+				return false, "Missing all functions: SetEnemy, SetTarget, SetLastPosition, SetSchedule"
+			end
+		end,
 	},
 
 	["start_patrol"] = {
 		CATEGORY = t_CAT.BEHAVIOR,
 		FUNCTION = { "Fire", "StartPatrolling" },
 		NAME = "Start Patrolling",
-		DESC = "Calls NPC to patrol if available",
+		DESC = "Calls NPC to patrol if possible",
 		TYPE = "boolean", 
 		FUNCTION_REQ = true,
 		DEFAULT = true,
@@ -5452,6 +5511,7 @@ t_npc_base_values = {
 		CATEGORY = t_CAT.MISC,
 		TYPE = { "table", "int" },
 		FUNCTION = { "AddSpawnFlag", "__VALUE" },
+		DESC = "Sets exclusive features of an entity. Spawnflags differ depending on entity class. Enums may be wrong if entity is not an engine NPC",
 		TBLSTRUCT = {
 			TYPE = { "enum", "int" },
 			ENUM = {
@@ -5489,6 +5549,7 @@ t_npc_base_values = {
 			["NPC_STATE_DEAD"] = 7,
 		},
 		DEFAULT = "NPC_STATE_COMBAT",
+		TESTFUNCTION = {"GetNPCState","SetNPCState"},
 		-- DEFAULT = 3,
 	},
 
@@ -5504,6 +5565,7 @@ t_npc_base_values = {
 			["Very Good"] = WEAPON_PROFICIENCY_VERY_GOOD,
 			["Perfect"] = WEAPON_PROFICIENCY_PERFECT,
 		},
+		TESTFUNCTION = {"GetCurrentWeaponProficiency","SetCurrentWeaponProficiency"},
 	},
 
 	["weapon_set"] = {
