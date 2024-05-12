@@ -613,6 +613,13 @@ local UI_STR = {
    classstruct_in = "Class Values Included",
 }
 
+local queued_testers = {}
+local class_tests = {}
+
+function GetClassTest(class, set)
+	return class_tests[class] and class_tests[class][set] or nil
+end
+
 function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
 	local cpane = vgui.Create( "Panel", panel )
 	cpane:Dock( TOP )
@@ -625,9 +632,11 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
    cpane.prs = prs
 
    local adder = vgui.Create( "DButton", cpane )
+   local tester = vgui.Create( "DButton", cpane )
    local opts = vgui.Create( "DButton", cpane )
    -- local deffer = vgui.Create( "DCheckBoxLabel", cpane )
    cpane.adder = adder
+   cpane.tester = tester
    cpane.opts = opts
    -- cpane.deffer = deffer
    adder.cpane = cpane
@@ -636,12 +645,140 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
    adder:SetWide( math.min( cpane:GetWide() - 20, 260 ) )
    adder:SetTall( adder:GetTall() + 10 )
    adder:SetPos( math.max(0, cpane:GetWide() - adder:GetWide() + UI_BUTTON_W), 5 )
+
+	tester.cpane = cpane
+   tester:SetText("Test Usable Values")
+   tester:SetIcon("icon16/lightbulb_off.png")
+   tester:SetWide( math.min( cpane:GetWide() - 20, 260 ) )
+   tester:SetTall( tester:GetTall() + 10 )
+   tester:SetPos( math.max(0, cpane:GetWide() - tester:GetWide() + UI_BUTTON_W), adder:GetPos() )
    
    opts:SetText("")
    opts:SetIcon("icon16/table_gear.png")
    opts:SetSize(UI_ICONBUTTON_W, UI_BUTTON_H)
    opts:SetPos( adder:GetPos() - UI_BUTTON_W, 5 )
    opts:SetTall( adder:GetTall() )
+
+	tester.DoClick = function( self )
+		local values = GetPendingTbl(cpane.prof, cpane.set, cpane.prs)
+		if values then
+			local class = GetPresetName(values.classname)
+			if class != nil then
+				queued_testers[class] = queued_testers[class] or {}
+				queued_testers[class][set] = queued_testers[class][set] or {}
+				table.insert(queued_testers[class][set], self)
+				RequestEntTest(class, set)
+				// TODO: whatever i do after it receives the results
+			end
+		end
+	end
+
+	tester.RefreshValues = function( self )
+		local values = GetPendingTbl(cpane.prof, cpane.set, cpane.prs) 
+		if values then
+			local panels = GetPrsTbl(valuelist_all, cpane.prof, cpane.set, cpane.prs)
+			local class = GetPresetName(values.classname)
+			if class != nil then
+				local test = GetClassTest(class, set)
+				if test != nil then
+					self.prevTest = test
+					self:SetVisible(false)
+					for vn, pass_t in pairs(test) do
+						if panels[vn] and IsValid(panels[vn].selfpanel) then
+							panels[vn].selfpanel:SetDisabled( !pass_t[1] )
+						end
+					end
+				end
+			end
+		end
+	end
+
+	tester.TestResults = function( self )
+		self.Results = vgui.Create("DFrame")
+		self.Results:SetSize(500, 600)
+		self.Results:Center()
+		self.Results:SetTitle("Test Results")
+		self.Results:SetDraggable(true)
+		self.Results:SetSizable(true)
+		self.Results:MakePopup()
+		self.Results.list = vgui.Create("DListView",self.Results)
+		self.Results.list:SetBackgroundColor( Color( 0, 0, 0, 0 ) )
+		self.Results.list:Dock(FILL)
+		self.Results.list:SetMultiSelect(true)
+		self.Results.list.pass = self.Results.list:AddColumn("?")
+		self.Results.list.pass:SetFixedWidth(30)
+		self.Results.list.pass:SetTextAlign(5)
+		self.Results.list.name = self.Results.list:AddColumn("Value Name")
+		self.Results.list.reason = self.Results.list:AddColumn("Reason")
+		self.Results.list.reason:SetWidth(200)
+		local test = self.prevTest
+		if test then
+			local c_pass = 0
+			local c_fail = 0
+			local testkey = {}
+			for _, pass_t in pairs(test) do
+				testkey[string.lower(pass_t[3])] = pass_t
+			end
+			// insert failed first
+			for _, pass_t in SortedPairs(testkey) do
+				if pass_t[1] then continue end
+				c_fail = c_fail + 1
+				
+				local line = self.Results.list:AddLine( "Fail", pass_t[3], pass_t[2])
+				line:SetSortValue(2,string.lower(pass_t[3]))
+				line:SetTooltip("Fail | " .. pass_t[3] .. " | " .. (pass_t[2] or "..."))
+
+				for _, label in pairs(line.Columns) do
+					label:SetTextColor(Color(255, 0, 0))
+				end
+			end
+			// insert passed
+			for _, pass_t in SortedPairs(testkey) do
+				if !pass_t[1] then continue end
+				c_pass = c_pass + 1
+				
+				local line = self.Results.list:AddLine( "", pass_t[3], pass_t[2])
+				line:SetSortValue(2,string.lower(pass_t[3]))
+				line:SetTooltip("Pass | " .. pass_t[3] .. " | " .. (pass_t[2] or "..."))
+
+				for _, label in pairs(line.Columns) do
+					label:SetTextColor(Color(0, 92, 0))
+				end
+			end
+			-- self.Results.list:SortByColumn(2)
+			self.Results:SetTitle("Test Results ("..c_fail.." failed, "..c_pass.." passed)")
+		end
+
+		self.Results.list.OnRowRightClick = function( self )
+			local menu = DermaMenu()
+			menu:AddOption( "Copy selected to clipboard", function()
+				local str = ""
+				local first = true
+				for _, line in ipairs( self:GetSelected() ) do
+					if first then
+						first = nil 
+					else
+						str = str .. "\n"
+					end
+					str = str .. line:GetColumnText(1) .. "\t" .. line:GetColumnText(2) .. "\t" .. line:GetColumnText(3)
+				end
+				SetClipboardText( str )
+			end )
+			menu:Open()
+		end
+	end
+
+	tester.ClearTest = function( self )
+		local panels = GetPrsTbl(valuelist_all, cpane.prof, cpane.set, cpane.prs)
+		if self.prevTest then
+			for vn, pass_t in pairs(self.prevTest) do
+				if panels[vn] and IsValid(panels[vn].selfpanel) then
+					panels[vn].selfpanel:SetDisabled( false )
+				end
+			end
+			self.prevTest = nil
+		end
+	end
 
    cpane.AnimationThink = function( self )
 		if !IsValid( vpanel ) then
@@ -659,13 +796,15 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
          end
       end
       self.adder:SetWide( math.min( self:GetWide() - 20 - UI_BUTTON_W, 260 ) )
+      self.tester:SetWide( math.min( self:GetWide() - 20 - UI_BUTTON_W, 260 ) )
       self.adder:SetPos( math.max(0, (self:GetWide() - self.adder:GetWide() + UI_BUTTON_W/2)/2), 5 )
+      self.tester:SetPos( math.max(0, (self:GetWide() - self.tester:GetWide() + UI_BUTTON_W/2)/2), self.adder:GetPos() )
       self.opts:SetPos( self.adder:GetPos() - UI_BUTTON_W, 5 )
 	end
 
    opts.ShowDefaultsChanged = function( self )
       local ts = GetPrsTbl(valuelist_all, prof, set, prs )
-      local t_key = {}
+      local t_key = {} // case insensitive valuename sort
       for vn, v in pairs(ts) do
          t_key[vn] = string.lower(v.displayname)
       end
@@ -675,7 +814,7 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
                UnstoreValuelist(prof, set, prs, vn, nil, true)
             end
          end
-      elseif not cl_cvar.valuelist_showall.v:GetBool() then
+      elseif not cl_cvar.valuelist_showall.v:GetBool() then // hide defaults
          for vn in SortedPairsByValue(t_key) do
             if IsValid(ts[vn].selfpanel) and ts[vn].hasdefault and (!GetPendingTbl(prof, set, prs) or GetPendingTbl(prof, set, prs)[vn] == nil) then
                ts[vn].selfpanel:Remove()
@@ -695,14 +834,14 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
       for vn, v in pairs(t) do
          t_key[vn] = string.lower(v.displayname)
       end
-      if cl_cvar.valuelist_showall.v:GetBool() then
+      if cl_cvar.valuelist_showall.v:GetBool() then // reveal all
          for vn in SortedPairsByValue(t_key) do
             if ts[vn] then
                UnstoreValuelist(prof, set, prs, vn, nil, true)
             end
          end
       else
-         for vn in SortedPairsByValue(t_key) do
+         for vn in SortedPairsByValue(t_key) do // hide unchanged
             if IsValid(t[vn].selfpanel)
             and (!GetPendingTbl(prof, set, prs) or GetPendingTbl(prof, set, prs)[vn] == nil)
             and (!t[vn].hasdefault or t[vn].hasdefault and !showdefaults)
@@ -773,6 +912,10 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
                   butt:SetIsCheckable(true)
                   butt:SetChecked(true)
                end
+
+					if cpane.tester.prevTest and cpane.tester.prevTest[vn] and cpane.tester.prevTest[vn][1] == false then
+						butt:SetEnabled(false)
+					end
                
                butt.tooltip = v.displayname
                if v.structTbl.DESC then
@@ -845,7 +988,32 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
       menu:Open()
    end
 
+	tester:RefreshValues()
+
+	return cpane
 end
+
+net.Receive("npcd_test_result", function(len)
+	local class = net.ReadString()
+	local set = net.ReadString()
+	local validVals = net.ReadTable()
+
+	class_tests[class] = class_tests[class] or {}
+	class_tests[class][set] = validVals
+
+	PrintTable(queued_testers)
+
+	if queued_testers[class] and queued_testers[class][set] then
+		for _, tester in ipairs(queued_testers[class][set]) do
+			if IsValid(tester) then
+				tester:RefreshValues()
+				tester:TestResults()
+			end
+		end
+		table.Empty(queued_testers[class][set])
+	end
+
+end)
 
 function InfoPan( panel, vpanel, prof, set, prs, parentpanel )
 	local infopane = vgui.Create( "Panel", panel )
@@ -1632,6 +1800,16 @@ function FillValueListRoutine()
                         )
                         q.vpanel.values[q.valueName] = newpanel
                         vl_all[q.valueName].selfpanel = newpanel
+
+								if q.pendingTbl and q.pendingTbl.classname then
+									local class = GetPresetName(q.pendingTbl.classname)
+									local test = GetClassTest(class, q.set)
+									if test != nil then
+										if test[q.valueName] and test[q.valueName][1] == false then
+											newpanel:SetDisabled(true)
+										end
+									end
+								end
 
                         -- q.parentpanel:OnSizeChanged()
 
@@ -3146,7 +3324,7 @@ function AddTablePanel( npanel, inspanel )
 	inspanel.valuer.btns.copy = vgui.Create( "DButton", inspanel.valuer.btns )
 	inspanel.valuer.btns.copy:SetIcon( UI_ICONS.copy )
 	inspanel.valuer.btns.copy:SetText("")
-	inspanel.valuer.btns.copy:SetTooltip("Copy")
+	inspanel.valuer.btns.copy:SetTooltip("Duplicate")
 	inspanel.valuer.btns.copy:SetSize( UI_ICONBUTTON_W, UI_ICONBUTTON_W )	
 
 	inspanel.valuer.btns.swap = vgui.Create( "DButton", inspanel.valuer.btns )
@@ -3445,7 +3623,7 @@ function AddTablePanel( npanel, inspanel )
 		menu:AddOption( "Add New", function()
 			self.btns.add:OnReleased()
 		end )
-		menu:AddOption( "Copy Selected", function()
+		menu:AddOption( "Duplicate Selected", function()
 			self.btns.copy:OnReleased()
 		end )
 		local selected = inspanel.valuer.tbl:GetSelected()
@@ -6883,7 +7061,7 @@ function CreateSettingsPanel()
 	ProfileButtons.copy:Dock( LEFT )
 	ProfileButtons.copy:SetImage( UI_ICONS.copy )
 	ProfileButtons.copy:SetText( "" )
-	ProfileButtons.copy:SetToolTip( "Copy selected profile" )
+	ProfileButtons.copy:SetToolTip( "Duplicate selected profile" )
 	ProfileButtons.copy:SetSize( UI_ICONBUTTON_W, UI_ICONBUTTON_W )
 
 	ProfileButtons.rename = vgui.Create( "DButton", ProfileButtons )
@@ -7026,7 +7204,7 @@ function CreateSettingsPanel()
 		menu:AddOption( "Add new profile", function()
 			ProfileButtons.add:OnReleased()
 		end )
-		menu:AddOption( multiselect and "Copy selected profiles" or "Copy profile", function()
+		menu:AddOption( multiselect and "Duplicate selected profiles" or "Duplicate profile", function()
 			ProfileButtons.copy:OnReleased()
 		end )
 		menu:AddOption( "#spawnmenu.menu.copy", function()
@@ -7371,7 +7549,7 @@ function CreateSettingsPanel()
 	PresetsButtons.copy:SetImage( UI_ICONS.copy )
 	PresetsButtons.copy:SetText( "" )
 	PresetsButtons.copy:SetSize( UI_ICONBUTTON_W, UI_ICONBUTTON_W )
-	PresetsButtons.copy:SetToolTip( "Copy preset" )
+	PresetsButtons.copy:SetToolTip( "Duplicate preset" )
 	table.insert( pbuttons, PresetsButtons.copy )
 
 	PresetsButtons.rename = vgui.Create( "DButton", PresetsButtons.row2 )
@@ -7403,7 +7581,7 @@ function CreateSettingsPanel()
 	PresetsButtons.copymove:SetImage( UI_ICONS.copymove )
 	PresetsButtons.copymove:SetText( "" )
 	PresetsButtons.copymove:SetSize( UI_ICONBUTTON_W, UI_ICONBUTTON_W )
-	PresetsButtons.copymove:SetToolTip( "Copy preset to other profile" )
+	PresetsButtons.copymove:SetToolTip( "Duplicate preset to other profile" )
 	table.insert( pbuttons, PresetsButtons.copymove )
 
 	PresetsButtons.spawn = vgui.Create( "DButton", PresetsButtons.row2 )
@@ -7758,8 +7936,8 @@ function CreateSettingsPanel()
 				SettingsWindow,
 				x,
 				y,
-				#prslist > 1 and "Copy ".. #prslist .." presets to: "
-				or "Copy ".. fprs .." to: ",
+				#prslist > 1 and "Duplicate ".. #prslist .." presets to: "
+				or "Duplicate ".. fprs .." to: ",
 				function( prof )
 					for _, prs in ipairs( prslist ) do
 						GetPendingTbl( prof, s, prs, true )

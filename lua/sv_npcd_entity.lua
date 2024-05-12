@@ -22,6 +22,69 @@ function ApplyTmpValueTable( tmp, ent, tbl, lookup )
 	end
 end
 
+function TestEntValues( class, typ )
+	local validVals = {} // { pass, reason }
+	local ent = ents.Create( class )
+	if !IsValid(ent) or typ == nil then return validVals end
+	for vName, vTbl in pairs( t_lookup[typ] ) do
+		if vTbl.TYPE == "data" or vTbl.TYPE == "info" then continue end
+		if (vTbl.TESTFUNCTION) then
+			if ( isstring(vTbl.TESTFUNCTION) ) then
+				local pass = isfunction( ent[vTbl.TESTFUNCTION] )
+				validVals[vName] = { pass, !pass and "Missing functions: "..vTbl.TESTFUNCTION or nil }
+
+			elseif ( istable(vTbl.TESTFUNCTION) ) then
+				local missing
+				local fail
+				for _, f in ipairs( vTbl.TESTFUNCTION ) do
+					if ( !isfunction(ent[f]) ) then
+						fail = true
+						if (missing == nil) then
+							missing = "Missing functions: "..f
+						else
+							missing = missing..", "..f
+						end
+					end
+				end
+				validVals[vName] = { !fail, missing }
+
+			elseif ( isfunction(vTbl.TESTFUNCTION) ) then
+				validVals[vName] = { vTbl.TESTFUNCTION(ent) } // returns pass, reason
+			end
+		elseif (vTbl.FUNCTION) then
+			local f = vTbl.FUNCTION[1]
+			if ( isstring(f) ) then
+				local pass = isfunction( ent[f] )
+				validVals[vName] = { pass, !pass and "Missing functions: "..f or nil }
+			elseif ( isfunction(f) ) then
+				validVals[vName] = { true }
+			end
+		else // no funcs and no test
+			validVals[vName] = { true }
+		end
+
+		validVals[vName] = validVals[vName] or {}
+		validVals[vName][3] = vTbl.NAME or vName
+	end
+	ent:Remove()
+	return validVals
+end
+
+net.Receive( "npcd_test_request", function( len, ply )
+	if IsValid( ply ) and CheckClientPerm( ply, cvar.perm_prof.v:GetInt() ) then
+		local class = net.ReadString()
+		local set = net.ReadString()
+
+		local validVals = TestEntValues(class, set)
+
+		net.Start("npcd_test_result")
+			net.WriteString(class)
+			net.WriteString(set)
+			net.WriteTable(validVals)
+		net.Send(ply)
+	end
+end )
+
 // resolve function
 function GetValueFunc( given )
 	// check if tblrandom because tblrandom arg needs to be given as a table

@@ -394,7 +394,7 @@ net.Receive( "npcd_settings_send_end", function()
 	tmp_Profiles, query_erred = ReadDatastream( query_stream, totalcount )
 
 	if query_erred then
-		Error("\nError: npcd > npcd_settings_send_end > INCOMPLETE QUERY", c, totalcount,"\n\n" )
+		Error("\nError: npcd > npcd_settings_send_end > INCOMPLETE QUERY ", c, totalcount,"\n\n" )
 		cl_receiving = nil
 		timer.Simple( query_delay, function() QuerySettings( true ) end )
 		-- SettingsWindow:Close()
@@ -972,6 +972,14 @@ function QuerySettings( updateall )
 	-- 	debug.Trace()
 	-- 	print( "Query denied: ", CurTime() - lastquery > 3, !cl_receiving )
 	end
+end
+
+function RequestEntTest( class, set )
+	print(class, set)
+	net.Start("npcd_test_request")
+		net.WriteString(class)
+		net.WriteString(set)
+	net.SendToServer()
 end
 
 function ShowHelpWindow()

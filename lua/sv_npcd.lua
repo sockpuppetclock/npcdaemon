@@ -25,6 +25,9 @@ util.AddNetworkString("npcd_settings_report_end")
 util.AddNetworkString("npcd_cl_settings_query")
 util.AddNetworkString("npcd_cl_modelviewer")
 
+util.AddNetworkString("npcd_test_request")
+util.AddNetworkString("npcd_test_result")
+
 util.AddNetworkString("npcd_currentprofile")
 util.AddNetworkString("npcd_settings_manifest")
 util.AddNetworkString("npcd_settings_manifest_end")
