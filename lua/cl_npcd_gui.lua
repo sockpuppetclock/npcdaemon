@@ -1031,24 +1031,24 @@ function ShowHelpWindow()
 		.. "\n\nNPCD Options are avaiable in the options tab of the spawnmenu sidebar."
 		.. "\n\nThe profile editor lets you create profiles, presets, and edit preset values."
 		.. "\n\nProfiles allow switching between entire collections of presets. Profiles are placed in the 'garrysmod/data/npcd' folder, consider sharing your profiles!"
-		.. "\n\nProfiles actions (add/copy/remove/rename) are done in file immediately. Removed profiles are actually moved to the 'garrysmod/data/ncpd/trash' folder. Profiles are automatically saved when any pending changes are committed."
+		.. "\n\nProfiles actions (add/duplicate/remove/rename) are done in file immediately. Removed profiles are actually moved to the 'garrysmod/data/ncpd/trash' folder. Profiles are automatically saved when any pending changes are committed."
       .. "\n\nIn the profile editor, selecting a preset in the presets list opens the preset editor."
 		.. "\n\nMost values allow for different data types. The dropdown box in the bottom left of each value box allows changing between available data types."
 		.. "This includes enums (preselected values) and functions to allow randomness. Enums can be converted to their real value by changing to the real value's data type with the enum selected."
       .. "\n\nYou must submit changes for preset changes to take effect. Presets can be copied, renamed, and moved between profiles.",
 
-		[6] = "\nValues can be restored to the original value or cleared to the nil/default value. Buttons, descriptions, and icons can be hovered over for more info."
+		[6] = "\nValues can be restored to the original value or cleared to the nil/default value. Buttons, descriptions, and icons can be hovered over for more info. Right-clicking on lists often has various options."
 		.. "\n\nMake sure NPCs, Nextbots, and (other) Entities are placed in their correct preset types, otherwise errors could occur."
 		.. "\n\n\n--- Preset Types ---"
 		.. "\n\nSpawnpool: The main source of spawns during autospawning. Any presets assigned to the pool will be spawned within the given radius limits around players and spawn beacons."
 		.. "Includes spawn limits and when & where things can be spawned. All spawnpools are iterated through during a run of automatic spawns.",
 		
 		[7] = "\nSquad: Contains any number of npc/nextbot/entity presets."
-		.. "\n\nNPC: Intended for NPC entities only. Also contains some NPC-class-specific properties."
-		.. "\n\nNextBot: Intended for NextBot entities only. Can contain class-specific properties.",
+		.. "\n\nNPC: Intended for NPC entities only. Some entity classes have class-specific values."
+		.. "\n\nNextBot: Intended for NextBot entities only.",
 
-		[8] = "\nEntity: Intended for non-NPC and non-NextBot entities, like props or items. Though NPC and Nextbots can be placed in this preset type,"
-		.. "they will have less properties available to them than in their own preset types. Some default values differ from NPCs/NextBots presets, like the stress multiplier. Can contain class-specific properties."
+		[8] = "\nEntity: Intended for non-NPC/non-NextBot entities, like props or items. NPC/NextBots can be safely placed in this preset type,"
+		.. "but they may have less values available than in NPC/Nextbot preset types. Some default values differ from NPCs/NextBots presets (e.g. stress multiplier). Can contain class-specific values."
 		.. "\n\nPlayer: Allows players to have npcd entity properties applied to them on spawn or manually through the spawnmenu. When applied on spawn, the preset is chosen randomly from the available presets and can have required player conditions."
 		.. "\n\nWeapon Set: A NPC or player can be given a weapon set. By default, a single weapon from the set is picked to be given. Only applies to NPCs and players."
 		.. "\n\nDrop Set: Any entity can have a drop set containing a variety of possible things, dropped either on death or on damage.",

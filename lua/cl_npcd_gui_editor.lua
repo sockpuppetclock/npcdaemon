@@ -15,7 +15,7 @@ local showdefaults = false
 co_valuelister = nil
 
 local queued_testers = {}
-ClassTests = {
+cl_ClassTests = {
 	["npc"] = {
 		["npc_advisor"] = {},
 		["npc_alyx"] = {},
@@ -83,7 +83,7 @@ function TestAllNPC()
 end
 
 -- function GetCleanTests()
--- 	for class, sets in pairs(ClassTests) do
+-- 	for class, sets in pairs(cl_ClassTests) do
 -- 		for set, validVals in pairs(sets) do
 -- 			local fail = false
 -- 			for vn, pass_t in pairs(validVals) do
@@ -699,7 +699,7 @@ local UI_STR = {
 }
 
 function GetClassTest(class, set)
-	return ClassTests[set] and ClassTests[set][class] or nil
+	return cl_ClassTests[set] and cl_ClassTests[set][class] or nil
 end
 
 function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
@@ -778,7 +778,6 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
 				queued_testers[set][class] = queued_testers[set][class] or {}
 				table.insert(queued_testers[set][class], self)
 				RequestEntTest(class, set)
-				// TODO: whatever i do after it receives the results
 			end
 		end
 	end
@@ -1178,8 +1177,8 @@ net.Receive("npcd_test_result", function(len)
 	local set = net.ReadString()
 	local validVals = net.ReadTable()
 
-	ClassTests[set] = ClassTests[set] or {}
-	ClassTests[set][class] = validVals
+	cl_ClassTests[set] = cl_ClassTests[set] or {}
+	cl_ClassTests[set][class] = validVals
 
 	if queued_testers[set] and queued_testers[set][class] then
 		for _, tester in ipairs(queued_testers[set][class]) do

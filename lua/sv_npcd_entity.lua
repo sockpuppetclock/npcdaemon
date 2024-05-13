@@ -23,9 +23,16 @@ function ApplyTmpValueTable( tmp, ent, tbl, lookup )
 end
 
 function TestEntValues( class, typ )
+	if class == nil or typ == nil then return nil end
+	ClassTests[typ] = ClassTests[typ] or {}
+	if ClassTests[typ][class] != nil then
+		return ClassTests[typ][class]
+	end
+
 	local validVals = {} // { pass, reason }
 	local ent = ents.Create( class )
-	if !IsValid(ent) or typ == nil then return validVals end
+	if !IsValid(ent) then return nil end
+
 	for vName, vTbl in pairs( t_lookup[typ] ) do
 		if vTbl.TYPE == "data" or vTbl.TYPE == "info" then continue end
 		if (vTbl.TESTFUNCTION) then
@@ -67,6 +74,8 @@ function TestEntValues( class, typ )
 		validVals[vName][3] = vTbl.NAME or vName
 	end
 	ent:Remove()
+
+	ClassTests[typ][class] = validVals
 	return validVals
 end
 
@@ -76,6 +85,10 @@ net.Receive( "npcd_test_request", function( len, ply )
 		local set = net.ReadString()
 
 		local validVals = TestEntValues(class, set)
+
+		if validVals == nil then
+			return
+		end
 
 		net.Start("npcd_test_result")
 			net.WriteString(class)

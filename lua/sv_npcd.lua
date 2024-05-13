@@ -181,6 +181,8 @@ directQueue = {}
 spawnerQueue = {} // for spawnmenu spawns
 messageQueue = {}
 
+ClassTests = {}
+
 activeNPC = activeNPC or {} // npcd entities
 activePly = activePly or {} // player presets
 activeFade = activeFade or {} // spawn fade-ins
