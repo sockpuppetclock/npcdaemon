@@ -14,6 +14,91 @@ local showdefaults = false
 
 co_valuelister = nil
 
+local queued_testers = {}
+ClassTests = {
+	["npc"] = {
+		["npc_advisor"] = {},
+		["npc_alyx"] = {},
+		["npc_antlion"] = {},
+		["npc_antlion_worker"] = {},
+		["npc_antlionguard"] = {},
+		["npc_barnacle"] = {},
+		["npc_barney"] = {},
+		["npc_breen"] = {},
+		["npc_bullseye"] = {},
+		["npc_citizen"] = {},
+		["npc_clawscanner"] = {},
+		["npc_combine"] = {},
+		["npc_combine_camera"] = {},
+		["npc_combine_s"] = {},
+		["npc_combinedropship"] = {},
+		["npc_combinegunship"] = {},
+		["npc_crow"] = {},
+		["npc_cscanner"] = {},
+		["npc_dog"] = {},
+		["npc_eli"] = {},
+		["npc_fastzombie"] = {},
+		["npc_fastzombie_torso"] = {},
+		["npc_fisherman"] = {},
+		["npc_gman"] = {},
+		["npc_headcrab"] = {},
+		["npc_headcrab_black"] = {},
+		["npc_headcrab_fast"] = {},
+		["npc_headcrab_poison"] = {},
+		["npc_helicopter"] = {},
+		["npc_hunter"] = {},
+		["npc_ichthyosaur"] = {},
+		["npc_kleiner"] = {},
+		["npc_magnusson"] = {},
+		["npc_manhack"] = {},
+		["npc_metropolice"] = {},
+		["npc_monk"] = {},
+		["npc_mossman"] = {},
+		["npc_newnpc"] = {},
+		["npc_pigeon"] = {},
+		["npc_poisonzombie"] = {},
+		["npc_puppet"] = {},
+		["npc_rollermine"] = {},
+		["npc_seagull"] = {},
+		["npc_sniper"] = {},
+		["npc_stalker"] = {},
+		["npc_strider"] = {},
+		["npc_turret_ceiling"] = {},
+		["npc_turret_floor"] = {},
+		["npc_vortigaunt"] = {},
+		["npc_zombie"] = {},
+		["npc_zombie_torso"] = {},
+		["npc_zombine"] = {},
+	},
+}
+
+function TestAllNPC()
+	local i = 0
+	for k, v in pairs( list.Get("NPC") ) do
+		if !istable( v ) then continue end
+		local class = v.Class
+		timer.Simple(engine.TickInterval()*i, function() RequestEntTest(class,"npc") end)
+		i = i + 1
+	end
+end
+
+-- function GetCleanTests()
+-- 	for class, sets in pairs(ClassTests) do
+-- 		for set, validVals in pairs(sets) do
+-- 			local fail = false
+-- 			for vn, pass_t in pairs(validVals) do
+-- 				if !pass_t[1] then
+-- 					fail = true 
+-- 					break
+-- 				end
+-- 			end
+-- 			if !fail then
+-- 				print(class,set)
+-- 			end
+-- 		end
+-- 	end
+-- end
+
 function SettingsWindowDefaults()
 	-- print( ScreenScale(312), ScrH() * 0.75 )
 	-- return math.min( ScrW(), 780 ), ScrH() * 0.75
@@ -613,11 +698,8 @@ local UI_STR = {
    classstruct_in = "Class Values Included",
 }
 
-local queued_testers = {}
-local class_tests = {}
-
 function GetClassTest(class, set)
-	return class_tests[class] and class_tests[class][set] or nil
+	return ClassTests[set] and ClassTests[set][class] or nil
 end
 
 function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
@@ -646,12 +728,31 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
    adder:SetTall( adder:GetTall() + 10 )
    adder:SetPos( math.max(0, cpane:GetWide() - adder:GetWide() + UI_BUTTON_W), 5 )
 
+	local str_tester = "Test Usable Values"
 	tester.cpane = cpane
-   tester:SetText("Test Usable Values")
+   tester:SetText(str_tester)
    tester:SetIcon("icon16/lightbulb_off.png")
    tester:SetWide( math.min( cpane:GetWide() - 20, 260 ) )
    tester:SetTall( tester:GetTall() + 10 )
    tester:SetPos( math.max(0, cpane:GetWide() - tester:GetWide() + UI_BUTTON_W), adder:GetPos() )
+
+	tester.close = vgui.Create("DButton", tester)
+	tester.close:SetIcon("icon16/cross.png")
+	tester.close:SetText("")
+	tester.close:SetWide(UI_ICONBUTTON_W)
+	tester.close:Dock(RIGHT)
+	tester.close:DockMargin(4,4,4,4)
+	tester.close:SetVisible(false)
+
+	tester.query = vgui.Create("DButton", tester)
+	tester.query:SetIcon("icon16/information.png")
+	tester.query:SetText("")
+	tester.query:SetWide(UI_ICONBUTTON_W)
+	-- tester.query:SetTextInset(0,0)
+	tester.query:SetContentAlignment(5)
+	tester.query:Dock(RIGHT)
+	tester.query:DockMargin(4,4,0,4)
+	tester.query:SetVisible(false)
    
    opts:SetText("")
    opts:SetIcon("icon16/table_gear.png")
@@ -659,16 +760,39 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
    opts:SetPos( adder:GetPos() - UI_BUTTON_W, 5 )
    opts:SetTall( adder:GetTall() )
 
+	tester.tested = false
+
 	tester.DoClick = function( self )
+		if tester.tested then
+			tester:ShowResults()
+		else 
+			tester:RequestTest()
+		end
+	end
+	tester.RequestTest = function( self )
 		local values = GetPendingTbl(cpane.prof, cpane.set, cpane.prs)
 		if values then
 			local class = GetPresetName(values.classname)
 			if class != nil then
-				queued_testers[class] = queued_testers[class] or {}
-				queued_testers[class][set] = queued_testers[class][set] or {}
-				table.insert(queued_testers[class][set], self)
+				queued_testers[set] = queued_testers[set] or {}
+				queued_testers[set][class] = queued_testers[set][class] or {}
+				table.insert(queued_testers[set][class], self)
 				RequestEntTest(class, set)
 				// TODO: whatever i do after it receives the results
+			end
+		end
+	end
+
+	tester.Init = function(self)
+		local values = GetPendingTbl(cpane.prof, cpane.set, cpane.prs) 
+		if values then
+			local class = GetPresetName(values.classname)
+			if class != nil then
+				local test = GetClassTest(class, set)
+				if test then
+					self:SetVisible(false)
+					self:RefreshValues()
+				end
 			end
 		end
 	end
@@ -682,7 +806,6 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
 				local test = GetClassTest(class, set)
 				if test != nil then
 					self.prevTest = test
-					self:SetVisible(false)
 					for vn, pass_t in pairs(test) do
 						if panels[vn] and IsValid(panels[vn].selfpanel) then
 							panels[vn].selfpanel:SetDisabled( !pass_t[1] )
@@ -693,7 +816,38 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
 		end
 	end
 
+	tester.query.DoClick = function( self )
+		tester:ShowResults()
+	end
+	tester.close.DoClick = function( self )
+		tester:SetVisible(false)
+	end
+
 	tester.TestResults = function( self )
+		tester.tested = true
+		tester.query:SetVisible(true)
+		tester.close:SetVisible(true)
+		tester:SetIcon("icon16/lightbulb.png")
+		local passes = 0
+		local fails = 0
+		if self.prevTest then
+			for _, pass_t in pairs(self.prevTest) do
+				if pass_t[1] then
+					passes = passes + 1
+				else
+					fails = fails + 1
+				end
+			end
+			if fails == 0 then
+				tester:SetText("All values passed")
+			else
+				tester:SetText(fails.." values failed, "..passes.." passed")
+			end
+		end
+	end
+
+	tester.ShowResults = function( self )
+		self:SetVisible(false)
 		self.Results = vgui.Create("DFrame")
 		self.Results:SetSize(500, 600)
 		self.Results:Center()
@@ -769,6 +923,7 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
 	end
 
 	tester.ClearTest = function( self )
+		tester.tested = false
 		local panels = GetPrsTbl(valuelist_all, cpane.prof, cpane.set, cpane.prs)
 		if self.prevTest then
 			for vn, pass_t in pairs(self.prevTest) do
@@ -777,7 +932,16 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
 				end
 			end
 			self.prevTest = nil
+			self:SetText(str_tester)
+			self:SetIcon("icon16/lightbulb_off.png")
 		end
+		self:SetVisible(true)
+		self:RefreshValues()
+		if self.prevTest then
+			self:SetVisible(false)
+		end
+		self.query:SetVisible(false)
+		self.close:SetVisible(false)
 	end
 
    cpane.AnimationThink = function( self )
@@ -870,6 +1034,22 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
       end)
       aller:SetIsCheckable(true)
       aller:SetChecked(cl_cvar.valuelist_showall.v:GetBool())
+
+		menu:AddSpacer()
+		local resulter = menu:AddOption("Value test results...", function()
+			if tester.prevTest then
+				tester:ShowResults()
+			end
+		end)
+		if !tester.prevTest then
+			resulter:SetEnabled(false)
+		end
+
+		menu:AddOption("Force value retest", function()
+			tester:SetVisible(true)
+			tester:RequestTest()
+		end)
+
       menu:Open()
    end
 
@@ -988,7 +1168,7 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
       menu:Open()
    end
 
-	tester:RefreshValues()
+	tester:Init()
 
 	return cpane
 end
@@ -998,19 +1178,17 @@ net.Receive("npcd_test_result", function(len)
 	local set = net.ReadString()
 	local validVals = net.ReadTable()
 
-	class_tests[class] = class_tests[class] or {}
-	class_tests[class][set] = validVals
+	ClassTests[set] = ClassTests[set] or {}
+	ClassTests[set][class] = validVals
 
-	PrintTable(queued_testers)
-
-	if queued_testers[class] and queued_testers[class][set] then
-		for _, tester in ipairs(queued_testers[class][set]) do
+	if queued_testers[set] and queued_testers[set][class] then
+		for _, tester in ipairs(queued_testers[set][class]) do
 			if IsValid(tester) then
 				tester:RefreshValues()
 				tester:TestResults()
 			end
 		end
-		table.Empty(queued_testers[class][set])
+		table.Empty(queued_testers[set][class])
 	end
 
 end)
@@ -4582,6 +4760,22 @@ function AddPresetPanel( npanel, inspanel )
 
 		npanel:Update()
 
+		// update control panel tester
+		if npanel.structTbl.CANCLASS then
+			local prof, set, prs = npanel.hierarchy[1], npanel.hierarchy[2], npanel.hierarchy[3]
+			if prof == active_prof and set == active_set and prs == active_prs then
+				if ValueList.controlpane and IsValid( ValueList.controlpane.tester ) then
+					ValueList.controlpane.tester:ClearTest()
+				end
+			elseif HasPreset( ValueEditors, prof, set, prs ) then
+				local ve = HasPreset( ValueEditors, prof, set, prs )
+				if ve.ValueList.controlpane and IsValid( ve.ValueList.controlpane.tester ) then
+					ValueList.controlpane.tester:ClearTest()
+				end
+			end
+		end
+
+		// update info panel
 		if npanel.structTbl.REFRESHICON then
 			local prof, set, prs = npanel.hierarchy[1], npanel.hierarchy[2], npanel.hierarchy[3]
 			if prof == active_prof and set == active_set and prs == active_prs then
@@ -4611,6 +4805,7 @@ function AddPresetPanel( npanel, inspanel )
 			end
 		end
 
+		// update class struct
 		if clear or class != nil and inspanel.valuer.classstructed != class then
 			inspanel.valuer.ClearClassStruct()
 			if isfunction( inspanel.valuer.GetClassStruct ) then
@@ -7391,11 +7586,24 @@ function CreateSettingsPanel()
 	ClearButton = vgui.Create( "DButton", PendingButtons )
 	ClearButton:Dock( LEFT )
 	ClearButton:SetText( "Clear All" )
-	ClearButton.OnReleased = function()
-		ClearPending()
-		ClearValueEditors()
-		UpdatePresetSelection()
-		-- DeselectSettingsList()
+	ClearButton.OnReleased = function(self)
+		local x, y = input.GetCursorPos()
+		local sx, sy = SettingsWindow:LocalToScreen()
+		y = y - sy - UI_BUTTON_H/2
+		x = x - sx - self:GetWide()/2-UI_BUTTON_W-2
+
+		ConfirmPrompt(
+			SettingsWindow,
+			x,
+			y,
+			"Clear all pending?",
+			function()
+				ClearPending()
+				ClearValueEditors()
+				UpdatePresetSelection()
+				-- DeselectSettingsList()
+			end
+		)
 	end
 
 	CommitButton = vgui.Create( "DButton", PendingButtons )

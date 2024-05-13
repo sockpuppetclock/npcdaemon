@@ -975,7 +975,7 @@ function QuerySettings( updateall )
 end
 
 function RequestEntTest( class, set )
-	print(class, set)
+	print("npcd > Requesting value test: "..tostring(set)..": "..tostring(class))
 	net.Start("npcd_test_request")
 		net.WriteString(class)
 		net.WriteString(set)
