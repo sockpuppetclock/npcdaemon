@@ -3936,7 +3936,7 @@ t_active_values = {
 		CATEGORY = t_CAT.SPAWN,
 		NAME = "Spawn Beacon",
 		TYPE = "boolean",
-		DESC = "Sets if the radius around this entity will be considered when determining spawnpoints. When false, players will only be ignored if \"Only Use Spawn Beacons\" is enabled in the spawnpool",
+		DESC = "Sets if the radius around this entity will be considered when determining spawnpoints. On player presets, if false, will only ignore the player's radius if \"Only Use Spawn Beacons\" is enabled in the spawnpool preset",
 	},
 }
 

@@ -663,6 +663,7 @@ end
 local tooltip_uncatagory = {
    ["DESC"] = true,
    ["NAME"] = true,
+	["SORTNAME"] = true,
    ["CATEGORY"] = true,
    ["STRUCT"] = true,
    ["TBLSTRUCT"] = true,
@@ -672,6 +673,10 @@ local tooltip_uncatagory = {
    ["FUNCTION_GET"] = true,
    ["ENUM"] = true,
    ["ENUM_SORT"] = true,
+   ["TESTFUNCTION"] = true,
+	["REVERTVALUE"] = true,
+	["CANCLASS"] = true,
+	["NOFUNC"] = true,
 }
 
 local adder_icon = {
@@ -2755,7 +2760,8 @@ function AddValuePanel( fpanel, structTbl, typ, valueName, existingTbl, pendingT
 		npanel.descpanel.tooltip = npanel.descpanel.tooltip .. "\n" .. tostring( structTbl.DESC )
 	end
 	for k, v in SortedPairs( structTbl ) do
-		if k == "DESC" or k == "NAME" or k == "SORTNAME" then
+		//if k == "DESC" or k == "NAME" or k == "SORTNAME" then
+		if tooltip_uncatagory[k] then
 			continue
 		end
 		local str
