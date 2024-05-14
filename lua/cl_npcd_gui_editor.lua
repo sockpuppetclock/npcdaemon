@@ -733,7 +733,7 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
    adder:SetTall( adder:GetTall() + 10 )
    adder:SetPos( math.max(0, cpane:GetWide() - adder:GetWide() + UI_BUTTON_W), 5 )
 
-	local str_tester = "Test Usable Values"
+	local str_tester = "Test Compatible Values"
 	tester.cpane = cpane
    tester:SetText(str_tester)
    tester:SetIcon("icon16/lightbulb_off.png")
@@ -1049,7 +1049,7 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
 			resulter:SetEnabled(false)
 		end
 
-		menu:AddOption("Force value retest", function()
+		menu:AddOption("Retest compatible values", function()
 			tester:SetVisible(true)
 			tester:RequestTest()
 		end)
