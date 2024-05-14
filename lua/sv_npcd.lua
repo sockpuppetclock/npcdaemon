@@ -365,6 +365,10 @@ function Init()
 	// load settings
 	StartupLoad()
 
+	// client perms
+	LoadClientPerms()
+	BroadcastClientPerms()
+
 	// coroutines
 	coiter = 0
 	coiter_limit = cvar.coroutineperf.v:GetFloat()
@@ -482,7 +486,7 @@ net.Receive( "npcd_cl_cvar", function( len, ply )
 		end
 
 		if perm and !CheckClientPerm( ply, perm ) 
-		or !perm and CheckClientPerm2( ply, "settings" ) then
+		or !perm and !CheckClientPerm2( ply, "settings" ) then
 			print( "npcd > npcd_cl_cvar > ",ply, " does not have permission")
 			return
 		end
@@ -930,6 +934,23 @@ end
 -- 	playerPerms[ply:SteamID64()][action] = allow
 -- end
 
+function LoadClientPerms()
+	playerPerms = nil
+
+	local j = file.Read( NPCD_DIR.."npcd_client_perms.txt", "DATA" )
+	if j then
+		playerPerms = util.JSONToTable(j,true,true)
+	end
+
+	if playerPerms == nil then
+		playerPerms = {}
+	end
+end
+
+function SaveClientPerms()
+	file.Write( NPCD_DIR.."npcd_client_perms.txt", util.TableToJSON(playerPerms, true) )
+end
+
 function SendClientPerms( ply )
 	net.Start("npcd_perms_send")
 		net.WriteTable(playerPerms)
@@ -947,7 +968,7 @@ net.Receive( "npcd_perms_commit", function(len, ply)
 	if IsValid(ply) then
 		if ( CheckClientPerm2(ply, "settings") or ply:IsSuperAdmin() ) then
 			playerPerms = net.ReadTable()
-			-- PrintTable(playerPerms)
+			SaveClientPerms()
 			BroadcastClientPerms()
 		else
 			SendClientPerms( ply )

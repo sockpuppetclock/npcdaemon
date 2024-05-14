@@ -694,7 +694,7 @@ cvar = {
 		sort = "jSpawn Rate b",
 	},
 	think_update = {
-		v = CreateConVar("npcd_spawn_think_pressureupdate", 0, cf, "If true, update spawn rate whenever pressure changes, instead of after the next time the auto-spawner runs", 0, 1 ),
+		v = CreateConVar("npcd_spawn_think_pressureupdate", 0, cf, "If true, update spawn rate immediately when pressure changes, instead of after the next time auto-spawner run", 0, 1 ),
 		t = "boolean",
 		n = "Update With Current Pressure",
 		c = "Auto-Spawner",
@@ -1096,7 +1096,7 @@ perm_actions_cvar = {
 	["settings"] = cvar.perm_cvar,
 	["profiles"] = cvar.perm_prof,
 	["spawn_self"] = cvar.perm_spawn,
-	["spawn_other"] = cvar.perm_spawn_other,
+	["spawn_other"] = cvar.perm_spawn_others,
 }
 perm_actions_name = {
 	["settings"] = "Settings",
