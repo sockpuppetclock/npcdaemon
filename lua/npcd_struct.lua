@@ -2734,7 +2734,7 @@ t_value_structs["damagefilter"] = {
 							TYPE = "number",
 						},
 						["presets"] = {
-							DESC = "Include/exclude attacker based on their ncpd preset. Pass if any in \"include\" match, fail if any in \"exclude\" match",
+							DESC = "Include/exclude attacker based on their npcd preset. Pass if any in \"include\" match, fail if any in \"exclude\" match",
 							TYPE = "struct",
 							STRUCT = {
 								["include"] = {
@@ -2974,7 +2974,7 @@ t_value_structs["damagefilter"] = {
 							TYPE = "number",
 						},
 						["presets"] = {
-							DESC = "Include/exclude victim ncpd presets",
+							DESC = "Include/exclude victim npcd presets",
 							TYPE = "struct",
 							STRUCT = {
 								["include"] = {

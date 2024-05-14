@@ -475,7 +475,7 @@ function DeleteProfile( p )
 
 		print("npcd > TRASHED PROFILE: garrysmod/data/" .. NPCD_PROFILE_DIR .. pname .. " -> garrysmod/data/" .. trashname )
 	else
-		print("ncpd > DeleteProfile > Profile ",p," does not exist!")
+		print("npcd > DeleteProfile > Profile ",p," does not exist!")
 		return
 	end
 

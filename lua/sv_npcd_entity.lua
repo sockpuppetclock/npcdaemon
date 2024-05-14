@@ -595,7 +595,7 @@ function OverrideEntity( ent, p_ntbl, squad_t, preset_type, preset_name, extra_o
 	-- 	hadtable and hadtable["squad"] --oldsquad
 	-- )
 
-	if !IsValid( npc ) then print( "ncpd > OverrideEntity > INVALID NPC", npc ) return end
+	if !IsValid( npc ) then print( "npcd > OverrideEntity > INVALID NPC", npc ) return end
 
 	// fix negative z offset
 	local postpos = npc:GetPos()
@@ -848,7 +848,7 @@ function removeNPC(ent)
 	countupdated = true
 end
 
-hook.Add("CreateEntityRagdoll", "NCPD Remove Body", function( owner, ragdoll )
+hook.Add("CreateEntityRagdoll", "NPCD Remove Body", function( owner, ragdoll )
 	local ragdoll = ragdoll
 	if activeRag[owner:EntIndex()] then
 		if activeRag[owner:EntIndex()] == true then

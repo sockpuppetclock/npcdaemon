@@ -1592,7 +1592,7 @@ function GetValidNodes( pos, minRadius, maxRadius, nodesTbl, existing )
 		elseif istable(n) then
 			nodpos = n["pos"]
 		else
-			print("ncpd > GetValidNodes > node invalid type?", k .. " = " .. tostring(n) )
+			print("npcd > GetValidNodes > node invalid type?", k .. " = " .. tostring(n) )
 			continue 
 		end
 
