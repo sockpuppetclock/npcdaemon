@@ -317,7 +317,7 @@ function LoadProfile( f, raw, profname )
 	if profile.squadpool then
 		profile.spawnpool = profile.squadpool
 		profile.squadpool = nil
-		local msg = "NPCD Profile \""..tostring(profname).."\" has been patched: Squadpools are now called \"Spawnpools\""
+		local msg = "NPCD Profile \""..tostring(profname).."\" has been patched: \"Squadpools\" renamed to \"Spawnpools\""
 		AddPatchInform( msg )
 		patched = true
 	end
