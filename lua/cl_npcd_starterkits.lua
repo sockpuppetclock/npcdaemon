@@ -1,7 +1,7 @@
 module( "npcd", package.seeall )
 
 function GeneratedKit()
-	if !CheckClientPerm( LocalPlayer(), cvar.perm_prof.v:GetInt() ) then
+	if !CheckClientPerm2( LocalPlayer(), "profiles" ) then
 		return
 	end
 	local pname = "generated profile"

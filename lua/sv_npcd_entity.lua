@@ -80,7 +80,7 @@ function TestEntValues( class, typ )
 end
 
 net.Receive( "npcd_test_request", function( len, ply )
-	if IsValid( ply ) and CheckClientPerm( ply, cvar.perm_prof.v:GetInt() ) then
+	if IsValid( ply ) and CheckClientPerm2( ply, "profiles" ) then
 		local class = net.ReadString()
 		local set = net.ReadString()
 

@@ -1120,47 +1120,410 @@ concommand.Add( "npcd_settings_window_reset", function()
 end )
 
 concommand.Add( "npcd_fill", function( ply )
-	if CheckClientPerm( ply ) then
+	if CheckClientPerm2( ply, "settings" ) then
 		net.Start("npcd_fill")
 		net.SendToServer()
 	end
 end )
 
 concommand.Add( "npcd_clean", function( ply )
-	if CheckClientPerm( ply ) then
+	if CheckClientPerm2( ply, "settings" ) then
 		net.Start("npcd_clean")
 		net.SendToServer()
 	end
 end )
 
 concommand.Add( "npcd_direct", function( ply )
-	if CheckClientPerm( ply ) then
+	if CheckClientPerm2( ply, "settings" ) then
 		net.Start("npcd_direct")
 		net.SendToServer()
 	end
 end )
 concommand.Add( "npcd_ply_clear_history", function( ply )
-	if CheckClientPerm( ply ) then
+	if CheckClientPerm2( ply, "settings" ) then
 		net.Start("npcd_ply_clear_history")
 		net.SendToServer()
 	end
 end )
 concommand.Add( "npcd_ply_clear_history", function( ply )
-	if CheckClientPerm( ply ) then
+	if CheckClientPerm2( ply, "settings" ) then
 		net.Start("npcd_ply_revert_recheck")
 		net.SendToServer()
 	end
 end )
 concommand.Add( "npcd_profile_reload_all", function( ply )
-	if CheckClientPerm( ply ) then
+	if CheckClientPerm2( ply, "settings" ) then
 		net.Start("npcd_profile_reload_all")
 		net.SendToServer()
 	end
 end )
 
+cl_playerPerms = {}
+cl_playerPerms_pend = {}
+cl_playerPerms_send = {}
+
+function SendPermsCommit()
+	table.Empty(cl_playerPerms_send)
+	for _, p in ipairs(cl_playerPerms_pend) do
+		cl_playerPerms_send[p.id] = p.actions
+	end
+	-- PrintTable(cl_playerPerms_send)
+
+	net.Start("npcd_perms_commit")
+		net.WriteTable(cl_playerPerms_send)
+	net.SendToServer()
+end
+
+function UpdatePendingClientPerms()
+	table.Empty(cl_playerPerms_pend)
+	for i, a in SortedPairs(cl_playerPerms) do
+		table.insert(cl_playerPerms_pend, {
+			id = i,
+			actions = table.Copy(a),
+		})
+	end
+end
+
+function RequestClientPerms()
+	net.Start("npcd_perms_query")
+	net.SendToServer()
+end
+
+local PermList
+
+net.Receive("npcd_perms_send", function()
+	print("npcd > Receiving client permission list")
+	cl_playerPerms = net.ReadTable()
+	PrintTable(cl_playerPerms)
+	UpdatePendingClientPerms()
+	if IsValid(PermList) then
+		PermList:RebuildList()
+	end
+end)
+
+function GetPlayerRole( ply )
+	if !IsValid(ply) then
+		return ""
+	elseif ply:IsSuperAdmin() then
+		return "Superadmin"
+	elseif ply:IsAdmin() then
+		return "Admin"
+	elseif ply:IsPlayer() then
+		return "Client"
+	end
+end
+
+function PermEditor()
+	UpdatePendingClientPerms()
+
+	local PermWindow = vgui.Create("DFrame")
+	PermWindow:SetSize(700,500)
+	PermWindow:Center()
+	PermWindow:SetDraggable(true)
+	PermWindow:SetSizable(true)
+	PermWindow:SetMinWidth(100)
+	PermWindow:SetMinHeight(100)
+	
+	PermWindow:MakePopup()
+
+	PermList = vgui.Create("DListView", PermWindow)
+	PermList:SetBackgroundColor( Color( 0, 0, 0, 0 ) )
+	PermList:Dock(FILL)
+	PermList:SetMultiSelect(false)
+	PermList.id = PermList:AddColumn("Steam ID")
+	PermList.id:SetFixedWidth(120)
+	PermList.name = PermList:AddColumn("Name")
+	PermList.name:SetWide(100)
+	PermList.role = PermList:AddColumn("Role")
+	PermList.role:SetWide()
+	PermList:Dock(FILL)
+
+	RequestClientPerms()
+
+	local PermValues = vgui.Create( "DPanel", PermWindow )
+	PermValues:SetWide(PermWindow:GetWide())
+	PermValues:SetTall(150)
+	PermValues:Dock(BOTTOM)
+
+	PermList.columns = {}
+	PermValues.actions = {}
+	PermValues.labels = {}
+
+	local str_allow = "Allow"
+	local str_def = "Default"
+	local str_deny = "Deny"
+
+	PermList.buttons = vgui.Create("Panel", PermList)
+	PermList.buttons:SetTall(UI_BUTTON_H)
+	PermList.buttons:Dock(BOTTOM)
+
+	PermList.buttons.add = vgui.Create("DButton", PermList.buttons)
+	PermList.buttons.add:SetText("Add Player")
+	PermList.buttons.add:SetSize(UI_BUTTON_W * 3,UI_BUTTON_H)
+	PermList.buttons.add:Dock(LEFT)
+	PermList.buttons.add:DockMargin(10,0,0,0)
+
+	PermList.buttons.add.DoClick = function( self )
+		local menu = DermaMenu()
+
+			local c = 0
+			for _, p in ipairs( player.GetAll() ) do
+				local ply = p
+				local id = ply:SteamID64()
+				local skip
+
+				for _,pt in ipairs(cl_playerPerms_pend) do
+					if pt.id == id then
+						skip = true
+						break
+					end
+				end
+				if skip then continue end
+
+				menu:AddOption( tostring( ply:Name() ) .. " ["..tostring(id).."]", function()
+					local line = PermList:AddLine(id, ply:Name())
+					for k, act in ipairs(perm_actions) do
+						line:SetColumnText(2+k,tostring(nil))
+					end
+					
+					local t = { id = id, actions = {} }
+					table.insert(cl_playerPerms_pend,t)
+					PermList.buttons.commit:SetEnabled(true)
+				end )
+				c = c + 1
+			end
+			if c == 0 then
+				menu:AddOption( "[No players left]"):SetEnabled(false)
+			end
+		menu:Open()
+	end
+
+	PermList.buttons.remove = vgui.Create("DButton", PermList.buttons)
+	PermList.buttons.remove:SetText("Remove")
+	PermList.buttons.remove:SetSize(UI_BUTTON_W * 3,UI_BUTTON_H)
+	PermList.buttons.remove:Dock(LEFT)
+	PermList.buttons.remove:DockMargin(10,0,0,0)
+
+	PermList.ClearOptions = function( self )
+		if !line then
+			PermValues.entry:SetEnabled(false)
+			PermValues.entry:SetText("")
+
+			for i, act in ipairs(perm_actions) do
+				PermValues.actions[act].allow:SetEnabled(false)
+				PermValues.actions[act].def:SetEnabled(false)
+				PermValues.actions[act].deny:SetEnabled(false)
+
+				PermValues.actions[act].allow:SetChecked(false)
+				PermValues.actions[act].def:SetChecked(false)
+				PermValues.actions[act].deny:SetChecked(false)
+			end
+		end
+	end
+	PermList.buttons.remove.DoClick = function( self )
+		local k, line = PermList:GetSelectedLine()
+		if line then
+			PermList:RemoveLine(k)
+			print(k)
+			table.remove(cl_playerPerms_pend, k)
+		end
+
+		k, line = PermList:GetSelectedLine()
+
+		PermList:ClearOptions()		
+		PermList.buttons.commit:SetEnabled(true)
+		PermList:RebuildList() // necessary because line ID does not "fall" on remove
+	end
+
+	PermList.buttons.commit = vgui.Create("DButton", PermList.buttons)
+	PermList.buttons.commit:SetText("Commit Changes")
+	PermList.buttons.commit:SetSize(UI_BUTTON_W * 4,UI_BUTTON_H)
+	PermList.buttons.commit:Dock(RIGHT)
+	PermList.buttons.commit:DockMargin(0,0,10,0)
+	PermList.buttons.commit:SetEnabled(false)
+
+	PermList.buttons.commit.DoClick = function( self )
+		SendPermsCommit()
+		PermList.buttons.commit:SetEnabled(false)
+	end
+
+	PermValues.entry = vgui.Create("DTextEntry", PermValues)
+	PermValues.entry:SetEnabled(false)
+	PermValues.entry:SetPlaceholderText("Steam ID (64-bit number)")
+
+	PermValues.entry.OnChange = function( self )
+		local k, line = PermList:GetSelectedLine()
+		if line then
+			local p = cl_playerPerms_pend[k]
+			p.id = self:GetValue()
+			local ply = player.GetBySteamID64(p.id)
+			line:SetColumnText(1,p.id)
+			line:SetColumnText(2, ply and ply:Name() or "[Player not in server]")
+			line:SetColumnText(3, GetPlayerRole( ply ))
+			PermList.buttons.commit:SetEnabled(true)
+		end
+	end
+
+	PermValues.labels.allow = vgui.Create("DLabel", PermValues)
+	PermValues.labels.allow:SetText(str_allow)
+	PermValues.labels.allow:SetDark(true)
+	PermValues.labels.allow:SetContentAlignment(5)
+	PermValues.labels.allow:SizeToContents()
+	PermValues.labels.def = vgui.Create("DLabel", PermValues)
+	PermValues.labels.def:SetText(str_def)
+	PermValues.labels.def:SetDark(true)
+	PermValues.labels.def:SetContentAlignment(5)
+	PermValues.labels.def:SizeToContents()
+	PermValues.labels.deny = vgui.Create("DLabel", PermValues)
+	PermValues.labels.deny:SetText(str_deny)
+	PermValues.labels.deny:SetDark(true)
+	PermValues.labels.deny:SetContentAlignment(5)
+	PermValues.labels.deny:SizeToContents()
+
+	local lineheight = 20
+	local precolumns = 3
+	for i, act in ipairs(perm_actions) do
+		local name = perm_actions_name[act]
+		PermList.columns[act] = PermList:AddColumn(name)
+		surface.SetFont( PermValues.labels.allow:GetFont() )
+		local w = surface.GetTextSize( name )
+		PermList.columns[act]:SetFixedWidth(w+14)
+		PermValues.actions[act] = {}
+		PermValues.actions[act].label = vgui.Create("DLabel",PermValues)
+		PermValues.actions[act].label:SetText(name)
+		PermValues.actions[act].label:SetDark(true)
+		PermValues.actions[act].label:SetContentAlignment(5)
+		PermValues.actions[act].label:SizeToContents()
+
+		PermValues.actions[act].allow = vgui.Create( "DCheckBox", PermValues )
+		PermValues.actions[act].def = vgui.Create( "DCheckBox", PermValues )
+		PermValues.actions[act].deny = vgui.Create( "DCheckBox", PermValues )
+
+		PermValues.actions[act].allow.OnChange = function( self, checked )
+			PermValues.actions[act].allow:SetChecked(true)
+			PermValues.actions[act].def:SetChecked(false)
+			PermValues.actions[act].deny:SetChecked(false)
+			local k, line = PermList:GetSelectedLine()
+			if line then
+				cl_playerPerms_pend[k].actions[act] = true
+				PermList.buttons.commit:SetEnabled(true)
+				line:SetColumnText(i+precolumns,tostring(cl_playerPerms_pend[k].actions[act]))
+			end
+		end
+		PermValues.actions[act].def.OnChange = function( self, checked )
+			PermValues.actions[act].allow:SetChecked(false)
+			PermValues.actions[act].def:SetChecked(true)
+			PermValues.actions[act].deny:SetChecked(false)
+			local k, line = PermList:GetSelectedLine()
+			if line then
+				cl_playerPerms_pend[k].actions[act] = nil
+				PermList.buttons.commit:SetEnabled(true)
+				line:SetColumnText(i+precolumns,tostring(cl_playerPerms_pend[k].actions[act]))
+			end
+		end
+		PermValues.actions[act].deny.OnChange = function( self, checked )
+			PermValues.actions[act].allow:SetChecked(false)
+			PermValues.actions[act].def:SetChecked(false)
+			PermValues.actions[act].deny:SetChecked(true)
+			local k, line = PermList:GetSelectedLine()
+			if line then
+				cl_playerPerms_pend[k].actions[act] = false
+				PermList.buttons.commit:SetEnabled(true)
+				line:SetColumnText(i+precolumns,tostring(cl_playerPerms_pend[k].actions[act]))
+			end
+		end
+
+		PermValues.actions[act].allow:SetEnabled(false)
+		PermValues.actions[act].def:SetEnabled(false)
+		PermValues.actions[act].deny:SetEnabled(false)
+	end
+
+	PermWindow.OnSizeChanged = function( self )
+		if !IsValid(PermValues) then return end
+		PermValues:SetWide(PermWindow:GetWide())
+
+		PermValues.entry:SetWide(240)
+		PermValues.entry:SetPos(PermValues:GetWide()/2 - PermValues.entry:GetWide()/2,10)
+		PermValues.entry:GetTall()
+
+		local h1 = PermValues.entry:GetTall() + 10
+
+		for i, act in ipairs(perm_actions) do
+			PermValues.actions[act].label:SetPos(PermValues:GetWide()/2 - PermValues.actions[act].label:GetWide() - 30, h1+10+i*lineheight)
+			PermValues.actions[act].allow:SetPos(PermValues:GetWide()/2 - 10, h1+10+i*lineheight)
+			PermValues.actions[act].def:SetPos(PermValues:GetWide()/2 + 40, h1+10+i*lineheight)
+			PermValues.actions[act].deny:SetPos(PermValues:GetWide()/2 + 90, h1+10+i*lineheight)
+		end
+
+		surface.SetFont( PermValues.labels.allow:GetFont() )
+		local w = surface.GetTextSize( str_allow )
+		PermValues.labels.allow:SetPos(PermValues:GetWide()/2 - 10 - w/4, h1+10)
+		w = surface.GetTextSize( str_def )
+		PermValues.labels.def:SetPos(PermValues:GetWide()/2 + 40 - w/4, h1+10)
+		w = surface.GetTextSize( str_deny )
+		PermValues.labels.deny:SetPos(PermValues:GetWide()/2 + 90 - w/4, h1+10)
+	end
+
+	PermList.OnRowSelected = function( self, rowIndex, line )
+		if !line then return end
+		cl_playerPerms_pend[rowIndex] = cl_playerPerms_pend[rowIndex] or {}
+		
+		local p = cl_playerPerms_pend[rowIndex]
+		PermValues.entry:SetEnabled(true)
+		PermValues.entry:SetText(p.id or "")
+
+		p.actions = p.actions or {}
+		for i, act in ipairs(perm_actions) do
+			PermValues.actions[act].allow:SetEnabled(true)
+			PermValues.actions[act].def:SetEnabled(true)
+			PermValues.actions[act].deny:SetEnabled(true)
+
+			if p.actions[act] == true then
+				PermValues.actions[act].allow:SetChecked(true)
+				PermValues.actions[act].def:SetChecked(false)
+				PermValues.actions[act].deny:SetChecked(false)
+			elseif p.actions[act] == false then
+				PermValues.actions[act].allow:SetChecked(false)
+				PermValues.actions[act].def:SetChecked(false)
+				PermValues.actions[act].deny:SetChecked(true)
+			elseif p.actions[act] == nil then
+				PermValues.actions[act].allow:SetChecked(false)
+				PermValues.actions[act].def:SetChecked(true)
+				PermValues.actions[act].deny:SetChecked(false)
+			end
+		end
+	end
+
+	PermList.RebuildList = function( self )
+		PermList:ClearOptions()
+		for k, line in pairs(self:GetLines()) do
+			self:RemoveLine(line:GetID())
+		end
+		for i, p in ipairs(cl_playerPerms_pend) do
+			local ply = player.GetBySteamID64(p.id)
+
+			local line = self:AddLine(
+				p.id,
+				ply and ply:Name() or "[Player not in server]",
+				GetPlayerRole( ply )
+			)
+			for k, act in ipairs(perm_actions) do
+				line:SetColumnText(k+precolumns,tostring(p.actions[act]))
+			end
+		end
+		PermList:SetEnabled( CheckClientPerm2( LocalPlayer(), "settings" ) or LocalPlayer():IsSuperAdmin() )
+	end
+
+	PermList:RebuildList()
+	PermWindow:OnSizeChanged()
+	PermWindow:RequestFocus()
+end
+
+concommand.Add( "npcd_permission_edit", PermEditor ) 
+
 function RequestSpawn( prof, set, prs, target )
 	if !prof or prof != cl_currentProfile then return end
-	if target != nil and !CheckClientPerm( LocalPlayer(), cvar.perm_spawn_others.v:GetInt() ) then
+	if target != nil and !CheckClientPerm2( LocalPlayer(), "spawn_other" ) then
 		chat.AddText( RandomColor( 0, 15, 0.75, 1, 1, 1 ), "You do not have permission to spawn presets for others! Permission: " .. ( t_PERM_STR[cvar.perm_spawn_others.v:GetInt()] or "" ) )
 		return
 	end
@@ -1175,7 +1538,7 @@ end
 
 concommand.Add( "npcd_spawn",
 	function( ply, cmd, args, argstr )
-		if cl_currentProfile and CheckClientPerm( ply, cvar.perm_spawn.v:GetInt() ) then
+		if cl_currentProfile and CheckClientPerm2( ply, "spawn_self" ) then
 			RequestSpawn( cl_currentProfile, "", argstr )
 		end
 	end,
@@ -1392,7 +1755,7 @@ concommand.Add( "npcd_printout_profile_lua", function( ply )
 	for prof in pairs( cl_Profiles ) do
 		local estr = "// (CLIENT) " .. prof
 		.."\n\nif !CLIENT then return false end"
-		.."\nif !npcd.CheckClientPerm( LocalPlayer(), npcd.cvar.perm_prof.v:GetInt() ) then return false end"
+		.."\nif !npcd.CheckClientPerm2( LocalPlayer(), "profiles" ) then return false end"
 		.."\n\n// The function will insert the presets as pending changes into the given profile." --You can uncomment the commands below to switch to or create a new profile"
 		.."\n\n// Returns existing profile or creates empty profile"
 		.."\n// 1st arg: profile name, or generic name if nil."
@@ -1521,18 +1884,18 @@ end, nil, "Exports all presets in all profiles as lua functions to garrysmod/dat
 -- end, nil, "(WIP) Exports the entire datavalue struct as a lua table to garrysmod/data/export/" )
 
 concommand.Add( "npcd_generate_autoprofile", function( ply )
-	if CheckClientPerm( LocalPlayer(), cvar.perm_prof.v:GetInt() ) then
+	if CheckClientPerm2( LocalPlayer(), "profiles" ) then
 		GeneratedKit()
 	end
 end )
 concommand.Add( "npcd_generate_starterkits", function( ply )
-	if CheckClientPerm( LocalPlayer(), cvar.perm_prof.v:GetInt() ) then
+	if CheckClientPerm2( LocalPlayer(), "profiles" ) then
 		StarterKit()
 	end
 end )
 
 concommand.Add( "npcd_profile_import", function( ply )
-	if CheckClientPerm( LocalPlayer(), cvar.perm_prof.v:GetInt() ) then
+	if CheckClientPerm2( LocalPlayer(), "profiles" ) then
 		local frame = vgui.Create( "DFrame" )
 
 		frame:SetSize( 500, 300 )
@@ -1621,11 +1984,16 @@ end, nil, "Exports all profiles as json to garrysmod/data/export/" )
 function UpdateOptions()
 	for tname, p in pairs( all_cvar_p_t ) do
 		if IsValid( p.panel ) then
-			local perm = p.perm or nil
+			local perm = p.perm
 			if p.permvar then
 				perm = cvar[p.permvar].v:GetInt()
 			end
-			local allowed = CheckClientPerm( LocalPlayer(), perm )
+			local allowed
+			if perm != nil then
+				allowed = CheckClientPerm( LocalPlayer(), perm )
+			else
+				allowed = CheckClientPerm2( LocalPlayer(), "settings" )
+			end
 			local v = cvar[tname] and cvar[tname].v or nil
 
 			p.panel:SetEnabled( allowed )
@@ -1726,10 +2094,14 @@ function PopulateNPCDToolMenu( panel )
 		// buttons for categories
 		if cat == "Stress" then
 			cform:ControlHelp( "Stress is a measure of activity (damage, killing, dying, etc), and affects pressure (the rate of spawns)" ):DockMargin( 0, 5, 0, 0 )
+		elseif cat == "Enabled" then
+			all_cvar_p_t["npcd_permission_edit"] = {
+				panel = cform:Button( "Edit Player Permissions...", "npcd_permission_edit" ),
+			}
 		elseif cat == "Pressure" then
 			cform:ControlHelp( "Pressure affects how often things automatically spawn, and is constantly rising. Pressure lowers when stress is too high" ):DockMargin( 0, 5, 0, 0 )
 		elseif cat == "Profiles" then
-			all_cvar_p_t["npcd_settings_window_reset"] = {
+			all_cvar_p_t["npcd_profile_query"] = {
 				panel = cform:Button( "Query All Profiles", "npcd_profile_query" ),
 				perm = PERM_CLIENT,
 			}
@@ -1817,7 +2189,7 @@ function PopulateNPCDToolMenu( panel )
 			local help = var.v:GetHelpText()
 			local typ = var.t
 			local priv = var.v:IsFlagSet( FCVAR_REPLICATED )
-			local perm = var.p or nil // forced perm
+			local perm = var.p // forced perm
 
 			local new
 			local label
@@ -1828,7 +2200,8 @@ function PopulateNPCDToolMenu( panel )
 			catbutton:DockMargin( marg, 0, 0, 0 )
 			catbutton:SetText("")
 			catbutton.OnReleased = function( self )
-				if not CheckClientPerm( LocalPlayer(), perm ) then
+				if perm and !CheckClientPerm( LocalPlayer(), perm )
+				or !perm and CheckClientPerm2( LocalPlayer(), "settings" ) then
 					if typ == "boolean" then
 						new:SetChecked( v:GetBool() )
 					elseif typ == "number" then
@@ -1880,7 +2253,8 @@ function PopulateNPCDToolMenu( panel )
 						v:SetBool( tobool( val ) )
 						return
 					end
-					if CheckClientPerm( LocalPlayer(), perm ) then
+					if perm and !CheckClientPerm( LocalPlayer(), perm )
+					or !perm and CheckClientPerm2( LocalPlayer(), "settings" ) then
 						SendCvar( tname, val, typ )
 					else
 						new:SetChecked( v:GetBool() )
@@ -1909,7 +2283,8 @@ function PopulateNPCDToolMenu( panel )
 						return
 					end
 					
-					if CheckClientPerm( LocalPlayer(), perm ) then
+					if perm and !CheckClientPerm( LocalPlayer(), perm )
+					or !perm and CheckClientPerm2( LocalPlayer(), "settings" ) then
 						SendCvar( tname, val, typ )
 					else
 						new:SetValue( val )
@@ -1929,7 +2304,8 @@ function PopulateNPCDToolMenu( panel )
 						return
 					end
 
-					if CheckClientPerm( LocalPlayer(), perm ) then
+					if perm and !CheckClientPerm( LocalPlayer(), perm )
+					or !perm and CheckClientPerm2( LocalPlayer(), "settings" ) then
 						SendCvar( tname, val, typ )
 					else
 						new:SetValue( v:GetString() )
@@ -2024,7 +2400,7 @@ spawnmenu.AddContentType( "npcd_preset", function( container, obj_t )
 
 	icon.DoSpawn = function( self )
 		local p = cvar.perm_spawn.v:GetInt()
-		if CheckClientPerm( LocalPlayer(), p ) then
+		if CheckClientPerm2( LocalPlayer(), "spawn_self" ) then
 			if !cl_cvar.spawner_toolgunner.v:GetBool() then
 				icon:SetToolCvar()
 				RequestSpawn( cl_currentProfile, obj_t.set, obj_t.name )
@@ -2050,10 +2426,6 @@ spawnmenu.AddContentType( "npcd_preset", function( container, obj_t )
 		icon:SetAdminOnly( true )
 	end
 
-	-- if !CheckClientPerm( LocalPlayer(), cvar.perm_spawn.v:GetInt() ) then
-		-- icon:SetEnabled( false )
-	-- end
-
 	icon.OpenMenu = function( self )
 		local menu = DermaMenu()
 			menu:AddOption( "#spawnmenu.menu.copy", function()
@@ -2075,7 +2447,7 @@ spawnmenu.AddContentType( "npcd_preset", function( container, obj_t )
 			end			
 
 			menu:AddOption( "Spawn For All Players", function()
-				if CheckClientPerm( LocalPlayer(), cvar.perm_spawn_others.v:GetInt() ) then
+				if CheckClientPerm2( LocalPlayer(), "spawn_other" ) then
 					for _, ply in ipairs( player.GetAll() ) do
 						RequestSpawn( cl_currentProfile, obj_t.set, obj_t.name, ply )
 					end
@@ -2224,7 +2596,8 @@ function PANEL:AddCheckbox( text, cname, nvar )
 				return
 			end
 
-			if CheckClientPerm( LocalPlayer(), var.p or cvar.perm_cvar.v:GetInt() ) then
+			if var.p and CheckClientPerm( LocalPlayer(), var.p ) 
+			or !var.p and CheckClientPerm2( LocalPlayer(), "settings" ) then
 				SendCvar( cname, val, var.t )
 			end
 		end
@@ -2264,7 +2637,7 @@ function PANEL:Init()
 	self.profselect:Recount()
 
 	self.profselect.OnSelect = function( self, index, value )
-		if cl_currentProfile != value and CheckClientPerm( LocalPlayer(), cvar.perm_prof.v:GetInt() ) then
+		if cl_currentProfile != value and CheckClientPerm2( LocalPlayer(), "profiles" ) then
 			ClientSwitchProfile( value )
 		end
 	end

@@ -28,6 +28,10 @@ util.AddNetworkString("npcd_cl_modelviewer")
 util.AddNetworkString("npcd_test_request")
 util.AddNetworkString("npcd_test_result")
 
+util.AddNetworkString("npcd_perms_commit")
+util.AddNetworkString("npcd_perms_query")
+util.AddNetworkString("npcd_perms_send")
+
 util.AddNetworkString("npcd_currentprofile")
 util.AddNetworkString("npcd_settings_manifest")
 util.AddNetworkString("npcd_settings_manifest_end")
@@ -193,6 +197,8 @@ activeSound = activeSound or {} // for stopping looping sounds
 activeCallback = activeCallback or {} // entity callbacks
 ply_preset_deaths = {} // player killed-by-preset history
 ply_preset_hist = {} // player preset history
+
+playerPerms = {} // individual player permissions
 
 damageTakenTotals = damageTakenTotals or {} // total per entity
 damageTakenTable = damageTakenTable or {}   // all counts, per entity, keyed by CurTime()
@@ -470,34 +476,22 @@ net.Receive( "npcd_cl_cvar", function( len, ply )
 		local typ = net.ReadUInt( 4 )
 		local val
 
-		if !CheckClientPerm( ply, cvar[varname].p or nil ) then
+		local perm
+		if cvar[varname] and cvar[varname].p != nil then
+			perm = cvar[varname].p
+		end
+
+		if perm and !CheckClientPerm( ply, perm ) 
+		or !perm and CheckClientPerm2( ply, "settings" ) then
 			print( "npcd > npcd_cl_cvar > ",ply, " does not have permission")
 			return
 		end
 
 		if !netcvar_get[typ] then return end
 		local val = netcvar_get[typ]()
-		-- if typ == 1 then // boolean
-		-- 	val = net.ReadBool()
-		-- elseif typ == 2 or typ == 3 then // number, int
-		-- 	val = net.ReadFloat()
-		-- elseif typ == 4 then // string
-		-- 	val = net.ReadString()
-		-- else
-		-- 	return
-		-- end
 
 		if cvar[varname] != nil then
 			netcvar_set[typ]( cvar[varname].v, val )
-			-- if typ == 1 then // boolean
-			-- 	cvar[varname].v:SetBool( val )
-			-- elseif typ == 2 then // number
-			-- 	cvar[varname].v:SetFloat( val )
-			-- elseif typ == 3 then // int
-			-- 	cvar[varname].v:SetInt( val )
-			-- elseif typ == 4 then // string
-			-- 	cvar[varname].v:SetString( val )
-			-- end
 		end
 	else
 		print( "npcd > npcd_cl_cvar > ",ply , " is not valid")
@@ -508,70 +502,70 @@ end )
 // commands
 
 concommand.Add( "npcd_init", function( ply )
-	if CheckClientPerm( ply ) then
+	if CheckClientPerm2( ply, "settings" ) then
 		Init()
 		InitSpawns()
 	end
 end )
 net.Receive( "npcd_init", function( len, ply )
-	if CheckClientPerm( ply ) then
+	if CheckClientPerm2( ply, "settings" ) then
 		Init()
 		InitSpawns()
 	end
 end )
 
 concommand.Add( "npcd_clean", function( ply )
-	if CheckClientPerm( ply ) then
+	if CheckClientPerm2( ply, "settings" ) then
 		Cleanup( true )
 	end
 end )
 net.Receive( "npcd_clean", function( len, ply )
-	if CheckClientPerm( ply ) then
+	if CheckClientPerm2( ply, "settings" ) then
 		Cleanup( true )
 	end
 end )
 
 concommand.Add( "npcd_mapscale_check", function( ply )
-	if CheckClientPerm( ply ) then
+	if CheckClientPerm2( ply, "settings" ) then
 		CalculateMapScale()
 	end
 end )
 net.Receive( "npcd_mapscale_check", function( len, ply )
-	if CheckClientPerm( ply ) then
+	if CheckClientPerm2( ply, "settings" ) then
 		CalculateMapScale()
 	end
 end )
 
 concommand.Add( "npcd_fill", function( ply )
-	if CheckClientPerm( ply, cvar.perm_spawn.v:GetInt() ) then
+	if CheckClientPerm2( ply, "spawn_self" ) then
 		table.insert(directQueue, {-1, -1} )
 	end
 end )
 net.Receive( "npcd_fill", function( len, ply )
-	if CheckClientPerm( ply, cvar.perm_spawn.v:GetInt() ) then
+	if CheckClientPerm2( ply, "spawn_self" ) then
 		table.insert(directQueue, {-1, -1} )
 	end
 end )
 
 concommand.Add( "npcd_direct", function( ply )
-	if CheckClientPerm( ply, cvar.perm_spawn.v:GetInt() ) then
+	if CheckClientPerm2( ply, "spawn_self" ) then
 		table.insert(directQueue, {} )
 	end
 end )
 net.Receive( "npcd_direct", function( len, ply )
-	if CheckClientPerm( ply, cvar.perm_spawn.v:GetInt() ) then
+	if CheckClientPerm2( ply, "spawn_self" ) then
 		table.insert(directQueue, {} )
 	end
 end )
 
 concommand.Add( "npcd_ply_clear_history", function( ply )
-	if CheckClientPerm( ply ) then
+	if CheckClientPerm2( ply, "settings" ) then
 		ply_preset_deaths = {}
 		ply_preset_hist = {}
 	end
 end )
 net.Receive( "npcd_ply_clear_history", function( len, ply )
-	if CheckClientPerm( ply ) then
+	if CheckClientPerm2( ply, "settings" ) then
 		local str = net.ReadString()
 		ply_preset_deaths = {}
 		ply_preset_hist = {}
@@ -579,14 +573,14 @@ net.Receive( "npcd_ply_clear_history", function( len, ply )
 end )
 
 concommand.Add( "npcd_ply_revert_recheck", function( ply )
-	if CheckClientPerm( ply ) then
+	if CheckClientPerm2( ply, "settings" ) then
 		for _, p in ipairs( player.GetAll() ) do
 			GetRevertValues( p, true )
 		end
 	end
 end )
 net.Receive( "npcd_ply_revert_recheck", function( len, ply )
-	if CheckClientPerm( ply ) then
+	if CheckClientPerm2( ply, "settings" ) then
 		for _, p in ipairs( player.GetAll() ) do
 			GetRevertValues( p, true )
 		end
@@ -594,7 +588,7 @@ net.Receive( "npcd_ply_revert_recheck", function( len, ply )
 end )
 
 net.Receive( "npcd_spawn", function( len, ply )
-	if CheckClientPerm( ply, cvar.perm_spawn.v:GetInt() ) then
+	if CheckClientPerm2( ply, "spawn_self" ) then
 		local prof = net.ReadString()
 		local typ = net.ReadString()
 		local str = net.ReadString()
@@ -616,7 +610,7 @@ net.Receive( "npcd_spawn", function( len, ply )
 			return
 		end
 		
-		if !CheckClientPerm( ply, cvar.perm_spawn.v:GetInt() ) and targ != ply then
+		if !CheckClientPerm2( ply, "spawn_self" ) and targ != ply then
 			net.Start( "npcd_announce" )
 				net.WriteString( "You do not have permission to spawn presets on other players!" )
 				net.WriteColor( RandomColor( 0, 15, 0.75, 1, 1, 1 ) )
@@ -845,10 +839,13 @@ end
 
 // client inform stuff
 
+// player initial ready
 net.Receive("npcd_cl_ready", function( len, ply )
 	if IsValid(ply) and ply:IsPlayer() then
 		ply.npcd_stress = 0
 		countupdated = true
+		
+		SendClientPerms( ply )
 		SendSettingsQuery( ply, true )
 		SendPrecachedEffects( ply )
 		if b_FirstRun then
@@ -927,6 +924,41 @@ function InformClientRoutine()
 		end
 	end
 end
+
+-- function EditPlayerPerm( ply, action, allow )
+-- 	playerPerms[ply:SteamID64()] = playerPerms[ply:SteamID64()] or {}
+-- 	playerPerms[ply:SteamID64()][action] = allow
+-- end
+
+function SendClientPerms( ply )
+	net.Start("npcd_perms_send")
+		net.WriteTable(playerPerms)
+	net.Send(ply)
+end
+
+function BroadcastClientPerms()
+	net.Start("npcd_perms_send")
+		net.WriteTable(playerPerms)
+	net.Broadcast()
+end
+
+net.Receive( "npcd_perms_commit", function(len, ply)
+	print("npcd > Pending client permission list from "..tostring(ply))
+	if IsValid(ply) then
+		if ( CheckClientPerm2(ply, "settings") or ply:IsSuperAdmin() ) then
+			playerPerms = net.ReadTable()
+			-- PrintTable(playerPerms)
+			BroadcastClientPerms()
+		else
+			SendClientPerms( ply )
+		end
+	end
+end)
+net.Receive( "npcd_perms_query", function(len, ply)
+	if IsValid(ply) then
+		SendClientPerms( ply )
+	end
+end)
 
 modelview_funcs = {
 	["material"] = function( ent, path )
@@ -1112,7 +1144,7 @@ end)
 // client commit stuff
 
 net.Receive( "npcd_cl_settings_act", function( len, ply )
-	if IsValid(ply) and ply:IsPlayer() and CheckClientPerm( ply, cvar.perm_prof.v:GetInt() ) then
+	if IsValid(ply) and ply:IsPlayer() and CheckClientPerm2( ply, "profiles" ) then
 		local act = net.ReadUInt( 5 ) // settings_acts[int] = function
 		local prof = net.ReadString()
 		local has2 = net.ReadBool()
@@ -1190,7 +1222,7 @@ net.Receive( "npcd_cl_settings_commit_end", function( len, ply )
 			for prsname, prstbl in pairs( commit_tbl[prof][set] ) do
 				print("npcd > npcd_cl_settings_commit > Received from ",ply,":",prof, set, prsname, prstbl)
 
-				if !CheckClientPerm( ply, cvar.perm_prof.v:GetInt() ) then
+				if !CheckClientPerm2( ply, "profiles" ) then
 					table.insert( reports[ply].err, { prof, set, prsname, "Player does not have permission" } )
 					print( "npcd > npcd_cl_settings_commit > Commit failed: ", ply, " does not have permission" )
 					continue
@@ -1264,7 +1296,7 @@ end)
 
 // receive commit to remove preset
 net.Receive( "npcd_cl_settings_remove_end", function( len, ply )
-	if !IsValid(ply) or !ply:IsPlayer() or !CheckClientPerm( ply, cvar.perm_prof.v:GetInt() ) then
+	if !IsValid(ply) or !ply:IsPlayer() or !CheckClientPerm2( ply, "profiles" ) then
 		return
 	end
 

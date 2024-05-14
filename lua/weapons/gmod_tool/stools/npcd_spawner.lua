@@ -45,7 +45,7 @@ end
 -- }
 
 function TOOL:LeftClick()
-	if npcd.CheckClientPerm( self:GetOwner(), npcd.cvar.perm_spawn.v:GetInt() ) then
+	if npcd.CheckClientPerm2( self:GetOwner(), "spawn_self" ) then
 		return self:DoSpawn()		
 	end
 end

@@ -159,7 +159,7 @@ function StartSettingsPanel()
 		QuerySettings()
 	end
 
-	if !CheckClientPerm( LocalPlayer(), cvar.perm_prof.v:GetInt() ) then
+	if !CheckClientPerm2( LocalPlayer(), "profiles" ) then
 		chat.AddText( RandomColor( 0, 15, 0.75, 1, 1, 1 ),
 		"You do not have permission to edit profiles! Permission: " .. ( cvar.perm_prof.v:GetInt() and t_PERM_STR[cvar.perm_prof.v:GetInt()] or "" ) )
 		return
@@ -782,7 +782,7 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
 		end
 	end
 
-	tester.Init = function(self)
+	tester.DoInit = function(self)
 		local values = GetPendingTbl(cpane.prof, cpane.set, cpane.prs) 
 		if values then
 			local class = GetPresetName(values.classname)
@@ -1167,7 +1167,7 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
       menu:Open()
    end
 
-	tester:Init()
+	tester:DoInit()
 
 	return cpane
 end
@@ -2438,7 +2438,7 @@ function UpdatePresetSelection( upd )
 	end
 
 	// spawn button
-	if CheckClientPerm( LocalPlayer(), cvar.perm_spawn.v:GetInt() ) and active_prof and active_prof == cl_currentProfile and active_set and SPAWN_SETS[active_set] and active_prs then
+	if CheckClientPerm2( LocalPlayer(), "spawn_self" ) and active_prof and active_prof == cl_currentProfile and active_set and SPAWN_SETS[active_set] and active_prs then
 		PresetsButtons.spawn:SetEnabled( true )
 	else
 		PresetsButtons.spawn:SetEnabled( false )
@@ -3660,6 +3660,7 @@ function AddTablePanel( npanel, inspanel )
 			table.remove( npanel.pendingTbl[npanel.valueName], k )
 		end
 
+		// rebuild after remove because row ID does not shift down
 		npanel:ClearView()
 		inspanel.valuer:CloseEditor()
 		inspanel.valuer.tbl:BuildList()
@@ -6693,7 +6694,7 @@ function SendSettingsAct( act, prof, has2, np )
 	if cl_cvar.cl_debugged.v:GetBool() then
 		print( "SendSettingsAct", act, prof, has2, np )
 	end
-	if !CheckClientPerm( LocalPlayer(), cvar.perm_prof.v:GetInt() ) then
+	if !CheckClientPerm2( LocalPlayer(), "profiles" ) then
 		print( "Error: You do not have permission to edit profiles!" )
 		return
 	end
@@ -7275,14 +7276,14 @@ function CreateSettingsPanel()
 	ProfileButtons:SizeToChildren( false, true )
 
 	ProfileButtons.change.OnReleased = function( self )
-		if CheckClientPerm( LocalPlayer(), cvar.perm_prof.v:GetInt() ) then
+		if CheckClientPerm2( LocalPlayer(), "profiles" ) then
 			local line = select( 2, SettingsList:GetSelectedLine() )
 			if line then ClientSwitchProfile( line:GetColumnText(1) ) end
 		end
 	end
 
 	ProfileButtons.add.OnReleased = function( self )
-		if CheckClientPerm( LocalPlayer() ) then
+		if CheckClientPerm2( LocalPlayer(), "settings" ) then
 			local x, y = SettingsList:LocalToScreen()
 			local sx, sy = SettingsWindow:LocalToScreen()
 			-- y = y + py - sy + SettingsList:GetDataHeight() + math.min( SettingsList:GetInnerTall(), SettingsList:GetTall() - SettingsList:GetDataHeight() - UI_BUTTON_H )
@@ -7312,7 +7313,7 @@ function CreateSettingsPanel()
 	end
 
 	ProfileButtons.copy.OnReleased = function( self )
-		if CheckClientPerm( LocalPlayer() ) then
+		if CheckClientPerm2( LocalPlayer(), "settings" ) then
 			for _, line in pairs( SettingsList:GetSelected() ) do
 				ClientCopyProfile( line:GetColumnText(1) )
 			end
@@ -7320,7 +7321,7 @@ function CreateSettingsPanel()
 	end
 
 	ProfileButtons.rename.OnReleased = function( self )
-		if CheckClientPerm( LocalPlayer() ) and SettingsList:GetSelectedLine() then
+		if CheckClientPerm2( LocalPlayer(), "settings" ) and SettingsList:GetSelectedLine() then
 			for _, line in pairs( SettingsList:GetSelected() ) do
 				-- local line = select( 2, SettingsList:GetSelectedLine() )
 				local x, y = line:LocalToScreen()
@@ -7351,7 +7352,7 @@ function CreateSettingsPanel()
 	end
 
 	ProfileButtons.sub.OnReleased = function( self )
-		if CheckClientPerm( LocalPlayer() ) and SettingsList:GetSelectedLine() then
+		if CheckClientPerm2( LocalPlayer(), "settings" ) and SettingsList:GetSelectedLine() then
 			local proflist = {}
 			for k, line in pairs( SettingsList:GetSelected() ) do
 				table.insert( proflist, line:GetColumnText(1) )
@@ -7832,7 +7833,7 @@ function CreateSettingsPanel()
 	end )
 
 	PresetsButtons.add.OnReleased = function()
-		if CheckClientPerm( LocalPlayer(), cvar.perm_prof.v:GetInt() ) and active_prof and active_set then
+		if CheckClientPerm2( LocalPlayer(), "profiles" ) and active_prof and active_set then
 			local x, y = PresetsList:LocalToScreen()
 			local sx, sy = SettingsWindow:LocalToScreen()
 			-- y = y + math.min( PresetsList:GetInnerTall(), PresetsList:GetTall() - PresetsList:GetDataHeight() - UI_ICONBUTTON_W * 2 ) + PresetsList:GetDataHeight() - sy
@@ -7884,7 +7885,7 @@ function CreateSettingsPanel()
 	end
 
 	PresetsButtons.sub.OnReleased = function()
-		if CheckClientPerm( LocalPlayer(), cvar.perm_prof.v:GetInt() ) and PresetsList:GetSelectedLine() and active_prof and active_set then --and active_prof and active_set and active_prs then
+		if CheckClientPerm2( LocalPlayer(), "profiles" ) and PresetsList:GetSelectedLine() and active_prof and active_set then --and active_prof and active_set and active_prs then
 			local prslist = {}
 			for k, line in pairs( PresetsList:GetSelected() ) do
 				table.insert( prslist, line:GetColumnText(2) )
@@ -7927,7 +7928,7 @@ function CreateSettingsPanel()
 	end
 
 	PresetsButtons.rename.OnReleased = function()
-		if CheckClientPerm( LocalPlayer(), cvar.perm_prof.v:GetInt() ) and PresetsList:GetSelectedLine() and active_prof and active_set then --and active_prof and active_set and active_prs then
+		if CheckClientPerm2( LocalPlayer(), "profiles" ) and PresetsList:GetSelectedLine() and active_prof and active_set then --and active_prof and active_set and active_prs then
 			for k, line in pairs( PresetsList:GetSelected() ) do
 				-- local x, y = line:GetPos()
 				local px, py = PresetsList:LocalToScreen()
@@ -7995,7 +7996,7 @@ function CreateSettingsPanel()
 	end
 
 	PresetsButtons.SetPresetStatus = function( status )
-      if CheckClientPerm( LocalPlayer(), cvar.perm_prof.v:GetInt() ) and PresetsList:GetSelectedLine() and active_prof and active_set then
+      if CheckClientPerm2( LocalPlayer(), "profiles" ) and PresetsList:GetSelectedLine() and active_prof and active_set then
          for k, line in pairs( PresetsList:GetSelected() ) do
 				local prs = line:GetColumnText(2) -- active_prs
             if PresetsList.boxes[prs] then
@@ -8005,7 +8006,7 @@ function CreateSettingsPanel()
       end
    end
 	PresetsButtons.RenameRef = function()
-		if CheckClientPerm( LocalPlayer(), cvar.perm_prof.v:GetInt() ) and PresetsList:GetSelectedLine() and active_prof and active_set then --and active_prof and active_set and active_prs then
+		if CheckClientPerm2( LocalPlayer(), "profiles" ) and PresetsList:GetSelectedLine() and active_prof and active_set then --and active_prof and active_set and active_prs then
 			for k, line in pairs( PresetsList:GetSelected() ) do
 				-- local x, y = line:GetPos()
 				local px, py = PresetsList:LocalToScreen()
@@ -8033,7 +8034,7 @@ function CreateSettingsPanel()
 	end
 
 	PresetsButtons.copy.OnReleased = function()
-		if CheckClientPerm( LocalPlayer(), cvar.perm_prof.v:GetInt() ) and PresetsList:GetSelectedLine() and active_prof and active_set then --and active_prof and active_set and active_prs then
+		if CheckClientPerm2( LocalPlayer(), "profiles" ) and PresetsList:GetSelectedLine() and active_prof and active_set then --and active_prof and active_set and active_prs then
 			local p = active_prof
 			local s = active_set
 			for k, line in ipairs( PresetsList:GetSelected() ) do
@@ -8066,7 +8067,7 @@ function CreateSettingsPanel()
 	end
 
 	PresetsButtons.move.OnReleased = function()
-		if CheckClientPerm( LocalPlayer() ) and PresetsList:GetSelectedLine() and active_prof and active_set then
+		if CheckClientPerm2( LocalPlayer(), "settings" ) and PresetsList:GetSelectedLine() and active_prof and active_set then
 			local prslist = {}
 			for k, line in pairs( PresetsList:GetSelected() ) do
 				table.insert( prslist, line:GetColumnText(2) )
@@ -8121,7 +8122,7 @@ function CreateSettingsPanel()
 	end
 
 	PresetsButtons.copymove.OnReleased = function()
-		if CheckClientPerm( LocalPlayer() ) and PresetsList:GetSelectedLine() and active_prof and active_set then
+		if CheckClientPerm2( LocalPlayer(), "settings" ) and PresetsList:GetSelectedLine() and active_prof and active_set then
 			local prslist = {}
 			for k, line in pairs( PresetsList:GetSelected() ) do
 				table.insert( prslist, line:GetColumnText(2) )
@@ -8167,7 +8168,7 @@ function CreateSettingsPanel()
 	end
 
 	PresetsButtons.spawn.OnReleased = function()
-		if CheckClientPerm( LocalPlayer() ) and PresetsList:GetSelectedLine()
+		if CheckClientPerm2( LocalPlayer(), "settings" ) and PresetsList:GetSelectedLine()
 		-- and active_prof and active_set and active_prs
 		and SPAWN_SETS[active_set]
 		and cl_currentProfile == active_prof then

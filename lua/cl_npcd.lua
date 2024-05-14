@@ -27,33 +27,33 @@ net.Receive("npcd_effect_new", function()
 end)
 
 concommand.Add( "npcd_init", function( ply )
-	if CheckClientPerm( ply ) then
+	if CheckClientPerm2( ply, "settings" )
 		net.Start( "npcd_init" )
 		net.SendToServer()
 	end
 end )
 concommand.Add( "npcd_fill", function( ply )
-	if CheckClientPerm( ply ) then
+	if CheckClientPerm2( ply, "settings" )
 		net.Start( "npcd_fill" )
 		net.SendToServer()
 	end
 end )
 concommand.Add( "npcd_direct", function( ply )
-	if CheckClientPerm( ply ) then
+	if CheckClientPerm2( ply, "settings" )
 		net.Start( "npcd_direct" )
 		net.SendToServer()
 	end
 end )
 
 concommand.Add( "npcd_kills_clear", function( ply )
-	if CheckClientPerm( ply ) then
+	if CheckClientPerm2( ply, "settings" )
 		net.Start( "npcd_kills_clear" )
 		net.SendToServer()
 	end
 end )
 
 concommand.Add( "npcd_mapscale_check", function( ply )
-	if CheckClientPerm( ply ) then
+	if CheckClientPerm2( ply, "settings" )
 		net.Start( "npcd_mapscale_check" )
 		net.SendToServer()
 	end

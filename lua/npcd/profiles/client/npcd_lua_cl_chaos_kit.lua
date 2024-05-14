@@ -1,7 +1,7 @@
 // (CLIENT) chaos kit
 
 if !CLIENT then return false end
-if !npcd.CheckClientPerm( LocalPlayer(), npcd.cvar.perm_prof.v:GetInt() ) then return false end
+if !npcd.CheckClientPerm2( LocalPlayer(), "profiles" ) then return false end
 
 // The function will insert the presets as pending changes into the given profile.
 

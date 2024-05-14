@@ -207,7 +207,7 @@ function BuildDatastream( tbl, size )
 	return stream
 end
 
-function SendDatastream( netstr, datatbl, ply, server, startdelay )
+function SendDatastream( netstr, datatbl, toPly, toServer, startdelay )
 	if !netstr then return nil end
 	local latest = startdelay or 0
 	local delay = startdelay or 0
@@ -218,10 +218,10 @@ function SendDatastream( netstr, datatbl, ply, server, startdelay )
 				net.WriteFloat( i ) // chknum
 				net.WriteUInt( #data, 16 ) // length
 				net.WriteData( data, #data ) // data
-			if server then
+			if toServer then
 				net.SendToServer()
-			elseif IsValid( ply ) then
-				net.Send( ply )
+			elseif IsValid( toPly ) then
+				net.Send( toPly )
 			end
 		end )
 	end
@@ -1086,9 +1086,48 @@ local perm_chks = {
 	[PERM_NONE] = function() return false end,
 }
 
+perm_actions = {
+	"settings",
+	"profiles",
+	"spawn_self",
+	"spawn_other",
+}
+perm_actions_cvar = {
+	["settings"] = cvar.perm_cvar,
+	["profiles"] = cvar.perm_prof,
+	["spawn_self"] = cvar.perm_spawn,
+	["spawn_other"] = cvar.perm_spawn_other,
+}
+perm_actions_name = {
+	["settings"] = "Settings",
+	["profiles"] = "Profiles",
+	["spawn_self"] = "Spawning (Self)",
+	["spawn_other"] = "Spawning (Other)"
+}
+
+// permission cvars as integer
 function CheckClientPerm( ply, perm )
 	local perm = perm or cvar.perm_cvar.v:GetInt()
 	return perm_chks[perm] and perm_chks[perm]( ply )
+end
+
+// string of action type
+function CheckClientPerm2( ply, action )
+	local id = ply:SteamID64()
+	local permTable = SERVER and playerPerms or cl_playerPerms
+	if permTable[id] then
+		if permTable[id][action] == true then // allow
+			return true
+		elseif permTable[id][action] == false then // deny
+			return false
+		else // default
+			local perm = perm_actions_cvar[action].v:GetInt()
+			return perm_chks[perm] and perm_chks[perm]( ply )
+		end
+	else
+		local perm = perm_actions_cvar[action].v:GetInt()
+		return perm_chks[perm] and perm_chks[perm]( ply )
+	end
 end
 
 include( "npcd_struct.lua" ) // both client and server need this
