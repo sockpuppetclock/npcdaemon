@@ -5904,6 +5904,7 @@ t_player_values = {
 		TYPE = "boolean",
 	},
 	["freeze"] = {
+		NAME = "Freeze",
 		CATEGORY = t_CAT.MOVEMENT,
 		FUNCTION = { "Freeze", "__VALUE" },
 		TYPE = "boolean",

@@ -16,6 +16,9 @@ co_valuelister = nil
 
 local queued_testers = {}
 cl_ClassTests = {
+	["entity"] = {
+		["prop_physics"] = {},
+	},
 	["npc"] = {
 		["npc_advisor"] = {},
 		["npc_alyx"] = {},
@@ -766,19 +769,26 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
    opts:SetTall( adder:GetTall() )
 
 	tester.tested = false
+	tester.allowed = nil
+	tester.prevTest = nil 
+	tester.prevClass = nil 
 
 	tester.DoClick = function( self )
+		if !self.allowed then return end
 		if tester.tested then
 			tester:ShowResults()
 		else 
 			tester:RequestTest()
 		end
 	end
+	
 	tester.RequestTest = function( self )
+		if !self.allowed then return end
 		local values = GetPendingTbl(cpane.prof, cpane.set, cpane.prs)
 		if values then
 			local class = GetPresetName(values.classname)
 			if class != nil then
+				self:SetVisible(true)
 				queued_testers[set] = queued_testers[set] or {}
 				queued_testers[set][class] = queued_testers[set][class] or {}
 				table.insert(queued_testers[set][class], self)
@@ -788,6 +798,13 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
 	end
 
 	tester.DoInit = function(self)
+		if ENTITY_SETS[cpane.set] then
+			self.allowed = true
+		else
+			self:SetVisible(false)
+			self.allowed = false
+			return
+		end
 		local values = GetPendingTbl(cpane.prof, cpane.set, cpane.prs) 
 		if values then
 			local class = GetPresetName(values.classname)
@@ -801,15 +818,21 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
 		end
 	end
 
+	// init: hide if exists
+	// on change class: show button if not exists. hide if exists.
+	// force retest: show results until closed (exists, no hide)
+
 	tester.RefreshValues = function( self )
+		if !self.allowed then return end
 		local values = GetPendingTbl(cpane.prof, cpane.set, cpane.prs) 
 		if values then
 			local panels = GetPrsTbl(valuelist_all, cpane.prof, cpane.set, cpane.prs)
 			local class = GetPresetName(values.classname)
 			if class != nil then
-				local test = GetClassTest(class, set)
+				local test = GetClassTest(class, cpane.set)
 				if test != nil then
 					self.prevTest = test
+					self.prevClass = class
 					for vn, pass_t in pairs(test) do
 						if panels[vn] and IsValid(panels[vn].selfpanel) then
 							panels[vn].selfpanel:SetDisabled( !pass_t[1] )
@@ -821,13 +844,24 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
 	end
 
 	tester.query.DoClick = function( self )
+		if !tester.allowed then return end
 		tester:ShowResults()
 	end
 	tester.close.DoClick = function( self )
+		if !tester.allowed then return end
 		tester:SetVisible(false)
 	end
 
+	tester.TestFail = function( self, class )
+		if !self.allowed then return end
+		tester.tested = false
+		tester.close:SetVisible(true)
+		self.prevClass = class
+		tester:SetText("Cannot test \""..tostring(class).."\"")
+	end
+
 	tester.TestResults = function( self )
+		if !self.allowed then return end
 		tester.tested = true
 		tester.query:SetVisible(true)
 		tester.close:SetVisible(true)
@@ -851,6 +885,7 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
 	end
 
 	tester.ShowResults = function( self )
+		if !self.allowed then return end
 		self:SetVisible(false)
 		self.Results = vgui.Create("DFrame")
 		self.Results:SetSize(500, 600)
@@ -927,6 +962,18 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
 	end
 
 	tester.ClearTest = function( self )
+		if !self.allowed then return end
+		
+		local values = GetPendingTbl(cpane.prof, cpane.set, cpane.prs) 
+		if values then
+			local class = GetPresetName(values.classname)
+			if class == self.prevClass then
+				return
+			else
+				self.prevClass = class
+			end
+		end
+		
 		tester.tested = false
 		local panels = GetPrsTbl(valuelist_all, cpane.prof, cpane.set, cpane.prs)
 		if self.prevTest then
@@ -936,13 +983,16 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
 				end
 			end
 			self.prevTest = nil
+			self.prevClass = nil
 			self:SetText(str_tester)
 			self:SetIcon("icon16/lightbulb_off.png")
 		end
-		self:SetVisible(true)
 		self:RefreshValues()
 		if self.prevTest then
 			self:SetVisible(false)
+		else
+			self:SetVisible(true)
+			self:SetText(str_tester)
 		end
 		self.query:SetVisible(false)
 		self.close:SetVisible(false)
@@ -1039,24 +1089,25 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
       aller:SetIsCheckable(true)
       aller:SetChecked(cl_cvar.valuelist_showall.v:GetBool())
 
-		menu:AddSpacer()
-		local resulter = menu:AddOption("Value test results...", function()
-			if tester.prevTest then
-				tester:ShowResults()
+		if ENTITY_SETS[cpane.set] then
+			menu:AddSpacer()
+			local resulter = menu:AddOption("Value test results...", function()
+				if tester.prevTest then
+					tester:ShowResults()
+				end
+			end)
+			if !tester.prevTest then
+				resulter:SetEnabled(false)
 			end
-		end)
-		if !tester.prevTest then
-			resulter:SetEnabled(false)
-		end
 
-		menu:AddOption("Retest compatible values", function()
-			tester:SetVisible(true)
-			tester:RequestTest()
-		end)
+			menu:AddOption("Retest compatible values", function()
+				tester:SetVisible(true)
+				tester:RequestTest()
+			end)
+		end
 
       menu:Open()
    end
-
 
    adder.DoClick = function( self )
       local menu = DermaMenu()
@@ -1177,6 +1228,21 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
 	return cpane
 end
 
+net.Receive("npcd_test_fail", function(len)
+	local class = net.ReadString()
+	local set = net.ReadString() 
+
+	if queued_testers[set] and queued_testers[set][class] then
+		for _, tester in ipairs(queued_testers[set][class]) do
+			if IsValid(tester) then
+				tester:RefreshValues()
+				tester:TestFail(class)
+			end
+		end
+		table.Empty(queued_testers[set][class])
+	end
+	
+end)
 net.Receive("npcd_test_result", function(len)
 	local class = net.ReadString()
 	local set = net.ReadString()
@@ -1194,8 +1260,9 @@ net.Receive("npcd_test_result", function(len)
 		end
 		table.Empty(queued_testers[set][class])
 	end
-
 end)
+
+
 
 function InfoPan( panel, vpanel, prof, set, prs, parentpanel )
 	local infopane = vgui.Create( "Panel", panel )
@@ -4785,8 +4852,7 @@ function AddPresetPanel( npanel, inspanel )
 		if npanel.structTbl.REFRESHICON then
 			local prof, set, prs = npanel.hierarchy[1], npanel.hierarchy[2], npanel.hierarchy[3]
 			if prof == active_prof and set == active_set and prs == active_prs then
-				if ValueList.infopane and IsValid( ValueList.infopane.icon ) then
-					-- print( ValueList.infopane.icon )
+				if IsValid(ValueList) and ValueList.infopane and IsValid( ValueList.infopane.icon ) then
 					ValueList.infopane.icon:RefreshIcon()
 				end
 			elseif HasPreset( ValueEditors, prof, set, prs ) then
@@ -4799,8 +4865,7 @@ function AddPresetPanel( npanel, inspanel )
 		if npanel.structTbl.REFRESHDESC then
 			local prof, set, prs = npanel.hierarchy[1], npanel.hierarchy[2], npanel.hierarchy[3]
 			if prof == active_prof and set == active_set and prs == active_prs then
-				if ValueList.infopane and IsValid( ValueList.infopane.desc ) then
-					-- print( ValueList.infopane.icon )
+				if IsValid(ValueList) and ValueList.infopane and IsValid( ValueList.infopane.desc ) then
 					ValueList.infopane.desc:RefreshDesc()
 				end
 			elseif HasPreset( ValueEditors, prof, set, prs ) then
@@ -5642,17 +5707,46 @@ function AddStringPanel( npanel, inspanel, focus )
 		npanel.pendingTbl[npanel.valueName] = inspanel.valuer.textbox:GetValue()
 		inspanel.valuer.ClearClassStruct()
 
+		// update control panel tester
+		if npanel.structTbl.CANCLASS then
+			local prof, set, prs = npanel.hierarchy[1], npanel.hierarchy[2], npanel.hierarchy[3]
+			if prof == active_prof and set == active_set and prs == active_prs then
+				if IsValid(ValueList) and ValueList.controlpane and IsValid( ValueList.controlpane.tester ) then
+					ValueList.controlpane.tester:ClearTest()
+				end
+			elseif HasPreset( ValueEditors, prof, set, prs ) then
+				local ve = HasPreset( ValueEditors, prof, set, prs )
+				if ve.ValueList.controlpane and IsValid( ve.ValueList.controlpane.tester ) then
+					ValueList.controlpane.tester:ClearTest()
+				end
+			end
+		end
+
+		// update info panel
+		if npanel.structTbl.REFRESHICON then
+			local prof, set, prs = npanel.hierarchy[1], npanel.hierarchy[2], npanel.hierarchy[3]
+			if prof == active_prof and set == active_set and prs == active_prs then
+				if IsValid(ValueList) and ValueList.infopane and IsValid( ValueList.infopane.icon ) then
+					ValueList.infopane.icon:RefreshIcon()
+				end
+			elseif HasPreset( ValueEditors, prof, set, prs ) then
+				local ve = HasPreset( ValueEditors, prof, set, prs )
+				if ve.ValueList.infopane and IsValid( ve.ValueList.infopane.icon ) then
+					ve.ValueList.infopane.icon:RefreshIcon()
+				end
+			end
+		end
 		if npanel.structTbl.REFRESHDESC then
 			local prof, set, prs = npanel.hierarchy[1], npanel.hierarchy[2], npanel.hierarchy[3]
-			local ve = HasPreset( ValueEditors, prof, set, prs )
-			if ve then
+			if prof == active_prof and set == active_set and prs == active_prs then
+				if IsValid(ValueList) and ValueList.infopane and IsValid( ValueList.infopane.desc ) then
+					ValueList.infopane.desc:RefreshDesc()
+				end
+			elseif HasPreset( ValueEditors, prof, set, prs ) then
+				local ve = HasPreset( ValueEditors, prof, set, prs )
 				if ve.ValueList.infopane and IsValid( ve.ValueList.infopane.desc ) then
 					ve.ValueList.infopane.desc:RefreshDesc()
 				end
-			elseif prof == active_prof and set == active_set and prs == active_prs
-			and IsValid(ValueList) and ValueList.infopane and IsValid( ValueList.infopane.desc ) then
-				-- print( ValueList.infopane.icon )
-				ValueList.infopane.desc:RefreshDesc()
 			end
 		end
 

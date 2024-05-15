@@ -87,6 +87,10 @@ net.Receive( "npcd_test_request", function( len, ply )
 		local validVals = TestEntValues(class, set)
 
 		if validVals == nil then
+			net.Start("npcd_test_fail")
+				net.WriteString(class)
+				net.WriteString(set)
+			net.Send(ply)
 			return
 		end
 

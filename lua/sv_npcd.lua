@@ -27,6 +27,7 @@ util.AddNetworkString("npcd_cl_modelviewer")
 
 util.AddNetworkString("npcd_test_request")
 util.AddNetworkString("npcd_test_result")
+util.AddNetworkString("npcd_test_fail")
 
 util.AddNetworkString("npcd_perms_commit")
 util.AddNetworkString("npcd_perms_query")
