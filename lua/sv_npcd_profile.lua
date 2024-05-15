@@ -428,8 +428,13 @@ function SaveProfile( p )
 end
 
 function SaveAllProfiles()
+	local i = 0
 	for p in pairs(Profiles) do
-		SaveProfile(p)
+		local prof = p
+		timer.Simple(engine.TickInterval()*i, function()
+			SaveProfile(prof)
+		end)
+		i = i + 1
 	end
 end
 
