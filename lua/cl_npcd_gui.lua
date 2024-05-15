@@ -1964,6 +1964,13 @@ concommand.Add( "npcd_profile_import", function( ply )
                 chat.AddText( "Import in progress..." )
 				ClientCreateProfile( name )
 				QueuePostQuery( name, 30, function()
+					
+					// import prepatch
+					if import["squadpool"] then
+						import["spawnpool"] = import["squadpool"]
+						import["squadpool"] = nil
+					end
+
 					for set in pairs( PROFILE_SETS ) do
 						if import[set] then
 							for prs in pairs( import[set] ) do
