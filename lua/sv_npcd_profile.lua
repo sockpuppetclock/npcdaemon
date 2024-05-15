@@ -71,7 +71,7 @@ function StartupLoad()
 
 	b_FirstRun = FirstRun()
 
-	if patched then SaveAllProfiles() end
+	if patched then SaveSomeProfiles(patched) end
 
 	if b_FirstRun then return end
 
@@ -259,13 +259,16 @@ function LoadAllProfiles()
 	local ptbl = {}
 	local patched
 	for _, f in SortedPairsByValue(flist) do
-		preset_updatecount = 0
+		preset_updatecount = 0 // global variable
 
 		-- local pname = string.sub( string.StripExtension( f ), 14 ) 
 		local pname = string.StripExtension( f )
 		local ptch
 		ptbl[pname], ptch = LoadProfile( f, cvar.rawload.v:GetBool(), pname )
-		if ptch then patched = true end
+		if ptch then
+			patched = patched or {}
+			table.insert(patched, pname)
+		end
 
 		if ptch and preset_updatecount > 0 then
 			print( "npcd > LoadProfile > " .. pname .. ": " .. preset_updatecount .. " presets have been patched to version "..NPCD_VERSION )
@@ -425,6 +428,17 @@ function SaveProfile( p )
 	print( "npcd > Saved profile: garrysmod/data/" .. NPCD_PROFILE_DIR ..p..".json" )
 
 	-- RebuildSquadpool()
+end
+
+function SaveSomeProfiles( plist )
+	local i = 0
+	for _, p in pairs(plist) do
+		local prof = p
+		timer.Simple(engine.TickInterval()*i, function()
+			SaveProfile(prof)
+		end)
+		i = i + 1
+	end
 end
 
 function SaveAllProfiles()
