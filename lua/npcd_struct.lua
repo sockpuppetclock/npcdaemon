@@ -3171,7 +3171,12 @@ t_value_structs["damagefilter"] = {
 				},
 				["ignite"] = {
 					TYPE = { "boolean", "number" },
-					DESC = "If number, ignites for that duration",
+					DESC = "If number, ignites for that duration. If boolean, ignite indefinitely",
+				},
+				["freeze"] = {
+					NAME = "Freeze (Player)",
+					TYPE = { "number", "boolean" },
+					DESC = "If number, freeze for duration in seconds. If boolean, freeze indefinitely",
 				},
 				["takedamage"] = {
 					TYPE = "number",
@@ -3194,7 +3199,7 @@ t_value_structs["damagefilter"] = {
 					TYPE = { "fraction", "number" },
 				},
 				["resetregen"] = {
-					DESC = "If entity has regen, resets delay",
+					DESC = "If entity has regen, resets delay (delays further)",
 					TYPE = "boolean",
 				},
 				["leech"] = {
@@ -3261,7 +3266,12 @@ t_value_structs["damagefilter"] = {
 				},
 				["ignite"] = {
 					TYPE = { "boolean", "number" },
-					DESC = "If number, ignites for that duration",
+					DESC = "If number, ignites for that duration in seconds. If boolean, ignite indefinitely",
+				},
+				["freeze"] = {
+					NAME = "Freeze (Player)",
+					TYPE = { "number", "boolean" },
+					DESC = "If number, freeze for duration in seconds. If boolean, freeze indefinitely",
 				},
 				-- ["ignite_duration"] = {},
 				["takedamage"] = {
@@ -3276,7 +3286,7 @@ t_value_structs["damagefilter"] = {
 					TYPE = "number",
 				},
 				["resetregen"] = {
-					DESC = "If entity has regen, resets delay",
+					DESC = "If entity has regen, resets delay (delays further)",
 					TYPE = "boolean",
 				},
 				["heal"] = {

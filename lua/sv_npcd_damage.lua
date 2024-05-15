@@ -903,6 +903,15 @@ function DamageFilter( dmg, afilter, atkr, victim, apply, took )
 			end
 		end
 
+		if filter["attacker"]["freeze"] != nil and isfunction(atkr.Freeze) then
+			if isnumber(filter["attacker"]["freeze"]) then
+				atkr:Freeze(true)
+				timer.Simple( filter["attacker"]["freeze"], function() if IsValid(atkr) then atkr:Freeze(false) end end)
+			else
+				atkr:Freeze(filter["attacker"]["freeze"])
+			end
+		end
+
 		if filter["attacker"]["drop_weapon"] then
 			if isfunction( atkr.DropWeapon ) then
 				atkr:DropWeapon()
