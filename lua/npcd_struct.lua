@@ -6807,7 +6807,7 @@ t_spawnpool_values = {
 			},
 			["radius_entity_limit"] = {
 				NAME = "Radius Entity Limit",
-				DESC = "Based on the sum of the pool's entities' quota weight that are within this radius",	
+				DESC = "Limits entities by squadpool within this radius. Measured by quota-weight of spawnpool's entities only within this radius",	
 				SORTNAME = "a3",
 			},
 			["radius_squad_limit"] = {
@@ -6942,7 +6942,7 @@ t_spawnpool_values = {
 	["pool_spawnlimit"] = {
 		CATEGORY = t_CAT.NPCD,
 		NAME = "Spawnpool Entity Limit",
-		DESC = "Based on the sum of the pool's entities' quota weight across the entire map",
+		DESC = "Limits entities from spawnpool. Measured by quota-weight of spawnpool's entities",
 		SORTNAME = "c",
 	},
 	["pool_squadlimit"] = {
