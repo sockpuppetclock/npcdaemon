@@ -4837,13 +4837,13 @@ function AddPresetPanel( npanel, inspanel )
 		if npanel.structTbl.CANCLASS then
 			local prof, set, prs = npanel.hierarchy[1], npanel.hierarchy[2], npanel.hierarchy[3]
 			if prof == active_prof and set == active_set and prs == active_prs then
-				if ValueList.controlpane and IsValid( ValueList.controlpane.tester ) then
+				if IsValid(ValueList) and ValueList.controlpane and IsValid( ValueList.controlpane.tester ) then
 					ValueList.controlpane.tester:ClearTest()
 				end
 			elseif HasPreset( ValueEditors, prof, set, prs ) then
 				local ve = HasPreset( ValueEditors, prof, set, prs )
 				if ve.ValueList.controlpane and IsValid( ve.ValueList.controlpane.tester ) then
-					ValueList.controlpane.tester:ClearTest()
+					ve.ValueList.controlpane.tester:ClearTest()
 				end
 			end
 		end
@@ -5717,7 +5717,7 @@ function AddStringPanel( npanel, inspanel, focus )
 			elseif HasPreset( ValueEditors, prof, set, prs ) then
 				local ve = HasPreset( ValueEditors, prof, set, prs )
 				if ve.ValueList.controlpane and IsValid( ve.ValueList.controlpane.tester ) then
-					ValueList.controlpane.tester:ClearTest()
+					ve.ValueList.controlpane.tester:ClearTest()
 				end
 			end
 		end
