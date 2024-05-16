@@ -940,10 +940,27 @@ function PostEntitySpawn( ent, ent_t )
 	if ent_t.setboundary then
 		SetEntValues(ent, ent_t, "setboundary", GetLookup( "setboundary", ent_t.entity_type, nil, class ) )
 		if istable(ent_t.setboundary) then
-			npc:SetCollisionBounds( ent_t.setboundary.min, ent_t.setboundary.max )
+			ent:SetCollisionBounds( ent_t.setboundary.min, ent_t.setboundary.max )
 		end
 	end
 
+	if ent_t.ent_funcs then
+		local lup_t = GetLookup( "ent_funcs", ent_t.entity_type, nil, class )
+		for _, st in pairs(ent_t.ent_funcs) do
+			ApplyValueTable( st, lup_t.STRUCT )
+			if st.func == nil or !isfunction(ent[st.func]) then continue end
+			if st.delay then
+				local ent = ent
+				timer.Simple(st.delay, function()
+					if IsValid(ent) then
+						ent[st.func](ent, st.args and unpack(st.args))
+					end
+				end)
+			elseif IsValid(ent) and isfunction(ent[st.func]) then
+				ent[st.func](st.args and unpack(st.args))
+			end
+		end
+	end
 end
 
 function PlayerPostSpawn( ply, ply_t )

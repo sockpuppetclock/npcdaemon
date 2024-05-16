@@ -4923,7 +4923,41 @@ t_basic_values = {
 		-- 		ent:SetBodygroup( id, bg.value )
 		-- 	end
 		-- end, "__SELF", "__VALUE" },
-	}
+	},
+
+	["ent_funcs"] = {
+		NAME = "Entity Functions",
+		DESC = "Runs pre-existing functions from the entity. Arguments are sent as-is and are NOT compiled as Lua",
+		CATEGORY = t_CAT.MISC,
+		TYPE = "struct_table",
+		STRUCT = {
+			["func"] = {
+				NAME = "Function",
+				SORTNAME = "a",
+				TYPE = "string",
+			},
+			["args"] = {
+				NAME = "Arguments",
+				SORTNAME = "b",
+				TYPE = "table",
+				TBLSTRUCT = {
+					TYPE = "any",
+				},
+			},
+			["delay"] = {
+				NAME = "Delay",
+				SORTNAME = "c",
+				TYPE = "number",
+			},
+		},
+	},
+
+	["drawshadow"] = {
+		NAME = "Draw Shadow",
+		CATEGORY = t_CAT.VISUAL,
+		FUNCTION = { "DrawShadow", "__VALUE" },
+		TYPE = "boolean",
+	},
 }
 
 local spawnflags_desc = "Sets exclusive features of an entity. Class-specific enums included. Note for all class-specific values: If a value has a class-specific version (e.g. spawnflags), that value will be cleared when the class struct is changed or removed if the class-specific version was ever touched."
