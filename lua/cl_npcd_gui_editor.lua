@@ -1016,7 +1016,7 @@ function ControlPane( panel, vpanel, prof, set, prs, parentpanel )
       self.adder:SetWide( math.min( self:GetWide() - 20 - UI_BUTTON_W, 260 ) )
       self.tester:SetWide( math.min( self:GetWide() - 20 - UI_BUTTON_W, 260 ) )
       self.adder:SetPos( math.max(0, (self:GetWide() - self.adder:GetWide() + UI_BUTTON_W/2)/2), 5 )
-      self.tester:SetPos( math.max(0, (self:GetWide() - self.tester:GetWide() + UI_BUTTON_W/2)/2), self.adder:GetPos() )
+      self.tester:SetPos( math.max(0, (self:GetWide() - self.tester:GetWide() + UI_BUTTON_W/2)/2), self.adder:GetTall() + 12) //UI_ICONBUTTON_W/2
       self.opts:SetPos( self.adder:GetPos() - UI_BUTTON_W, 5 )
 	end
 
