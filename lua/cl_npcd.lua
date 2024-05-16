@@ -65,6 +65,10 @@ net.Receive("npcd_announce", function()
 	local col = net.ReadColor()
 	chat.AddText( Color( col.r, col.g, col.b, col.a ), msg )
 end)
+net.Receive("npcd_announce_console", function()
+	local msg = net.ReadString()
+	print(msg)
+end)
 
 // client ready
 hook.Add( "InitPostEntity", "NPCD Client Init", clientReady ) 

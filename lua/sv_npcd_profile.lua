@@ -71,7 +71,13 @@ function StartupLoad()
 
 	b_FirstRun = FirstRun()
 
-	if patched then SaveSomeProfiles(patched) end
+	if patched then
+		net.Start( "npcd_announce" )
+			net.WriteString( "NPCD has updated profiles, check the console for notes." )
+			net.WriteColor( RandomColor( 50, 55, 0.5, 1, 1, 1 ) )
+		net.Send( ply )
+		SaveSomeProfiles(patched)
+	end
 
 	if b_FirstRun then return end
 

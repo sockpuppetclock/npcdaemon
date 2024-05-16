@@ -3,6 +3,7 @@ module( "npcd", package.seeall )
 if !SERVER then return end
 
 util.AddNetworkString("npcd_announce")
+util.AddNetworkString("npcd_announce_console")
 
 util.AddNetworkString("npcd_spawn_count")
 util.AddNetworkString("npcd_spawn_count_end")
@@ -861,10 +862,14 @@ net.Receive("npcd_cl_ready", function( len, ply )
 		end
       // inform of preset patches that occured before loading in
 		if PatchInform and CurTime() <= PatchInform then
+			net.Start( "npcd_announce" )
+				net.WriteString( "NPCD has updated profiles, check the console for notes." )
+				net.WriteColor( RandomColor( 50, 55, 0.5, 1, 1, 1 ) )
+			net.Send( ply )
 			for _, msg in ipairs( PatchInformList ) do
-				net.Start( "npcd_announce" )
+				net.Start( "npcd_announce_console" )
 					net.WriteString( msg )
-					net.WriteColor( RandomColor( 50, 55, 0.5, 1, 1, 1 ) )
+					-- net.WriteColor( RandomColor( 50, 55, 0.5, 1, 1, 1 ) )
 				net.Send( ply )
 			end
 		end

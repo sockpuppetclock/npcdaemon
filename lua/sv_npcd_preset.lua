@@ -472,9 +472,9 @@ end
 function AddPatchInform( msg, time )
 	if !msg then return end
 	print( msg )
-	net.Start( "npcd_announce" )
+	net.Start( "npcd_announce_console" )
 		net.WriteString( msg )
-		net.WriteColor( RandomColor( 50, 55, 0.5, 1, 1, 1 ) )
+		-- net.WriteColor( RandomColor( 50, 55, 0.5, 1, 1, 1 ) )
 	net.Broadcast()
 	table.insert( PatchInformList, msg )
 	SetPatchInformTime( time )
