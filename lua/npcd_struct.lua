@@ -4231,7 +4231,7 @@ t_basic_values = {
 				"models/props_lab/xencrystal_sheet",
 				"models/shadertest/shader5",
 				"models/player/shared/gold_player",
-                "models/player/shared/ice_player",
+				"models/player/shared/ice_player",
 			},
 		},
 		ASSET = "materials",
@@ -4925,32 +4925,32 @@ t_basic_values = {
 		-- end, "__SELF", "__VALUE" },
 	},
 
-	["ent_funcs"] = {
-		NAME = "Entity Functions",
-		DESC = "Runs pre-existing functions from the entity. Arguments are sent as-is and are NOT compiled as Lua",
-		CATEGORY = t_CAT.MISC,
-		TYPE = "struct_table",
-		STRUCT = {
-			["func"] = {
-				NAME = "Function",
-				SORTNAME = "a",
-				TYPE = "string",
-			},
-			["args"] = {
-				NAME = "Arguments",
-				SORTNAME = "b",
-				TYPE = "table",
-				TBLSTRUCT = {
-					TYPE = "any",
-				},
-			},
-			["delay"] = {
-				NAME = "Delay",
-				SORTNAME = "c",
-				TYPE = "number",
-			},
-		},
-	},
+	-- ["ent_funcs"] = {
+	-- 	NAME = "Entity Functions",
+	-- 	DESC = "Runs pre-existing functions from the entity. Arguments are sent as-is and are NOT compiled as Lua",
+	-- 	CATEGORY = t_CAT.MISC,
+	-- 	TYPE = "struct_table",
+	-- 	STRUCT = {
+	-- 		["func"] = {
+	-- 			NAME = "Function",
+	-- 			SORTNAME = "a",
+	-- 			TYPE = "string",
+	-- 		},
+	-- 		["args"] = {
+	-- 			NAME = "Arguments",
+	-- 			SORTNAME = "b",
+	-- 			TYPE = "table",
+	-- 			TBLSTRUCT = {
+	-- 				TYPE = "any",
+	-- 			},
+	-- 		},
+	-- 		["delay"] = {
+	-- 			NAME = "Delay",
+	-- 			SORTNAME = "c",
+	-- 			TYPE = "number",
+	-- 		},
+	-- 	},
+	-- },
 
 	["drawshadow"] = {
 		NAME = "Draw Shadow",
