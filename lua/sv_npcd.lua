@@ -863,7 +863,7 @@ net.Receive("npcd_cl_ready", function( len, ply )
       // inform of preset patches that occured before loading in
 		if PatchInform and CurTime() <= PatchInform then
 			net.Start( "npcd_announce" )
-				net.WriteString( "NPCD has updated profiles, check the console for notes." )
+				net.WriteString( "NPCD has updated profiles, check the console for update notes." )
 				net.WriteColor( RandomColor( 50, 55, 0.5, 1, 1, 1 ) )
 			net.Send( ply )
 			for _, msg in ipairs( PatchInformList ) do
