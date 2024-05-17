@@ -699,6 +699,8 @@ local adder_icon = {
 	[t_CAT.MOVEMENT] = "icon16/car.png",
 	[t_CAT.EQUIP] = "icon16/bricks.png",
 	[t_CAT.SPAWN] = "icon16/wand.png",
+	[t_CAT.LIMIT] = "icon16/collision_on.png",
+	[t_CAT.QUOTA] = "icon16/chart_bar.png",
 }
 
 local UI_STR = {
