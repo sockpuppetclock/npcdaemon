@@ -7979,6 +7979,13 @@ function CreateSettingsPanel()
 					print( PendingSettings[p][s][newname] )
 					UpdateProfilesList()
 					UpdatePresetSelection( true )
+					for i, line in ipairs( PresetsList:GetLines() ) do
+						if line:GetColumnText(2) == newname then
+							PresetsList:ClearSelection()
+							PresetsList:SelectItem( line )
+							break
+						end
+					end
 				end
 			)
 		end
