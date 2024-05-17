@@ -1085,6 +1085,23 @@ function DamageFilter( dmg, afilter, atkr, victim, apply, took )
 		if filter["attacker"]["announce_death"] then
 			timer.Simple( engine.TickInterval(), function() AnnounceDeath( atkr, ntbl, true ) end )
 		end
+
+		if filter["attacker"]["ent_funcs"] then
+			for _, st in pairs( filter["attacker"]["ent_funcs"] ) do
+				ApplyValueTable( st, lup_t.STRUCT.attacker.STRUCT.ent_funcs.STRUCT )
+				if st.func == nil or !isfunction(atkr[st.func]) then continue end
+				if st.delay then
+					local atkr = atkr
+					timer.Simple(st.delay, function()
+						if IsValid(atkr) then
+							atkr[st.func](atkr, st.args and unpack(st.args))
+						end
+					end)
+				elseif IsValid(atkr) then
+					atkr[st.func](atkr, st.args and unpack(st.args))
+				end
+			end
+		end
 	end
 
 	// do stuff to victim
@@ -1148,6 +1165,15 @@ function DamageFilter( dmg, afilter, atkr, victim, apply, took )
 				timer.Simple( engine.TickInterval(), function() if IsValid(victim) then victim:Ignite( filter["victim"]["ignite"] ) end end)
 			else
 				timer.Simple( engine.TickInterval(), function() if IsValid(victim) then victim:Fire("Ignite") end end)
+			end
+		end
+
+		if filter["victim"]["freeze"] != nil and isfunction(victim.Freeze) then
+			if isnumber(filter["attacker"]["freeze"]) then
+				victim:Freeze(true)
+				timer.Simple( filter["attacker"]["freeze"], function() if IsValid(victim) then victim:Freeze(false) end end)
+			else
+				victim:Freeze(filter["attacker"]["freeze"])
 			end
 		end
 
@@ -1258,6 +1284,24 @@ function DamageFilter( dmg, afilter, atkr, victim, apply, took )
 		if filter["victim"]["announce_death"] then
 			timer.Simple( engine.TickInterval(), function() AnnounceDeath( victim, ntbl, true ) end )
 		end
+
+		if filter["victim"]["ent_funcs"] then
+			for _, st in pairs( filter["victim"]["ent_funcs"] ) do
+				ApplyValueTable( st, lup_t.STRUCT.victim.STRUCT.ent_funcs.STRUCT )
+				if st.func == nil or !isfunction(victim[st.func]) then continue end
+				if st.delay then
+					local victim = victim
+					timer.Simple(st.delay, function()
+						if IsValid(victim) then
+							victim[st.func](victim, st.args and unpack(st.args))
+						end
+					end)
+				elseif IsValid(victim) then
+					victim[st.func](victim, st.args and unpack(st.args))
+				end
+			end
+		end
+
 	end
 
 	if apply and IsValid( victim ) then victim:TakeDamageInfo( dmg ) end // do not use in TakeDamage hook!!

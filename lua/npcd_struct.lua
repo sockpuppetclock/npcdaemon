@@ -3248,6 +3248,31 @@ t_value_structs["damagefilter"] = {
 				["announce_death"] = {
 					TYPE = "boolean",
 				},
+				["ent_funcs"] = {
+					NAME = "Entity Functions",
+					DESC = "Runs pre-existing functions from the entity. Arguments are sent as-is and are NOT compiled as Lua",
+					TYPE = "struct_table",
+					STRUCT = {
+						["func"] = {
+							NAME = "Function",
+							SORTNAME = "a",
+							TYPE = "string",
+						},
+						["args"] = {
+							NAME = "Arguments",
+							SORTNAME = "b",
+							TYPE = "table",
+							TBLSTRUCT = {
+								TYPE = "any",
+							},
+						},
+						["delay"] = {
+							NAME = "Delay",
+							SORTNAME = "c",
+							TYPE = "number",
+						},
+					},
+				},
 			},
 		},
 		["victim"] = {
@@ -3273,7 +3298,6 @@ t_value_structs["damagefilter"] = {
 					TYPE = { "number", "boolean" },
 					DESC = "If number, freeze for duration in seconds. If boolean, freeze indefinitely",
 				},
-				-- ["ignite_duration"] = {},
 				["takedamage"] = {
 					TYPE = "number",
 				},
@@ -3335,11 +3359,36 @@ t_value_structs["damagefilter"] = {
 				["announce_death"] = {
 					TYPE = "boolean",
 				},
+				["ent_funcs"] = {
+					NAME = "Entity Functions",
+					DESC = "Runs pre-existing functions from the entity. Arguments are sent as-is and are NOT compiled as Lua",
+					TYPE = "struct_table",
+					STRUCT = {
+						["func"] = {
+							NAME = "Function",
+							SORTNAME = "a",
+							TYPE = "string",
+						},
+						["args"] = {
+							NAME = "Arguments",
+							SORTNAME = "b",
+							TYPE = "table",
+							TBLSTRUCT = {
+								TYPE = "any",
+							},
+						},
+						["delay"] = {
+							NAME = "Delay",
+							SORTNAME = "c",
+							TYPE = "number",
+						},
+					},
+				},
 			},
 		},
 		["continue"] = {
 			NAME = "Continue Testing After This Passes",
-			DESC = "Continue going down the list even if this filter passes",
+			DESC = "Continue going down the filter list even if this filter passes",
 			TYPE = "boolean",
 			DEFAULT = false,
 		},
@@ -4925,32 +4974,32 @@ t_basic_values = {
 		-- end, "__SELF", "__VALUE" },
 	},
 
-	-- ["ent_funcs"] = {
-	-- 	NAME = "Entity Functions",
-	-- 	DESC = "Runs pre-existing functions from the entity. Arguments are sent as-is and are NOT compiled as Lua",
-	-- 	CATEGORY = t_CAT.MISC,
-	-- 	TYPE = "struct_table",
-	-- 	STRUCT = {
-	-- 		["func"] = {
-	-- 			NAME = "Function",
-	-- 			SORTNAME = "a",
-	-- 			TYPE = "string",
-	-- 		},
-	-- 		["args"] = {
-	-- 			NAME = "Arguments",
-	-- 			SORTNAME = "b",
-	-- 			TYPE = "table",
-	-- 			TBLSTRUCT = {
-	-- 				TYPE = "any",
-	-- 			},
-	-- 		},
-	-- 		["delay"] = {
-	-- 			NAME = "Delay",
-	-- 			SORTNAME = "c",
-	-- 			TYPE = "number",
-	-- 		},
-	-- 	},
-	-- },
+	["ent_funcs"] = {
+		NAME = "Entity Functions",
+		DESC = "Runs pre-existing functions from the entity. Arguments are sent as-is and are NOT compiled as Lua",
+		CATEGORY = t_CAT.MISC,
+		TYPE = "struct_table",
+		STRUCT = {
+			["func"] = {
+				NAME = "Function",
+				SORTNAME = "a",
+				TYPE = "string",
+			},
+			["args"] = {
+				NAME = "Arguments",
+				SORTNAME = "b",
+				TYPE = "table",
+				TBLSTRUCT = {
+					TYPE = "any",
+				},
+			},
+			["delay"] = {
+				NAME = "Delay",
+				SORTNAME = "c",
+				TYPE = "number",
+			},
+		},
+	},
 
 	["drawshadow"] = {
 		NAME = "Draw Shadow",
