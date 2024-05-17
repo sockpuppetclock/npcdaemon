@@ -802,6 +802,13 @@ cvar = {
 		sort = "Spawn Auto-Adjust b",
 		altmax = 10,
 	},
+	spawn_limit_all = {
+		v = CreateConVar("npcd_spawn_limit_all", -1, cf, "Strict spawned entity limit over all pools, regardless of quota weight. Set to -1 to disable", -1 ),
+		t = "int",
+		n = "Total Entity Limit",
+		c = "Spawn Radius & Limits",
+		sort = "A",
+	},
 	idleout = {
 		v = CreateConVar("npcd_seekout_idleout_time", 1, cf, "NPCs idle for this many seconds will seekout others. Less than 0 to disable" ),
 		t = "number",

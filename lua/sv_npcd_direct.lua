@@ -72,7 +72,7 @@ function DoDirects( quotaOverride, sqQuotaOverride, spawnLimitOverride, radiusOv
 		end
 
 		local spQ, sqQ
-		if quotaOverride == -1 and ptbl["pool_spawnlimit"] then
+		if quotaOverride == -1 and ptbl["pool_spawnlimit"] then // fill pool
 			local sum = NPCMapCount( p )
 			spQ = ( ptbl["pool_spawnlimit"] * ( ptbl["spawn_autoadjust"] != false and SpawnMapScale or 1 ) ) - sum
 		end
@@ -235,11 +235,8 @@ function Direct( numQuota, numSqQuota, pool_t, mapLimit, squadLimit, RadiusTable
                )
             )
 		entityquota = math.Round( entityquota, 3 )
-		-- if debugged_spawner then
-		-- 	for _, v in ipairs( { mapLimit, psum, rem_spawn, quota_min, quota_max, math.Rand( quota_min, quota_max ), pool_t["quota_entity_mult"], pool_t["quota_entity_min"] and math.min( pool_t["quota_entity_min"], rem_spawn ) or cvar.spawn_quotaf_rawmin_spawn.v:GetFloat() } ) do
-		-- 		print( v )
-		-- 	end
-		-- end
+	else
+		entityquota = pool_t["quota_entity_min"] or cvar.spawn_quotaf_rawmin_spawn.v:GetFloat()
 	end
 
 	// squad quota
