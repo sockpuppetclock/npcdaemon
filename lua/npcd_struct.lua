@@ -3250,6 +3250,60 @@ t_value_structs["damagefilter"] = {
 				["announce_death"] = {
 					TYPE = "boolean",
 				},
+				["inputs"] = {
+					NAME = "Inputs",
+					DESC = "Entity I/O, using Entity:Fire()",
+					-- FUNCTION = {}, --[[ SpawnNPC() ]]
+					TYPE = "struct_table",
+					STRUCT = {
+						//string input, string param = nil, number delay = 0, Entity activator = nil, Entity caller = nil
+						["command"] = {
+							TYPE = "string",
+							REQUIRED = true,
+							LOOKUP_REROLL = true,
+							ENUM = {
+								["AddOutput"] = "AddOutput",
+								["Ignite"] =  "Ignite",
+								["IgniteLifetime"] =  "IgniteLifetime",
+								["Break"] =  "Break" ,
+								["BecomeRagdoll"] =  "BecomeRagdoll" ,
+								["StartScripting"] =  "StartScripting" ,
+								["StopScripting"] =  "StopScripting" ,
+								["Wake"] =  "Wake" ,
+								["GagEnable"] =  "GagEnable" ,
+								["GagDisable"] =  "GagDisable" ,
+								["IgnoreDangerSounds"] =  "IgnoreDangerSounds",
+								["HolsterWeapon"] =  "HolsterWeapon" ,
+								["UnholsterWeapon"] =  "UnholsterWeapon" ,
+								["HolsterAndDestroyWeapon"] =  "HolsterAndDestroyWeapon" ,
+								["DisableShadow"] =  "DisableShadow" ,
+								["EnableShadow"] =  "EnableShadow" ,
+								["DisableReceivingFlashlight"] =  "DisableReceivingFlashlight" ,
+								["EnableReceivingFlashlight"] =  "EnableReceivingFlashlight" ,
+							},
+						},
+						["value"] = {
+							DESC = "The value to send with the command",
+							TYPE = { "string", "int", "number", "boolean" },
+							LOOKUP_REROLL = true,
+							ENUM = {
+								["Self"] = "!self",
+								["Nearest Visible Player or First Player"] = "!pvsplayer",
+								["First Player"] = "!player",
+							},
+						},
+						["delay"] = {
+							DESC = "In seconds",
+							LOOKUP_REROLL = true,
+							TYPE = "number",
+						},
+						["repeats"] = {
+							NAME = "Repeat",
+							DESC = "Repeats input, affected by delay. If number, repeats number of times. If boolean and true, loops forever. Defaults to once per second if no delay is set",
+							TYPE = { "boolean", "number" }
+						},
+					},
+				},
 				["ent_funcs"] = {
 					NAME = "Entity Functions",
 					DESC = "Runs pre-existing functions from the entity. Arguments are sent as-is and are NOT compiled as Lua",
@@ -3258,12 +3312,14 @@ t_value_structs["damagefilter"] = {
 						["func"] = {
 							NAME = "Function",
 							SORTNAME = "a",
+							LOOKUP_REROLL = true,
 							TYPE = "string",
 						},
 						["args"] = {
 							NAME = "Arguments",
 							SORTNAME = "b",
 							TYPE = "table",
+							LOOKUP_REROLL = true,
 							TBLSTRUCT = {
 								TYPE = "any",
 							},
@@ -3271,9 +3327,10 @@ t_value_structs["damagefilter"] = {
 						["delay"] = {
 							NAME = "Delay",
 							SORTNAME = "c",
+							LOOKUP_REROLL = true,
 							TYPE = "number",
 						},
-						["repeat"] = {
+						["repeats"] = { // "repeat" is lua function, use "repeats"
 							NAME = "Repeat",
 							DESC = "Repeats function call, affected by delay. If number, repeats number of times. If boolean and true, loops forever. Defaults to once per second if no delay is set",
 							TYPE = { "boolean", "number" }
@@ -3366,6 +3423,60 @@ t_value_structs["damagefilter"] = {
 				["announce_death"] = {
 					TYPE = "boolean",
 				},
+				["inputs"] = {
+					NAME = "Inputs",
+					DESC = "Entity I/O, using Entity:Fire()",
+					-- FUNCTION = {}, --[[ SpawnNPC() ]]
+					TYPE = "struct_table",
+					STRUCT = {
+						//string input, string param = nil, number delay = 0, Entity activator = nil, Entity caller = nil
+						["command"] = {
+							TYPE = "string",
+							REQUIRED = true,
+							LOOKUP_REROLL = true,
+							ENUM = {
+								["AddOutput"] = "AddOutput",
+								["Ignite"] =  "Ignite",
+								["IgniteLifetime"] =  "IgniteLifetime",
+								["Break"] =  "Break" ,
+								["BecomeRagdoll"] =  "BecomeRagdoll" ,
+								["StartScripting"] =  "StartScripting" ,
+								["StopScripting"] =  "StopScripting" ,
+								["Wake"] =  "Wake" ,
+								["GagEnable"] =  "GagEnable" ,
+								["GagDisable"] =  "GagDisable" ,
+								["IgnoreDangerSounds"] =  "IgnoreDangerSounds",
+								["HolsterWeapon"] =  "HolsterWeapon" ,
+								["UnholsterWeapon"] =  "UnholsterWeapon" ,
+								["HolsterAndDestroyWeapon"] =  "HolsterAndDestroyWeapon" ,
+								["DisableShadow"] =  "DisableShadow" ,
+								["EnableShadow"] =  "EnableShadow" ,
+								["DisableReceivingFlashlight"] =  "DisableReceivingFlashlight" ,
+								["EnableReceivingFlashlight"] =  "EnableReceivingFlashlight" ,
+							},
+						},
+						["value"] = {
+							DESC = "The value to send with the command",
+							TYPE = { "string", "int", "number", "boolean" },
+							LOOKUP_REROLL = true,
+							ENUM = {
+								["Self"] = "!self",
+								["Nearest Visible Player or First Player"] = "!pvsplayer",
+								["First Player"] = "!player",
+							},
+						},
+						["delay"] = {
+							DESC = "In seconds",
+							LOOKUP_REROLL = true,
+							TYPE = "number",
+						},
+						["repeats"] = {
+							NAME = "Repeat",
+							DESC = "Repeats input, affected by delay. If number, repeats number of times. If boolean and true, loops forever. Defaults to once per second if no delay is set",
+							TYPE = { "boolean", "number" }
+						},
+					},
+				},
 				["ent_funcs"] = {
 					NAME = "Entity Functions",
 					DESC = "Runs pre-existing functions from the entity. Arguments are sent as-is and are NOT compiled as Lua",
@@ -3374,12 +3485,14 @@ t_value_structs["damagefilter"] = {
 						["func"] = {
 							NAME = "Function",
 							SORTNAME = "a",
+							LOOKUP_REROLL = true,
 							TYPE = "string",
 						},
 						["args"] = {
 							NAME = "Arguments",
 							SORTNAME = "b",
 							TYPE = "table",
+							LOOKUP_REROLL = true,
 							TBLSTRUCT = {
 								TYPE = "any",
 							},
@@ -3387,9 +3500,10 @@ t_value_structs["damagefilter"] = {
 						["delay"] = {
 							NAME = "Delay",
 							SORTNAME = "c",
+							LOOKUP_REROLL = true,
 							TYPE = "number",
 						},
-						["repeat"] = {
+						["repeats"] = {
 							NAME = "Repeat",
 							DESC = "Repeats function call, affected by delay. If number, repeats number of times. If boolean and true, loops forever. Defaults to once per second if no delay is set",
 							TYPE = { "boolean", "number" }
@@ -4209,6 +4323,7 @@ t_basic_values = {
          ["command"] = {
             TYPE = "string",
             REQUIRED = true,
+				LOOKUP_REROLL = true,
             ENUM = {
 					["AddOutput"] = "AddOutput",
                ["Ignite"] =  "Ignite",
@@ -4233,6 +4348,7 @@ t_basic_values = {
          ["value"] = {
             DESC = "The value to send with the command",
             TYPE = { "string", "int", "number", "boolean" },
+				LOOKUP_REROLL = true,
 				ENUM = {
 					["Self"] = "!self",
 					["Nearest Visible Player or First Player"] = "!pvsplayer",
@@ -4241,9 +4357,10 @@ t_basic_values = {
          },
          ["delay"] = {
             DESC = "In seconds",
+				LOOKUP_REROLL = true,
             TYPE = "number",
          },
-			["repeat"] = {
+			["repeats"] = {
 				NAME = "Repeat",
 				DESC = "Repeats input, affected by delay. If number, repeats number of times. If boolean and true, loops forever. Defaults to once per second if no delay is set",
 				TYPE = { "boolean", "number" }
@@ -5000,11 +5117,13 @@ t_basic_values = {
 			["func"] = {
 				NAME = "Function",
 				SORTNAME = "a",
+				LOOKUP_REROLL = true,
 				TYPE = "string",
 			},
 			["args"] = {
 				NAME = "Arguments",
 				SORTNAME = "b",
+				LOOKUP_REROLL = true,
 				TYPE = "table",
 				TBLSTRUCT = {
 					TYPE = "any",
@@ -5013,9 +5132,10 @@ t_basic_values = {
 			["delay"] = {
 				NAME = "Delay",
 				SORTNAME = "c",
+				LOOKUP_REROLL = true,
 				TYPE = "number",
 			},
-			["repeat"] = {
+			["repeats"] = {
 				NAME = "Repeat",
 				DESC = "Repeats function call, affected by delay. If number, repeats number of times. If boolean and true, loops forever. Defaults to once per second if no delay is set",
 				TYPE = { "boolean", "number" }
@@ -6406,6 +6526,7 @@ t_npc_class_values = {
             ["command"] = {
                TYPE = "string",
                REQUIRED = true,
+					LOOKUP_REROLL = true,
                ENUM = {
                   ["EnableArmorRecharge"] =  "EnableArmorRecharge" ,
                   ["DisableArmorRecharge"] =  "DisableArmorRecharge" ,
@@ -6417,12 +6538,24 @@ t_npc_class_values = {
 			   },
             ["value"] = {
                DESC = "The value to send with the command",
+					LOOKUP_REROLL = true,
                TYPE = { "string", "int", "number", "boolean" },
+					ENUM = {
+						["Self"] = "!self",
+						["Nearest Visible Player or First Player"] = "!pvsplayer",
+						["First Player"] = "!player",
+					},
             },
             ["delay"] = {
                DESC = "In seconds",
                TYPE = "number",
+					LOOKUP_REROLL = true,
             },
+				["repeats"] = {
+					NAME = "Repeat",
+					DESC = "Repeats input, affected by delay. If number, repeats number of times. If boolean and true, loops forever. Defaults to once per second if no delay is set",
+					TYPE = { "boolean", "number" }
+				},
 		   },
 	   },
    },
@@ -6943,7 +7076,7 @@ t_spawnpool_values = {
 			},
 			["outside"] = {
 				NAME = "Use Outside Area",
-				DESC = "If true, use the area OUTSIDE the radius (WIP, but works)",
+				DESC = "If true, use the area OUTSIDE the radius (WIP, only uses area further than max radius)",
 				TYPE = "boolean",
             DEFAULT = false,
 			},

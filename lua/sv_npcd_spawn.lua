@@ -863,14 +863,8 @@ function PostEntitySpawn( ent, ent_t )
 	if ent_t.bloodcolor then SetEntValues(ent, ent_t, "bloodcolor", GetLookup( "bloodcolor", ent_t.entity_type, nil, class ) ) end
 
 	if ent_t.inputs then
-		for _, itbl in pairs(ent_t.inputs) do // table of tables
-			-- SetEntValues( ent, itbl, "inputs", t_lookup[ent_t.entity_type]["inputs"].STRUCT )
-         ApplyValueTable(itbl, t_lookup[ent_t.entity_type]["inputs"].STRUCT)
-			-- PrintTable(itbl)
-			if !table.IsEmpty( itbl ) and itbl["command"] != nil then
-				ent:Fire( itbl["command"], itbl["value"], itbl["delay"] )
-			end
-		end
+		local lup_t = GetLookup( "inputs", ent_t.entity_type, nil, class )
+		CallEntityInputs(ent, ent_t.inputs, lup_t)
 	end
 
 	if ent_t.keyvalues then
@@ -946,61 +940,7 @@ function PostEntitySpawn( ent, ent_t )
 
 	if ent_t.ent_funcs then
 		local lup_t = GetLookup( "ent_funcs", ent_t.entity_type, nil, class )
-		CallEntityFunction(ent, ent_t.ent_funcs, lup_t)
-	end
-end
-
-function CallEntityFunction(ent, tbl, lup_t)
-	for _, st in pairs(tbl) do
-		SetEntValues(ent, st, "repeat", lup_t.STRUCT.repeat)
-		// if repeat
-		if st.repeat != nil and ( isnumber(st.repeat) or st.repeat == true ) then
-			if st.repeat <= 0 then
-				continue
-			else
-				local ent = ent
-				local tmp_delay = CopyData(st.delay) // original
-
-				ApplyValueTable( st, lup_t.STRUCT )
-				if st.func == nil or !isfunction(ent[st.func]) then continue end
-				local delay = st.delay or 1
-				local reps = a_st.repeat == true and 0 or st.repeat
-				local timername = "npcd_timer"..timerc
-				local st = st
-				
-				timer.Create("npcd_timer"..timerc, delay, reps, function()
-					if IsValid(ent) then
-						ent[st.func](ent, st.args and unpack(st.args))
-
-						if st.delay != tmp_delay then
-							st.delay = tmp_delay
-							SetEntValues(nil, st, "delay", lup_t.STRUCT.delay)
-							delay = st.delay or 1
-							timer.Adjust( timername, delay, nil, nil )
-						end
-					else
-						timer.Destroy( timername )
-					end
-				end)
-				timerc = timerc + 1
-				continue
-			end
-		end
-
-		// not repeat
-		ApplyValueTable( st, lup_t.STRUCT )
-		if st.func == nil or !isfunction(ent[st.func]) then continue end
-
-		if st.delay then
-			local ent = ent
-			timer.Simple(st.delay, function()
-				if IsValid(ent) then
-					ent[st.func](ent, st.args and unpack(st.args))
-				end
-			end)
-		elseif IsValid(ent) then
-			ent[st.func](ent, st.args and unpack(st.args))
-		end
+		CallEntityFunctions(ent, ent_t.ent_funcs, lup_t)
 	end
 end
 

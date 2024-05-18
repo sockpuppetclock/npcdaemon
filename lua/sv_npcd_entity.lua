@@ -525,6 +525,127 @@ function DoEntFunc( ent, func, val )
 	-- return CompileString(fun, "DoEntFunc")( ent, fargs )
 end
 
+function CallEntityInputs(ent, tbl, lup_t)
+	for _, itbl in pairs(tbl) do
+		if itbl["command"] == nil then
+			continue
+		end
+		SetEntValues(ent, itbl, "repeats", lup_t.STRUCT.repeats)
+		// if repeats
+		if itbl.repeats == true or isnumber(itbl.repeats) then
+			if isnumber(itbl.repeats) and itbl.repeats <= 0 then
+				continue
+			else
+				local ent = ent
+				ApplyValueTable( itbl, lup_t.STRUCT )
+				local tmp_delay = CopyData(itbl.delay) // original
+				local tmp_value = CopyData(itbl.value)
+				local tmp_command = CopyData(itbl.command)
+				
+				ApplyValueTable( itbl, lup_t.STRUCT, nil, true )
+				local delay = itbl.delay or 1
+				local reps = itbl.repeats == true and 0 or itbl.repeats
+				local timername = "npcd_timer"..timerc
+				local itbl = itbl
+				
+				timer.Create("npcd_timer"..timerc, delay, reps, function()
+					if IsValid(ent) and itbl.command != nil then
+						ent:Fire( itbl["command"], itbl["value"] )
+
+						if itbl.delay != tmp_delay then
+							itbl.delay = tmp_delay
+							SetEntValues(nil, itbl, "delay", lup_t.STRUCT.delay, true)
+							delay = itbl.delay or 1
+							timer.Adjust( timername, delay, nil, nil )
+						end
+						if itbl.value != tmp_value then
+							itbl.value = tmp_value
+							SetEntValues(nil, itbl, "value", lup_t.STRUCT.value, true)
+						end
+						if itbl.command != tmp_command then
+							itbl.command = tmp_command
+							SetEntValues(nil, itbl, "command", lup_t.STRUCT.command, true)
+						end
+					else
+						timer.Destroy( timername )
+					end
+				end)
+				timerc = timerc + 1
+				continue
+			end
+		else
+			ApplyValueTable(itbl, lup_t.STRUCT, nil, true)
+			ent:Fire( itbl["command"], itbl["value"], itbl["delay"] )
+		end
+	end
+end
+
+function CallEntityFunctions(ent, tbl, lup_t)
+	for _, st in pairs(tbl) do
+		if st.func == nil then continue end
+		SetEntValues(ent, st, "repeats", lup_t.STRUCT["repeats"])
+		// if repeats
+		if st.repeats == true or isnumber(st.repeats) then
+			if isnumber(st.repeats) and st.repeats <= 0 then
+				continue
+			else
+				local ent = ent
+				ApplyValueTable( st, lup_t.STRUCT )
+				local tmp_func = CopyData(st.func)
+				local tmp_delay = CopyData(st.delay) // original
+				local tmp_args = CopyData(st.args)
+
+				ApplyValueTable( st, lup_t.STRUCT, nil, true )
+				-- if st.func == nil or !isfunction(ent[st.func]) then continue end
+				local delay = st.delay or 1
+				local reps = st.repeats == true and 0 or st.repeats
+				local timername = "npcd_timer"..timerc
+				local st = st
+				
+				timer.Create("npcd_timer"..timerc, delay, reps, function()
+					if IsValid(ent) and st.func != nil and isfunction(ent[st.func]) then
+						ent[st.func](ent, st.args and unpack(st.args))
+
+						if st.delay != tmp_delay then
+							st.delay = tmp_delay
+							SetEntValues(nil, st, "delay", lup_t.STRUCT.delay, true)
+							delay = st.delay or 1
+							timer.Adjust( timername, delay, nil, nil )
+						end
+						if st.func != tmp_func then
+							st.func = tmp_func
+							SetEntValues(nil, st, "func", lup_t.STRUCT.func, true)
+						end
+						if st.args != tmp_args then
+							st.args = tmp_args
+							SetEntValues(nil, st, "args", lup_t.STRUCT.args, true)
+						end
+					else
+						timer.Destroy( timername )
+					end
+				end)
+				timerc = timerc + 1
+				continue
+			end
+		else
+			// not repeats
+			ApplyValueTable( st, lup_t.STRUCT, nil, true )
+			if st.func == nil or !isfunction(ent[st.func]) then continue end
+
+			if st.delay then
+				local ent = ent
+				timer.Simple(st.delay, function()
+					if IsValid(ent) then
+						ent[st.func](ent, st.args and unpack(st.args))
+					end
+				end)
+			elseif IsValid(ent) then
+				ent[st.func](ent, st.args and unpack(st.args))
+			end
+		end
+	end
+end
+
 // apply a preset to an existing entity
 function OverrideEntity( ent, p_ntbl, squad_t, preset_type, preset_name, extra_override_hard, extra_override_soft, replace )
 	if !IsValid( ent ) then return end

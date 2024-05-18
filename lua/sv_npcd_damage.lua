@@ -1086,8 +1086,11 @@ function DamageFilter( dmg, afilter, atkr, victim, apply, took )
 			timer.Simple( engine.TickInterval(), function() AnnounceDeath( atkr, ntbl, true ) end )
 		end
 
+		if filter["attacker"]["inputs"] then
+			CallEntityInputs( atkr, filter["attacker"]["inputs"], lup_t.STRUCT.attacker.STRUCT.inputs )
+		end
 		if filter["attacker"]["ent_funcs"] then
-			CallEntityFunction( atkr, filter["attacker"]["ent_funcs"], lup_t.STRUCT.attacker.STRUCT.ent_funcs )
+			CallEntityFunctions( atkr, filter["attacker"]["ent_funcs"], lup_t.STRUCT.attacker.STRUCT.ent_funcs )
 		end
 	end
 
@@ -1272,10 +1275,12 @@ function DamageFilter( dmg, afilter, atkr, victim, apply, took )
 			timer.Simple( engine.TickInterval(), function() AnnounceDeath( victim, ntbl, true ) end )
 		end
 
-		if filter["victim"]["ent_funcs"] then
-			CallEntityFunction( victim, filter["victim"]["ent_funcs"], lup_t.STRUCT.victim.STRUCT.ent_funcs )
+		if filter["victim"]["inputs"] then
+			CallEntityInputs( victim, filter["victim"]["inputs"], lup_t.STRUCT.victim.STRUCT.inputs )
 		end
-
+		if filter["victim"]["ent_funcs"] then
+			CallEntityFunctions( victim, filter["victim"]["ent_funcs"], lup_t.STRUCT.victim.STRUCT.ent_funcs )
+		end
 	end
 
 	if apply and IsValid( victim ) then victim:TakeDamageInfo( dmg ) end // do not use in TakeDamage hook!!
