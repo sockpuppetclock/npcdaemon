@@ -117,6 +117,7 @@ function Direct( numQuota, numSqQuota, pool_t, mapLimit, squadLimit, RadiusTable
 	local SpawnPool = pool_t["spawns"] --Settings.spawnpool[0]["squads"]
 	local RadiusTable = RadiusTable or radiuslimits
 	local PoolFilter = PoolFilter
+	local hardLimit = cvar.spawn_limit_all.v:GetFloat() // maplimit determines quota, but hardlimit is a global cutoff. ignore when -1
 
 	if table.IsEmpty( SpawnPool ) then
 		print("npcd > Direct > NO SQUADS IN POOL")
@@ -235,8 +236,6 @@ function Direct( numQuota, numSqQuota, pool_t, mapLimit, squadLimit, RadiusTable
                )
             )
 		entityquota = math.Round( entityquota, 3 )
-	else
-		entityquota = pool_t["quota_entity_min"] or cvar.spawn_quotaf_rawmin_spawn.v:GetFloat()
 	end
 
 	// squad quota
@@ -254,7 +253,14 @@ function Direct( numQuota, numSqQuota, pool_t, mapLimit, squadLimit, RadiusTable
 	local quotadone = false
 
 	// failsafe quota
-	if !entityquota and !squadquota then entityquota = 1 end
+	if !entityquota and !squadquota then
+		entityquota = pool_t["quota_entity_min"] or cvar.spawn_quotaf_rawmin_spawn.v:GetFloat()
+	end
+
+	if hardLimit != -1 then
+		local allsum = NPCMapCount()
+		entityquota = math.max( 0, math.min(entityquota, hardLimit - allsum) )
+	end
 	
 	local spawnedcount = 0
 	local despawnedcount = 0
@@ -292,8 +298,8 @@ function Direct( numQuota, numSqQuota, pool_t, mapLimit, squadLimit, RadiusTable
          // prevent double applying map scale
          if radtbl["radius_entity_limit"] then
             r_npc_lim = radtbl["radius_entity_limit"] * ( radtbl["radius_spawn_autoadjust"] != false and SpawnMapScale or 1 )
-         else
-            r_npc_lim = mapLimit or math.huge
+			else
+            r_npc_lim = mapLimit or hardLimit != -1 and hardLimit or math.huge
          end
          if radtbl["radius_squad_limit"] then
             r_sq_lim = radtbl["radius_squad_limit"] * ( radtbl["radius_spawn_autoadjust"] != false and SpawnMapScale or 1 )

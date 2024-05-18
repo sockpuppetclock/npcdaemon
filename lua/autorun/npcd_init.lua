@@ -803,7 +803,7 @@ cvar = {
 		altmax = 10,
 	},
 	spawn_limit_all = {
-		v = CreateConVar("npcd_spawn_limit_all", -1, cf, "Strict spawned entity limit over all pools, regardless of quota weight. Set to -1 to disable", -1 ),
+		v = CreateConVar("npcd_spawn_limit", -1, cf, "Auto-spawner entity limit over all pools, measured by quota weight. Set to -1 to disable", -1 ),
 		t = "int",
 		n = "Total Entity Limit",
 		c = "Spawn Radius & Limits",
