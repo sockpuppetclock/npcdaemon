@@ -1087,20 +1087,7 @@ function DamageFilter( dmg, afilter, atkr, victim, apply, took )
 		end
 
 		if filter["attacker"]["ent_funcs"] then
-			for _, st in pairs( filter["attacker"]["ent_funcs"] ) do
-				ApplyValueTable( st, lup_t.STRUCT.attacker.STRUCT.ent_funcs.STRUCT )
-				if st.func == nil or !isfunction(atkr[st.func]) then continue end
-				if st.delay then
-					local atkr = atkr
-					timer.Simple(st.delay, function()
-						if IsValid(atkr) then
-							atkr[st.func](atkr, st.args and unpack(st.args))
-						end
-					end)
-				elseif IsValid(atkr) then
-					atkr[st.func](atkr, st.args and unpack(st.args))
-				end
-			end
+			CallEntityFunction( atkr, filter["attacker"]["ent_funcs"], lup_t.STRUCT.attacker.STRUCT.ent_funcs )
 		end
 	end
 
@@ -1286,20 +1273,7 @@ function DamageFilter( dmg, afilter, atkr, victim, apply, took )
 		end
 
 		if filter["victim"]["ent_funcs"] then
-			for _, st in pairs( filter["victim"]["ent_funcs"] ) do
-				ApplyValueTable( st, lup_t.STRUCT.victim.STRUCT.ent_funcs.STRUCT )
-				if st.func == nil or !isfunction(victim[st.func]) then continue end
-				if st.delay then
-					local victim = victim
-					timer.Simple(st.delay, function()
-						if IsValid(victim) then
-							victim[st.func](victim, st.args and unpack(st.args))
-						end
-					end)
-				elseif IsValid(victim) then
-					victim[st.func](victim, st.args and unpack(st.args))
-				end
-			end
+			CallEntityFunction( victim, filter["victim"]["ent_funcs"], lup_t.STRUCT.victim.STRUCT.ent_funcs )
 		end
 
 	end

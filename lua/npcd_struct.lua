@@ -3273,6 +3273,11 @@ t_value_structs["damagefilter"] = {
 							SORTNAME = "c",
 							TYPE = "number",
 						},
+						["repeat"] = {
+							NAME = "Repeat",
+							DESC = "Repeats function call, affected by delay. If number, repeats number of times. If boolean and true, loops forever. Defaults to once per second if no delay is set",
+							TYPE = { "boolean", "number" }
+						},
 					},
 				},
 			},
@@ -3383,6 +3388,11 @@ t_value_structs["damagefilter"] = {
 							NAME = "Delay",
 							SORTNAME = "c",
 							TYPE = "number",
+						},
+						["repeat"] = {
+							NAME = "Repeat",
+							DESC = "Repeats function call, affected by delay. If number, repeats number of times. If boolean and true, loops forever. Defaults to once per second if no delay is set",
+							TYPE = { "boolean", "number" }
 						},
 					},
 				},
@@ -4233,6 +4243,11 @@ t_basic_values = {
             DESC = "In seconds",
             TYPE = "number",
          },
+			["repeat"] = {
+				NAME = "Repeat",
+				DESC = "Repeats input, affected by delay. If number, repeats number of times. If boolean and true, loops forever. Defaults to once per second if no delay is set",
+				TYPE = { "boolean", "number" }
+			},
 		},
 	},
 
@@ -4999,6 +5014,11 @@ t_basic_values = {
 				NAME = "Delay",
 				SORTNAME = "c",
 				TYPE = "number",
+			},
+			["repeat"] = {
+				NAME = "Repeat",
+				DESC = "Repeats function call, affected by delay. If number, repeats number of times. If boolean and true, loops forever. Defaults to once per second if no delay is set",
+				TYPE = { "boolean", "number" }
 			},
 		},
 	},
