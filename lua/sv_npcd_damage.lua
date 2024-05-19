@@ -1159,11 +1159,11 @@ function DamageFilter( dmg, afilter, atkr, victim, apply, took )
 		end
 
 		if filter["victim"]["freeze"] != nil and isfunction(victim.Freeze) then
-			if isnumber(filter["attacker"]["freeze"]) then
+			if isnumber(filter["victim"]["freeze"]) then
 				victim:Freeze(true)
-				timer.Simple( filter["attacker"]["freeze"], function() if IsValid(victim) then victim:Freeze(false) end end)
+				timer.Simple( filter["victim"]["freeze"], function() if IsValid(victim) then victim:Freeze(false) end end)
 			else
-				victim:Freeze(filter["attacker"]["freeze"])
+				victim:Freeze(filter["victim"]["freeze"])
 			end
 		end
 
