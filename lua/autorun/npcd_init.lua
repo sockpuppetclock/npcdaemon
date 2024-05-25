@@ -44,7 +44,7 @@ function RandomDecimal( min, max )
 end
 
 function CutLeftString(str, lim)
-   if !str or !lim then return str end
+   if !str or !isstring(str) then return tostring(str) end
    return #str > lim and string.Left(str, lim-3).."..." or str
 end
 
