@@ -257,7 +257,7 @@ function Direct( numQuota, numSqQuota, pool_t, mapLimit, squadLimit, RadiusTable
 		entityquota = pool_t["quota_entity_min"] or cvar.spawn_quotaf_rawmin_spawn.v:GetFloat()
 	end
 
-	if hardLimit != -1 then
+	if entityquota and hardLimit != -1 then
 		local allsum = NPCMapCount()
 		entityquota = math.max( 0, math.min(entityquota, hardLimit - allsum) )
 	end
@@ -299,7 +299,7 @@ function Direct( numQuota, numSqQuota, pool_t, mapLimit, squadLimit, RadiusTable
          if radtbl["radius_entity_limit"] then
             r_npc_lim = radtbl["radius_entity_limit"] * ( radtbl["radius_spawn_autoadjust"] != false and SpawnMapScale or 1 )
 			else
-            r_npc_lim = mapLimit or hardLimit != -1 and hardLimit or math.huge
+            r_npc_lim = math.min(mapLimit or math.huge, hardLimit != -1 and hardLimit or math.huge)
          end
          if radtbl["radius_squad_limit"] then
             r_sq_lim = radtbl["radius_squad_limit"] * ( radtbl["radius_spawn_autoadjust"] != false and SpawnMapScale or 1 )
@@ -665,7 +665,7 @@ function Direct( numQuota, numSqQuota, pool_t, mapLimit, squadLimit, RadiusTable
 		endcond["Squad Quota Done"] = (squadquota and squadcount >= squadquota)
 		endcond["No Valid Squads"] = table.IsEmpty( valid_squads )
 		endcond["No Radiuses Left"] = norads
-		endcond["Pool Entity Limit"] = ( mapLimit and mapCount >= mapLimit or false )
+		endcond["Pool Entity Limit"] = ( (mapLimit and mapCount >= mapLimit) or (hardLimit != -1 and mapCount >= hardLimit ) or false )
 		endcond["Pool Squad Limit"] = ( squadLimit and totalsquads >= squadLimit or false)
 
 		if debugged then print( "npcd > Direct > End Conditions:") end
