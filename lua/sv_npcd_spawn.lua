@@ -2324,7 +2324,8 @@ function SpawnDrop( ent, dpos, ang, drop_t, ntbl, dset_t, depth )
 			if drop_t.destroydelay then
 				local item = valid
 				timer.Simple(drop_t.destroydelay, function()
-					if IsValid(item) then
+					if IsValid(item)
+					and not (IsValid(item:GetOwner()) and item:GetOwner():IsPlayer()) then
 						item:Remove()
 					end
 				end)
