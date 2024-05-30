@@ -226,6 +226,10 @@ function SetEntValues( ent, ent_t, valueName, valueTbl, forced, nodefault, hist 
 				end
 
 				given = GetValueFunc( given )
+				// if result is enum
+				if given != nil and isstring(given) and valueTbl.TBLSTRUCT.ENUM and valueTbl.TBLSTRUCT.ENUM[given] ~= nil then
+					given = CopyData( valueTbl.TBLSTRUCT.ENUM[given] )
+				end
 			end
 
 			// function req, if included
@@ -300,6 +304,9 @@ function SetEntValues( ent, ent_t, valueName, valueTbl, forced, nodefault, hist 
 				return
 			end
 			given = GetValueFunc( given )
+			if given != nil and isstring(given) and valueTbl.ENUM and valueTbl.ENUM[given] ~= nil then
+				given = CopyData( valueTbl.ENUM[given] )
+			end
 		end
 
 		-- if istable( given ) and isfunction( given[1] ) then
@@ -382,6 +389,9 @@ function SetEntValues( ent, ent_t, valueName, valueTbl, forced, nodefault, hist 
 				return
 			end
 			given = GetValueFunc( given )
+			if given != nil and isstring(given) and valueTbl.ENUM and valueTbl.ENUM[given] ~= nil then
+				given = CopyData( valueTbl.ENUM[given] )
+			end
 		end
 
 		// type check
