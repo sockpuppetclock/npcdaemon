@@ -2684,37 +2684,37 @@ t_value_structs["damagefilter"] = {
                         },
                      },
                   },
-                  -- ["cumulative_kills"] = {
-                  --    DESC = "Count kills by this entity within a timeframe",
-                  --    TYPE = "struct",
-                  --    STRUCT = {
-                  --       ["kills"] = {
-                  --          TYPE = "number",
-                  --          DEFAULT = 0,
-                  --       },
-                  --       ["compare_cond"] = {
-                  --          DESC = "Comparison condition for passing",
-                  --          TYPE = "enum",
-                  --          ENUM = {
-                  --             ["Less"] = -2,
-                  --             ["Less or equal"] = -1,
-                  --             ["Equal"] = 0,
-                  --             ["Greater or equal"] = 1,
-                  --             ["Greater"] = 2,
-                  --          },
-                  --          REQUIRED = true,
-                  --       },
-                  --       ["timelimit"] = {
-                  --          DESC = "If given, must be within this timeframe in seconds",
-                  --          TYPE = "number",
-                  --       },
-                  --       ["reset_on_pass"] = {
-                  --          DESC = "Reset kill count whenever this subcondition passes. Note: This may or may not trigger if another filter passes before it",
-                  --          TYPE = "boolean",
-                  --          DEFAULT = true,
-                  --       },
-                  --    },
-                  -- },
+                  ["cumulative_kills"] = {
+                     DESC = "Count kills by this entity within a timeframe",
+                     TYPE = "struct",
+                     STRUCT = {
+                        ["kills"] = {
+                           TYPE = "number",
+                           DEFAULT = 0,
+                        },
+                        ["compare_cond"] = {
+                           DESC = "Comparison condition for passing",
+                           TYPE = "enum",
+                           ENUM = {
+                              ["Less"] = -2,
+                              ["Less or equal"] = -1,
+                              ["Equal"] = 0,
+                              ["Greater or equal"] = 1,
+                              ["Greater"] = 2,
+                           },
+                           REQUIRED = true,
+                        },
+                        ["timelimit"] = {
+                           DESC = "If given, must be within this timeframe in seconds",
+                           TYPE = "number",
+                        },
+                        ["reset_on_pass"] = {
+                           DESC = "Reset kill count whenever this subcondition passes. Note: This may or may not trigger if another filter passes before it",
+                           TYPE = "boolean",
+                           DEFAULT = true,
+                        },
+                     },
+                  },
 						["grounded"] = {
 							TYPE = "boolean",
 							DESC = "Only works correctly for NPCs and players. True to pass when grounded, false to fail when grounded",
@@ -2924,37 +2924,37 @@ t_value_structs["damagefilter"] = {
                         },
                      },
                   },
-                  -- ["cumulative_kills"] = {
-                  --    DESC = "Count kills by this entity within a timeframe",
-                  --    TYPE = "struct",
-                  --    STRUCT = {
-                  --       ["kills"] = {
-                  --          TYPE = "number",
-                  --          DEFAULT = 0,
-                  --       },
-                  --       ["compare_cond"] = {
-                  --          DESC = "Comparison condition for passing",
-                  --          TYPE = "enum",
-                  --          ENUM = {
-                  --             ["Less"] = -2,
-                  --             ["Less or equal"] = -1,
-                  --             ["Equal"] = 0,
-                  --             ["Greater or equal"] = 1,
-                  --             ["Greater"] = 2,
-                  --          },
-                  --          REQUIRED = true,
-                  --       },
-                  --       ["timelimit"] = {
-                  --          DESC = "If given, must be within this timeframe in seconds",
-                  --          TYPE = "number",
-                  --       },
-                  --       ["reset_on_pass"] = {
-                  --          DESC = "Reset kill count whenever this subcondition passes. Note: This may or may not trigger if another filter passes before it",
-                  --          TYPE = "boolean",
-                  --          DEFAULT = true,
-                  --       },
-                  --    },
-                  -- },
+                  ["cumulative_kills"] = {
+                     DESC = "Count kills by this entity within a timeframe",
+                     TYPE = "struct",
+                     STRUCT = {
+                        ["kills"] = {
+                           TYPE = "number",
+                           DEFAULT = 0,
+                        },
+                        ["compare_cond"] = {
+                           DESC = "Comparison condition for passing",
+                           TYPE = "enum",
+                           ENUM = {
+                              ["Less"] = -2,
+                              ["Less or equal"] = -1,
+                              ["Equal"] = 0,
+                              ["Greater or equal"] = 1,
+                              ["Greater"] = 2,
+                           },
+                           REQUIRED = true,
+                        },
+                        ["timelimit"] = {
+                           DESC = "If given, must be within this timeframe in seconds",
+                           TYPE = "number",
+                        },
+                        ["reset_on_pass"] = {
+                           DESC = "Reset kill count whenever this subcondition passes. Note: This may or may not trigger if another filter passes before it",
+                           TYPE = "boolean",
+                           DEFAULT = true,
+                        },
+                     },
+                  },
 						["grounded"] = {
 							TYPE = "boolean",
 							DESC = "Only works correctly for NPCs and players. True to pass when grounded, false to fail when grounded",

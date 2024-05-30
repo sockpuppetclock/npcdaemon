@@ -204,6 +204,8 @@ playerPerms = {} // individual player permissions
 
 damageTakenTotals = damageTakenTotals or {} // total per entity
 damageTakenTable = damageTakenTable or {}   // all counts, per entity, keyed by CurTime()
+killTotals = killTotals or {}
+killTable = killTable or {}
 
 pool_times = {}
 squad_times = {}

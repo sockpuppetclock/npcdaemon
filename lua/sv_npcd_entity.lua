@@ -1100,9 +1100,11 @@ hook.Add("EntityRemoved", "NPCD Entity Removed", function(ent)
 		activeCallback[ent] = nil
 	end
 
-	-- if activeCollide[ent] then
-		activeCollide[ent] = nil
-	-- end
+	activeCollide[ent] = nil
+	damageTakenTable[ent] = nil
+	damageTakenTotals[ent] = nil
+	killTotals[ent] = nil
+	killTable[ent] = nil
 end)
 
 hook.Add("OnNPCKilled", "NPCD NPC Killed", function(ent, killer, atk)
@@ -1125,4 +1127,14 @@ hook.Add("OnNPCKilled", "NPCD NPC Killed", function(ent, killer, atk)
 			if debugged_stress then print( "ply kill (normal npc)", add, killer.npcd_stress, killer, ent ) end
 		end
 	end
+	damageTakenTable[ent] = nil
+	damageTakenTotals[ent] = nil
+	killTotals[ent] = nil
+	killTable[ent] = nil
+
+	killTotals[killer] = ( killTotals[killer] or 0 ) + 1
+	
+	killTable[killer] = killTable[killer] or {}
+	local time = math.Round(CurTime(),1)
+	killTable[killer][time] = (killTable[killer][time] or 0 ) + 1
 end)

@@ -424,6 +424,31 @@ dmgf_cond_chks = {
          end
          return pass
       end,
+      ["cumulative_kills"] = function( val, atkr, victim, dmg )
+         if val.compare_cond == nil then return false end
+         
+         local kills = 0
+         if val.timelimit then
+            local backtime = CurTime() - val.timelimit
+            if killTable[atkr] then
+               for t, d in pairs(killTable[atkr]) do
+                  if t >= backtime then
+                     kills = kills + d
+                  end
+               end
+            end
+         else
+            kills = killTotals[atkr] or 0
+         end
+
+         local pass = compare_funcs[val.compare_cond] and compare_funcs[val.compare_cond](
+            kills, val.kills
+         )
+         if pass and val.reset_on_pass then
+            killTotals[atkr] = 0
+         end
+         return pass
+      end,
 		["presets"] = function( val, atkr, victim, dmg )
 			return dmgf_cond_struct_chk["valuechk"]( 
 				t_value_structs["damagefilter"].STRUCT["condition"].STRUCT["attacker"].STRUCT["presets"].STRUCT,
@@ -498,6 +523,31 @@ dmgf_cond_chks = {
          )
          if pass and val.reset_on_pass then
             damageTakenTotals[victim] = 0
+         end
+         return pass
+      end,
+		["cumulative_kills"] = function( val, atkr, victim, dmg )
+         if val.compare_cond == nil then return false end
+         
+         local kills = 0
+         if val.timelimit then
+            local backtime = CurTime() - val.timelimit
+            if killTable[victim] then
+               for t, d in pairs(killTable[victim]) do
+                  if t >= backtime then
+                     kills = kills + d
+                  end
+               end
+            end
+         else
+            kills = killTotals[victim] or 0
+         end
+
+         local pass = compare_funcs[val.compare_cond] and compare_funcs[val.compare_cond](
+            kills, val.kills
+         )
+         if pass and val.reset_on_pass then
+            killTotals[victim] = 0
          end
          return pass
       end,
